@@ -11,17 +11,27 @@ export interface IUser extends Document {
     providerAccountId?: string;    // unique OAuth account ID
     createdAt: Date;
     updatedAt: Date;
+
+      // Password Reset OTP
+    resetPasswordOTP?: string;
+    resetPasswordOTPExpires?: Date;
+    resetPasswordOTPAttempts?: number;  // track how many attempts
+    lastOTPSentAt?: Date;               // to control resend frequency
 }
 
 const userSchema = new Schema<IUser>(
     {
         name: { type: String, required: true, trim: true },
         email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-        passwordHash: { type: String, required: false },
+        passwordHash: { type: String },
         image: { type: String },
         emailVerified: { type: Date },
         provider: { type: String },
-        providerAccountId: { type: String }
+        providerAccountId: { type: String },
+        resetPasswordOTP: { type: String },
+        resetPasswordOTPExpires: { type: Date },
+        resetPasswordOTPAttempts: { type: Number, default: 0 },
+        lastOTPSentAt: { type: Date }
     },
     { timestamps: true }
 );

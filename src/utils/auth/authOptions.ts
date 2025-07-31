@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
@@ -23,8 +23,12 @@ export const authOptions: NextAuthOptions = {
                 await ConnectDB();
                 const user = await User.findOne({ email: credentials.email });
 
-                if (!user || !user.passwordHash) {
-                    throw new Error("Invalid email or password");
+                if (!user) throw new Error("Invalid email or password");
+
+                if (!user.passwordHash) {
+                    throw new Error(
+                        "Your account was created with Google. Please sign in with Google or reset your password."
+                    );
                 }
 
                 const isPasswordCorrect = await compare(
@@ -65,6 +69,9 @@ export const authOptions: NextAuthOptions = {
                         provider: account.provider,
                         providerAccountId: account.providerAccountId,
                         emailVerified: new Date(),
+                        resetPasswordOTP: undefined,
+                        resetPasswordOTPExpires: undefined,
+                        resetPasswordOTPAttempts: 0
                     });
                 }
             }
@@ -72,30 +79,34 @@ export const authOptions: NextAuthOptions = {
             return true;
         },
 
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
+            if (trigger === "update" && typeof session.remember === "boolean") {
+                token.remember = session.remember;
+            }
+
             if (user) {
                 token.id = user.id;
             }
+
             return token;
         },
 
         async session({ session, token }) {
-            if (token?.id) session.user.id = token.id as string;
+            session.user.id = token.id as string;
+            session.remember = typeof token.remember === "boolean" ? token.remember : false;
             return session;
         },
     },
 
     session: {
         strategy: "jwt",
+        maxAge: 60 * 60 * 24, // 1 day
+        updateAge: 60 * 60,   // 1 hour
     },
 
     pages: {
-        signIn: "/next-learn-user-authentication",
+        signIn: "/next-learn-user-auth",
     },
 
     secret: process.env.NEXTAUTH_SECRET,
 };
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };
