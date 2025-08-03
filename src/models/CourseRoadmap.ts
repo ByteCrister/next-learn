@@ -1,40 +1,54 @@
-// /models/CourseRoadmap.ts
-import mongoose, { Document, Model, Schema, Types } from "mongoose";
+import mongoose, { Document, Schema, Types, Model } from "mongoose";
 
-export interface IMilestone {
+export interface ISubChapter {
     title: string;
     description?: string;
-    date: Date;
+}
+
+export interface IChapter {
+    title: string;
+    description?: string;
+    subChapters: ISubChapter[];
 }
 
 export interface ICourseRoadmap extends Document {
     userId: Types.ObjectId;
+    subjectId?: Types.ObjectId;
     title: string;
     description?: string;
-    items: IMilestone[];
+    chapters: IChapter[];
     createdAt: Date;
     updatedAt: Date;
 }
 
-const MilestoneSchema = new Schema<IMilestone>(
+const subChapterSchema = new Schema<ISubChapter>(
     {
-        title: { type: String, required: true, trim: true },
+        title: { type: String, required: true },
         description: { type: String },
-        date: { type: Date, required: true },
     },
     { _id: false }
 );
 
-const roadmapSchema = new Schema<ICourseRoadmap>(
+const chapterSchema = new Schema<IChapter>(
+    {
+        title: { type: String, required: true },
+        description: { type: String },
+        subChapters: { type: [subChapterSchema], default: [] },
+    },
+    { _id: false }
+);
+
+const courseRoadmapSchema = new Schema<ICourseRoadmap>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        title: { type: String, required: true, trim: true },
+        subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
+        title: { type: String, required: true },
         description: { type: String },
-        items: { type: [MilestoneSchema], default: [] },
+        chapters: { type: [chapterSchema], default: [] },
     },
     { timestamps: true }
 );
 
 export const CourseRoadmap: Model<ICourseRoadmap> =
     mongoose.models.CourseRoadmap ||
-    mongoose.model<ICourseRoadmap>("CourseRoadmap", roadmapSchema);
+    mongoose.model<ICourseRoadmap>("CourseRoadmap", courseRoadmapSchema);

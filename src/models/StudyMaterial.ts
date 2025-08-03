@@ -1,26 +1,35 @@
-// /models/StudyMaterial.ts
-import mongoose, { Document, Model, Schema, Types } from "mongoose";
+import mongoose, { Document, Schema, Types, Model } from "mongoose";
 
 export type FileType = "pdf" | "ppt" | "image" | "other";
 
 export interface IStudyMaterial extends Document {
     userId: Types.ObjectId;
+    subjectId?: Types.ObjectId;
     roadmapId?: Types.ObjectId;
     filename: string;
     url: string;
     fileType: FileType;
     tags: string[];
+    description?: string;
+    visibility: "private" | "public";
     uploadedAt: Date;
 }
 
 const studyMaterialSchema = new Schema<IStudyMaterial>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
         roadmapId: { type: Schema.Types.ObjectId, ref: "CourseRoadmap" },
         filename: { type: String, required: true },
         url: { type: String, required: true },
-        fileType: { type: String, enum: ["pdf", "ppt", "image", "other"], default: "other" },
+        fileType: {
+            type: String,
+            enum: ["pdf", "ppt", "image", "other"],
+            default: "other",
+        },
         tags: { type: [String], default: [] },
+        description: { type: String },
+        visibility: { type: String, enum: ["private", "public"], default: "private" },
         uploadedAt: { type: Date, default: () => new Date() },
     },
     { timestamps: false }
