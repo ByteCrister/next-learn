@@ -1,9 +1,10 @@
-import { RoadmapEditor } from "@/components/Editor/RoadmapEditor"
+import CourseRoadmapEditorPage from "@/components/Editor/CourseRoadmapEditor";
 
-const Page = () => {
+export default function Page() {
+
   return (
-   <RoadmapEditor />
-  )
+    <main className="p-8 bg-gray-50 min-h-screen">
+      <CourseRoadmapEditorPage />
+    </main>
+  );
 }
-
-export default Page

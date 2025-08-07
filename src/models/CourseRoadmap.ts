@@ -1,54 +1,29 @@
-import mongoose, { Document, Schema, Types, Model } from "mongoose";
+// ==== models/CourseRoadmap.ts ====
+import { Schema, model, models } from 'mongoose';
 
-export interface ISubChapter {
-    title: string;
-    description?: string;
-}
+const StudyMaterialSchema = new Schema({
+    name: String,
+    type: String,
+    data: String, // base64 or URL
+});
 
-export interface IChapter {
-    title: string;
-    description?: string;
-    subChapters: ISubChapter[];
-}
+const SubchapterSchema = new Schema({
+    title: String,
+    content: {}, // TipTap JSON
+    materials: [StudyMaterialSchema],
+});
 
-export interface ICourseRoadmap extends Document {
-    userId: Types.ObjectId;
-    subjectId?: Types.ObjectId;
-    title: string;
-    description?: string;
-    chapters: IChapter[];
-    createdAt: Date;
-    updatedAt: Date;
-}
+const ChapterSchema = new Schema({
+    title: String,
+    content: {}, // TipTap JSON
+    subchapters: [SubchapterSchema],
+    materials: [StudyMaterialSchema],
+});
 
-const subChapterSchema = new Schema<ISubChapter>(
-    {
-        title: { type: String, required: true },
-        description: { type: String },
-    },
-    { _id: false }
-);
+const CourseRoadmapSchema = new Schema({
+    title: String,
+    description: String,
+    chapters: [ChapterSchema],
+});
 
-const chapterSchema = new Schema<IChapter>(
-    {
-        title: { type: String, required: true },
-        description: { type: String },
-        subChapters: { type: [subChapterSchema], default: [] },
-    },
-    { _id: false }
-);
-
-const courseRoadmapSchema = new Schema<ICourseRoadmap>(
-    {
-        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
-        title: { type: String, required: true },
-        description: { type: String },
-        chapters: { type: [chapterSchema], default: [] },
-    },
-    { timestamps: true }
-);
-
-export const CourseRoadmap: Model<ICourseRoadmap> =
-    mongoose.models.CourseRoadmap ||
-    mongoose.model<ICourseRoadmap>("CourseRoadmap", courseRoadmapSchema);
+export default models.CourseRoadmap || model("CourseRoadmap", CourseRoadmapSchema);
