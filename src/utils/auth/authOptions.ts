@@ -1,4 +1,4 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
@@ -6,7 +6,14 @@ import { User } from "@/models/User";
 import ConnectDB from "@/config/ConnectDB";
 import { Types } from "mongoose";
 
-// Setup the NextAuth options cleanly with types
+import type { JWT as DefaultJWT } from "next-auth/jwt";
+
+interface MyJWT extends DefaultJWT {
+    id?: string;
+    remember?: boolean;
+}
+
+
 export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
@@ -22,7 +29,6 @@ export const authOptions: NextAuthOptions = {
 
                 await ConnectDB();
                 const user = await User.findOne({ email: credentials.email });
-
                 if (!user) throw new Error("Invalid email or password");
 
                 if (!user.passwordHash) {
@@ -35,7 +41,6 @@ export const authOptions: NextAuthOptions = {
                     credentials.password,
                     user.passwordHash
                 );
-
                 if (!isPasswordCorrect) {
                     throw new Error("Invalid email or password");
                 }
@@ -71,37 +76,37 @@ export const authOptions: NextAuthOptions = {
                         emailVerified: new Date(),
                         resetPasswordOTP: undefined,
                         resetPasswordOTPExpires: undefined,
-                        resetPasswordOTPAttempts: 0
+                        resetPasswordOTPAttempts: 0,
                     });
                 }
             }
-
             return true;
         },
 
-        async jwt({ token, user, trigger, session }) {
-            if (trigger === "update" && typeof session.remember === "boolean") {
-                token.remember = session.remember;
-            }
+        async jwt({ token }) {
+            await ConnectDB();
 
-            if (user) {
-                token.id = user.id;
+            const dbUser = await User.findOne({ email: token.email }).select("_id");
+            if (dbUser) {
+                token.id = (dbUser._id as Types.ObjectId).toString();
             }
-
             return token;
         },
 
-        async session({ session, token }) {
-            session.user.id = token.id as string;
+        async session({ session, token }: { session: Session; token: MyJWT }) {
+            if (session.user) {
+                session.user.id = token.id ?? "";
+            }
             session.remember = typeof token.remember === "boolean" ? token.remember : false;
             return session;
         },
+
     },
 
     session: {
         strategy: "jwt",
         maxAge: 60 * 60 * 24, // 1 day
-        updateAge: 60 * 60,   // 1 hour
+        updateAge: 60 * 60, // 1 hour
     },
 
     pages: {

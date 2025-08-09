@@ -1,7 +1,8 @@
+import Subjects from "@/components/subjects/Subjects";
 
 const SubjectsPage = () => {
     return (
-        <div>Subjects</div>
+        <Subjects />
     )
 }
 

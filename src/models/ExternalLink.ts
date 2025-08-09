@@ -24,6 +24,7 @@ export type LinkCategory =
 
 export interface IExternalLink extends Document {
     userId: Types.ObjectId;
+    subjectId?: Types.ObjectId;
     url: string;
     title: string;
     description?: string;
@@ -34,6 +35,7 @@ export interface IExternalLink extends Document {
 const externalLinkSchema = new Schema<IExternalLink>(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
         url: { type: String, required: true },
         title: { type: String, required: true },
         description: { type: String },

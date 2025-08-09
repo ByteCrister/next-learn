@@ -1,17 +1,15 @@
-// G:\Projects\next-learn\src\types\types.roadmap.ts
-export interface ISubChapter {
+import { TipTapJSON } from "@/models/CourseRoadmap";
+
+export interface VChapter {
+    _id: string;
     title: string;
-    content?: string; // HTML string
 }
 
-export interface IChapter {
+export interface VCourseRoadmap {
+    _id: string;
     title: string;
-    content?: string; // HTML string
-    subChapters: ISubChapter[];
-}
-
-export interface ICourseRoadmap {
-    title: string;
-    content?: string; // roadmap intro HTML
-    chapters: IChapter[];
+    description: string;
+    roadmap: TipTapJSON;
+    subjectId: string;
+    chapters: VChapter[];
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import TipTapEditor from "./TipTapEditor";
+import TipTapEditor from "./TipTapContentEditor";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 

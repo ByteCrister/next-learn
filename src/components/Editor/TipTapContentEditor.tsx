@@ -37,7 +37,7 @@ interface TipTapEditorProps {
   className?: string;
 }
 
-export default function TipTapEditor({
+export default function TipTapContentEditor({
   content = "",
   onChange,
   editable = true,

@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import TipTapEditor from "./TipTapEditor";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import TipTapContentEditor from "./TipTapContentEditor";
 
 export default function CourseRoadmapEditorPage() {
   const [title, setTitle] = useState("");
@@ -37,7 +37,7 @@ export default function CourseRoadmapEditorPage() {
         >
           Intro Content
         </label>
-        <TipTapEditor
+        <TipTapContentEditor
           content={introContent}
           onChange={setIntroContent}
           className="prose prose-lg prose-blue max-w-full border border-gray-300 dark:border-gray-700 rounded-lg p-5 min-h-[250px] shadow-sm dark:prose-invert transition-colors duration-300"

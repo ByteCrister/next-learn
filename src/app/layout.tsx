@@ -1,23 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ToastContainer } from 'react-toastify';
-import { TooltipProvider } from "@/components/ui/tooltip";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Providers from "@/components/providers/Providers";
+import { Inter, Sora } from 'next/font/google'
 
 export const metadata: Metadata = {
   title: "Next Learn",
   description: "A user friendly study planner with organized roadmap management.",
 };
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const sora = Sora({ subsets: ['latin'], variable: '--font-sora' })
 
 export default function RootLayout({
   children,
@@ -25,19 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <TooltipProvider>
+    <html lang="en" className={`${inter.variable} ${sora.variable}`}>
+      <body className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+        <Providers>
           {children}
-        </TooltipProvider>
-        <ToastContainer
-          position="top-right"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop
-        />
+        </Providers>
       </body>
     </html>
   );
