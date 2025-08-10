@@ -12,6 +12,7 @@ export interface Subject {
     description?: string;
     createdAt: string;
     updatedAt: string;
+    selectedSubjectCounts?: SubjectCounts;
 }
 
 export interface SubjectCounts {

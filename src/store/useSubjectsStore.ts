@@ -8,24 +8,24 @@ import {
     updateSubject,
     deleteSubject,
     fetchSubjectById,
-    updateRoadmap,
-    createRoadmap,
 } from "@/utils/api/api.subjects";
 import { toast } from "react-toastify";
 import { Subject, SubjectCounts, SubjectInput } from "@/types/types.subjects";
 import { VCourseRoadmap } from "@/types/types.roadmap";
+import { createRoadmap, deleteRoadmap, updateRoadmap, updateRoadmapContent } from "@/utils/api/api.roadmap";
+
+type countFiledTypes = 'notes' | 'externalLinks' | 'studyMaterials';
 
 interface SubjectStore {
     subjects: Subject[];
-    notes: [];
-    externalLinks: [];
-    studyMaterials: [];
 
     selectedSubject: Subject | null;
     selectedRoadmap: VCourseRoadmap | null;
     loadingSelectedSubject: boolean;
 
-    counts: SubjectCounts;
+    subjectCounts: SubjectCounts;
+    updateSubjectCounts: (countFiled: countFiledTypes, options: '+' | '-') => void;
+    updateSelectedSubjectCounts: (countFiled: countFiledTypes, options: '+' | '-') => void;
 
     loadingNotes: boolean;
     loadingExternalLinks: boolean;
@@ -39,26 +39,32 @@ interface SubjectStore {
     editSubject: (id: string, updates: Partial<SubjectInput>) => Promise<void>;
     removeSubject: (id: string) => Promise<void>;
 
-    createRoadmap: (subjectId: string, input: { title: string; description: string }) => Promise<void>;
-    editRoadmap: (roadmapId: string, updates: { title: string; description: string }) => Promise<void>;
-
     fetchSubjectById: (id: string) => Promise<void>;
 
+    createRoadmap: (subjectId: string, input: { title: string; description: string }) => Promise<void>;
+    editRoadmap: (updates: { title: string; description: string, roadmapId: string }) => Promise<void>;
+    deleteRoadmap: (roadmapId: string) => Promise<string | undefined>;
 }
 
 export const useSubjectStore = create<SubjectStore>()(
-    devtools((set) => ({
+    devtools((set, get) => ({
         subjects: [],
-        counts: { notes: 0, externalLinks: 0, studyMaterials: 0 },
+        subjectCounts: { notes: 0, externalLinks: 0, studyMaterials: 0 },
+        selectedSubject: null,
+
         loadingSubjects: false,
+        loadingNotes: false,
+        loadingExternalLinks: false,
+        loadingStudyMaterials: false,
+
         loadingSubCrud: false,
 
         fetchSubjects: async () => {
             set({ loadingSubjects: true });
             try {
-                // your API now returns { subjects, counts }
+                //  API now returns { subjects, subjectCounts }
                 const data = (await getAllSubjects()) as
-                    | { subjects: Subject[]; counts: SubjectCounts }
+                    | { subjects: Subject[]; subjectCounts: SubjectCounts }
                     | { message: string };
 
                 if ("message" in data) {
@@ -69,7 +75,7 @@ export const useSubjectStore = create<SubjectStore>()(
 
                 set({
                     subjects: data.subjects,
-                    counts: data.counts,
+                    subjectCounts: data.subjectCounts,
                     loadingSubjects: false,
                 });
             } catch (err) {
@@ -141,21 +147,24 @@ export const useSubjectStore = create<SubjectStore>()(
 
         fetchSubjectById: async (id) => {
             set({ loadingSelectedSubject: true });
-            try {
-                const data = await fetchSubjectById(id);
-                if ("message" in data) {
-                    toast.error(data.message);
+            const cache = get().selectedSubject?._id?.toString() === id.toString();
+            if (!cache) {
+                try {
+                    const data = await fetchSubjectById(id);
+                    if ("message" in data) {
+                        toast.error(data.message);
+                        set({ loadingSelectedSubject: false });
+                        return;
+                    }
+                    set({
+                        selectedSubject: data.subject,
+                        selectedRoadmap: data.roadmap,
+                        loadingSelectedSubject: false,
+                    });
+                } catch (err) {
+                    toast.error((err as Error).message);
                     set({ loadingSelectedSubject: false });
-                    return;
                 }
-                set({
-                    selectedSubject: data.subject,
-                    selectedRoadmap: data.roadmap,
-                    loadingSelectedSubject: false,
-                });
-            } catch (err) {
-                toast.error((err as Error).message);
-                set({ loadingSelectedSubject: false });
             }
         },
 
@@ -168,18 +177,20 @@ export const useSubjectStore = create<SubjectStore>()(
                     toast.error(data.message);
                     return;
                 }
-                // Optionally update state here if needed (e.g., refresh roadmap)
-                set({ loadingSubCrud: false });
+                set({
+                    selectedRoadmap: data,
+                    loadingSubCrud: false
+                });
             } catch (err) {
                 set({ loadingSubCrud: false });
                 toast.error((err as Error).message);
             }
         },
 
-        editRoadmap: async (roadmapId, updates) => {
+        editRoadmap: async (updates) => {
             set({ loadingSubCrud: true });
             try {
-                const data = await updateRoadmap(roadmapId, updates);
+                const data = await updateRoadmap(updates);
                 if ("message" in data) {
                     set({ loadingSubCrud: false });
                     toast.error(data.message);
@@ -193,5 +204,66 @@ export const useSubjectStore = create<SubjectStore>()(
             }
         },
 
+        updateRoadmapContent: async (roadmapId: string, roadmapContent: string) => {
+            set({ loadingSubCrud: true });
+            try {
+                const data = await updateRoadmapContent(roadmapId, roadmapContent);;
+                if ("message" in data) {
+                    set({ loadingSubCrud: false });
+                    toast.error(data.message);
+                    return;
+                }
+                set({
+                    selectedRoadmap: data,
+                    loadingSubCrud: false
+                });
+            } catch (err) {
+                set({ loadingSubCrud: false });
+                toast.error((err as Error).message);
+            }
+        },
+
+        deleteRoadmap: async (roadmapId: string) => {
+            set({ loadingSubCrud: true });
+            try {
+                const res = await deleteRoadmap(roadmapId);
+                if ("message" in res && res.message !== "Deleted successfully") {
+                    toast.error(res.message);
+                    set({ loadingSubCrud: false });
+                    return;
+                }
+                set({ selectedRoadmap: null, loadingSubCrud: false });
+                toast.success("Roadmap deleted successfully");
+                return roadmapId;
+            } catch (err) {
+                toast.error((err as Error).message);
+                set({ loadingSubCrud: false });
+            }
+        },
+
+        updateSubjectCounts: (countFiled, options) => {
+            const newCount = options === '+' ? 1 : -1;
+            set((state) => ({
+                subjectCounts: {
+                    ...state.subjectCounts,
+                    [countFiled]: state.subjectCounts[countFiled] + newCount,
+                },
+            }))
+        },
+
+        updateSelectedSubjectCounts: (countField: keyof SubjectCounts, op: "+" | "-") => {
+            const delta = op === "+" ? 1 : -1;
+            set((state) => ({
+                selectedSubject: {
+                    ...state.selectedSubject!,
+                    selectedSubjectCounts: {
+                        ...state.selectedSubject!.selectedSubjectCounts!,
+                        [countField]:
+                            (state.selectedSubject!.selectedSubjectCounts![countField] || 0) +
+                            delta,
+                    },
+                },
+            }));
+        },
     }))
 );

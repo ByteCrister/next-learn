@@ -1,4 +1,4 @@
-import CourseRoadmapEditorPage from "@/components/Editor/CourseRoadmapEditor";
+import CourseRoadmapEditorPage from "@/components/Editor/TipTapEditor";
 
 export default function Page() {
 

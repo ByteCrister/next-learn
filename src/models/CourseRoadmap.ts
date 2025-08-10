@@ -10,22 +10,14 @@ export interface IStudyMaterial {
     data: string; // base64 or URL
 }
 
-/** Recursive Subchapter interface */
-export interface ISubchapter {
-    title: string;
-    content: TipTapJSON;
-    materials: IStudyMaterial[];
-    subchapters?: ISubchapter[]; // recursive!
-}
 
 /** Chapter interface, top-level subchapter container */
 export interface IChapter {
-    _id: Types.ObjectId;
+    _id?: Types.ObjectId;
     title: string;
     content: TipTapJSON;
     subjectId: Types.ObjectId;
     materials: IStudyMaterial[];
-    subchapters?: ISubchapter[];
 }
 
 /** Top-level CourseRoadmap */
@@ -43,32 +35,18 @@ const StudyMaterialSchema = new Schema<IStudyMaterial>({
     name: String,
     type: String,
     data: String,
-});
-
-// First define SubchapterSchema without subchapters field
-const SubchapterSchema = new Schema<ISubchapter>({
-    title: { type: String, required: true },
-    content: { type: Schema.Types.Mixed, required: true },
-    materials: { type: [StudyMaterialSchema], default: [] },
-});
-
-// Then add recursive subchapters field pointing to itself
-SubchapterSchema.add({
-    subchapters: { type: [SubchapterSchema], default: [] },
-});
+}, { _id: true });
 
 const ChapterSchema = new Schema<IChapter>({
     title: { type: String, required: true },
-    content: { type: Schema.Types.Mixed, required: true },
-    subjectId: { type: Schema.Types.ObjectId, required: true, ref: "Subject" },
+    content: { type: Schema.Types.Mixed },
     materials: { type: [StudyMaterialSchema], default: [] },
-    subchapters: { type: [SubchapterSchema], default: [] },
-});
+}, { _id: true });
 
 const CourseRoadmapSchema = new Schema<ICourseRoadmap>({
     title: { type: String, required: true },
     description: { type: String, default: "" },
-    roadmap: { type: Schema.Types.Mixed, required: true },
+    roadmap: { type: Schema.Types.Mixed },
     subjectId: { type: Schema.Types.ObjectId, required: true, ref: "Subject" },
     chapters: { type: [ChapterSchema], default: [] },
 });

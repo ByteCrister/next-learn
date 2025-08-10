@@ -1,4 +1,3 @@
-import { TipTapJSON } from "@/models/CourseRoadmap";
 
 export interface VChapter {
     _id: string;
@@ -9,7 +8,7 @@ export interface VCourseRoadmap {
     _id: string;
     title: string;
     description: string;
-    roadmap: TipTapJSON;
+    roadmap: string;
     subjectId: string;
     chapters: VChapter[];
 }

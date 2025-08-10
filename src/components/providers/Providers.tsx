@@ -1,4 +1,4 @@
-// components/Providers.tsx
+// components/providers/Providers.tsx
 'use client'
 
 import { ReactNode, useEffect } from 'react'

@@ -7,11 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SubjectCard } from "./SubjectCard";
 import { Pagination } from "./Pagination";
 import { useSubjectsSearch } from "@/hooks/useSubjectsSearch";
-import { BsBook } from "react-icons/bs";
+import { BsBook, BsFileEarmarkText, BsLink45Deg } from "react-icons/bs";
 import SearchBar from "./SearchBar";
 import { SortSelect } from "./SortSelect";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import NewSubjectPopover from "./NewSubjectModal";
+import { StatCard } from "./StatCard";
+import FullSubjectsSkeleton from "./SubjectsSkeleton";
 
 type SortOption = "alpha-asc" | "alpha-desc" | "newest" | "oldest";
 
@@ -25,7 +27,7 @@ const SORT_OPTIONS: { label: string; value: SortOption }[] = [
 const ITEMS_PER_PAGE = 8;
 
 export default function Subjects() {
-  const { subjects, loadingSubjects, fetchSubjects } = useSubjectStore();
+  const { subjects, subjectCounts = { notes: 0, externalLinks: 0, studyMaterials: 0 }, loadingSubjects, fetchSubjects } = useSubjectStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,15 +35,16 @@ export default function Subjects() {
   const [sortOption, setSortOption] = useState<SortOption>("alpha-asc");
   const [currentPage, setCurrentPage] = useState(1);
 
-useEffect(() => {
-  if (subjects.length === 0) {
-    fetchSubjects();
-  }
-  setBreadcrumbs([
-    { label: 'Home', href: '/' },
-    { label: 'Subjects', href: '/subjects' },
-  ]);
-}, [fetchSubjects, setBreadcrumbs, subjects]);
+  useEffect(() => {
+    if (subjects.length === 0) {
+      fetchSubjects();
+    }
+    setBreadcrumbs([
+      { label: 'Home', href: '/' },
+      { label: 'Subjects', href: '/subjects' },
+    ]);
+  }, [fetchSubjects, setBreadcrumbs, subjects]);
+
 
   const filteredSubjects = useMemo(() => {
     let list = subjects || [];
@@ -82,6 +85,8 @@ useEffect(() => {
     return filteredSubjects.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredSubjects, currentPage]);
 
+  if (loadingSubjects) return <FullSubjectsSkeleton />
+
   return (
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6 sm:p-8 lg:p-12">
       {/* Header */}
@@ -89,6 +94,30 @@ useEffect(() => {
         <BsBook className="text-3xl" aria-hidden="true" />
         <h1 className="text-4xl font-bold">Subjects</h1>
       </header>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <StatCard
+          label="Notes"
+          value={subjectCounts.notes ?? 0}
+          icon={<BsBook className="text-xl text-white" />}
+          gradientClasses="from-blue-500 to-indigo-600"
+        />
+
+        <StatCard
+          label="External Links"
+          value={subjectCounts.externalLinks ?? 0}
+          icon={<BsLink45Deg className="text-xl text-white" />}
+          gradientClasses="from-green-400 to-teal-500"
+        />
+
+        <StatCard
+          label="Study Materials"
+          value={subjectCounts.studyMaterials ?? 0}
+          icon={<BsFileEarmarkText className="text-xl text-white" />}
+          gradientClasses="from-purple-500 to-pink-500"
+        />
+      </div>
 
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">

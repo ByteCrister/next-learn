@@ -7,18 +7,16 @@ import { ClassNote } from "@/models/ClassNote";
 import ConnectDB from "@/config/ConnectDB";
 import { CourseRoadmap, IChapter, ICourseRoadmap } from "@/models/CourseRoadmap";
 import { getUserIdFromSession } from "@/utils/helpers/session";
+import { ExternalLink } from "@/models/ExternalLink";
+import { Types } from "mongoose";
+import { Subject as SubjectTypes } from "@/types/types.subjects";
 
-// Define minimal chapter info type for your mapping
-interface MinimalChapter {
-    _id: string;
-    title: string;
-}
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } } // Destructure params from the second argument
+    { params }: { params: { id: string } }
 ) {
-    const {id} = await params;
+    const { id } =await params;
     const userId = await getUserIdFromSession();
     if (!userId) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -27,33 +25,49 @@ export async function GET(
     try {
         await ConnectDB();
 
-        // Subject with full type
-        const subject: ISubject | null = await Subject.findById(id);
-        if (!subject || subject.userId.toString() !== userId) {
+        // Fetch subject
+        const subjectDoc = await Subject.findById(id).lean<ISubject & { _id: Types.ObjectId }>();
+        if (!subjectDoc || subjectDoc.userId.toString() !== userId) {
             return NextResponse.json({ message: "Not found" }, { status: 404 });
         }
 
-        // Find roadmap for subjectId
-        // .select() returns a Mongoose Document, so we type it accordingly
-        const roadmapDoc = await CourseRoadmap.findOne({ subjectId: subject._id })
+        // Count related items inline
+        const [studyMaterials, notes, externalLinks] = await Promise.all([
+            StudyMaterial.countDocuments({ subjectId: subjectDoc._id }),
+            ClassNote.countDocuments({ subjectId: subjectDoc._id }),
+            ExternalLink.countDocuments({ subjectId: subjectDoc._id }),
+        ]);
+
+        // Fetch roadmap
+        const roadmapDoc = await CourseRoadmap.findOne({ subjectId: subjectDoc._id })
             .select("title description roadmap subjectId chapters")
-            .lean<ICourseRoadmap & { chapters: IChapter[] }>(); // use .lean() for plain JS object
+            .lean<ICourseRoadmap & { chapters: IChapter[] }>();
 
-        let roadmap = null;
-        if (roadmapDoc) {
-            // Map chapters to minimal info
-            const minimalChapters: MinimalChapter[] = (roadmapDoc.chapters ?? []).map(
-                (chapter) => ({
-                    _id: chapter._id.toString(),
-                    title: chapter.title,
-                })
-            );
-
-            roadmap = {
+        const roadmap = roadmapDoc
+            ? {
                 ...roadmapDoc,
-                chapters: minimalChapters,
-            };
-        }
+                chapters: (roadmapDoc.chapters ?? []).map((chapter) => ({
+                    _id: chapter._id?.toString(),
+                    title: chapter.title,
+                })),
+            }
+            : null;
+
+        // Build typed Subject
+        const subject: SubjectTypes = {
+            _id: subjectDoc._id.toString(),
+            userId: subjectDoc.userId.toString(),
+            title: subjectDoc.title,
+            code: subjectDoc.code,
+            description: subjectDoc.description,
+            createdAt: subjectDoc.createdAt.toISOString(),
+            updatedAt: subjectDoc.updatedAt.toISOString(),
+            selectedSubjectCounts: {
+                studyMaterials,
+                notes,
+                externalLinks,
+            },
+        };
 
         return NextResponse.json({ subject, roadmap }, { status: 200 });
     } catch (error) {

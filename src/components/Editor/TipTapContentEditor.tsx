@@ -8,7 +8,10 @@ import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import ImageResize from 'tiptap-extension-resize-image';
 import DragHandle from '@tiptap/extension-drag-handle'
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Extension } from '@tiptap/core'
+import { keymap } from "prosemirror-keymap";
+import { sinkListItem, liftListItem } from "prosemirror-schema-list";
 
 import {
   FaBold,
@@ -30,6 +33,19 @@ import "../../styles/editor.css";
 import { compressImageToBase64 } from "@/lib/compress-image";
 import ImageSizeAlert from "../alerts/ImageSizeAlert";
 
+const ListKeymapExtension = Extension.create({
+  name: 'listKeymap',
+
+  addProseMirrorPlugins() {
+    return [
+      keymap({
+        Tab: (state, dispatch) => sinkListItem(state.schema.nodes.listItem)(state, dispatch),
+        'Shift-Tab': (state, dispatch) => liftListItem(state.schema.nodes.listItem)(state, dispatch),
+      }),
+    ]
+  },
+})
+
 interface TipTapEditorProps {
   content?: string;
   onChange: (html: string) => void;
@@ -44,6 +60,7 @@ export default function TipTapContentEditor({
   className,
 }: TipTapEditorProps) {
   const [showImageAlert, setShowImageAlert] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -51,6 +68,7 @@ export default function TipTapContentEditor({
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
       }),
+      ListKeymapExtension,
       Underline,
       Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
       Image,
@@ -58,13 +76,22 @@ export default function TipTapContentEditor({
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       DragHandle,
     ],
-    content,
+    content: content || "<p></p>",
     editable,
     immediatelyRender: false,
     onUpdate({ editor }) {
       onChange(editor.getHTML());
     },
   });
+
+  // if parent updates content (e.g., load), update editor
+  useEffect(() => {
+    if (!editor) return;
+    const current = editor.getHTML();
+    if (content && content !== current) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   const addImage = async () => {
     const input = document.createElement("input");
@@ -117,6 +144,31 @@ export default function TipTapContentEditor({
           <ToolbarButton label="Align Left" icon={<FaAlignLeft />} active={editor.isActive({ textAlign: "left" })} onClick={() => editor.chain().focus().setTextAlign("left").run()} />
           <ToolbarButton label="Align Center" icon={<FaAlignCenter />} active={editor.isActive({ textAlign: "center" })} onClick={() => editor.chain().focus().setTextAlign("center").run()} />
           <ToolbarButton label="Align Right" icon={<FaAlignRight />} active={editor.isActive({ textAlign: "right" })} onClick={() => editor.chain().focus().setTextAlign("right").run()} />
+          <ToolbarButton
+            label="Heading 3"
+            icon={<FaHeading />}
+            active={editor.isActive("heading", { level: 3 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          />
+          <ToolbarButton
+            label="Heading 4"
+            icon={<FaHeading />}
+            active={editor.isActive("heading", { level: 4 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+          />
+          <ToolbarButton
+            label="Heading 5"
+            icon={<FaHeading />}
+            active={editor.isActive("heading", { level: 5 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
+          />
+          <ToolbarButton
+            label="Heading 6"
+            icon={<FaHeading />}
+            active={editor.isActive("heading", { level: 6 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
+          />
+
           <ToolbarButton label="Reset Alignment" icon={<FaUndo />} onClick={() => editor.chain().focus().unsetTextAlign().run()} />
           <ToolbarButton label="Insert Image" icon={<FaImage />} onClick={addImage} />
           <LinkButton editor={editor} />

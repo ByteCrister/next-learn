@@ -69,3 +69,41 @@
   cursor: grab;
   z-index: 10;
 }
+
+
+.ProseMirror ul {
+  list-style-type: disc; /* default bullet */
+  margin-left: 1.25rem;
+}
+
+.ProseMirror ul ul {
+  list-style-type: circle; /* second level nested bullet */
+}
+
+.ProseMirror ul ul ul {
+  list-style-type: square; /* third level nested bullet */
+}
+
+.ProseMirror ol {
+  list-style-type: decimal; /* default numbering */
+  margin-left: 1.25rem;
+}
+
+.ProseMirror ol ol {
+  list-style-type: lower-alpha; /* second level */
+}
+
+.ProseMirror ol ol ol {
+  list-style-type: lower-roman; /* third level */
+}
+.ProseMirror li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Optionally for dark mode */
+.dark .ProseMirror ul,
+.dark .ProseMirror ol,
+.dark .ProseMirror li {
+  color: #d1d5db; /* Tailwind gray-300 */
+}

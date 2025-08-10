@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./Sidebar";
 import NavBar from "./NavBar";
@@ -15,8 +15,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const isPublicPage = pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/reset");
+  const noLayoutRoutes = useMemo(
+    () => ["/", "/login", "/reset"],
+    []
+  );
 
+  // Check if current path matches any of them (exact or as a prefix)
+  const isNoLayoutPage = noLayoutRoutes.some((route) =>
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
   // Detect screen size on mount & resize
   useEffect(() => {
     const handleResize = () => {
@@ -33,7 +40,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (isPublicPage) {
+  if (isNoLayoutPage) {
     return <>{children}</>;
   }
 
