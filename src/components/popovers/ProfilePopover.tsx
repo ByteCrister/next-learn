@@ -12,6 +12,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ProfileForm, profileSchema } from '@/utils/auth/ProfileValidation';
 
+const DEFAULT_AVATAR = `/images/default-avatar.jpeg`;
+
 interface PropTypes {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -67,7 +69,7 @@ export default function ProfilePopover({ isOpen, setIsOpen }: PropTypes) {
             className="ml-auto flex items-center gap-2 px-3 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             <Image
-              src={user?.image || '/no-avatar.png'}
+              src={user?.image || DEFAULT_AVATAR}
               alt="Avatar"
               width={36}
               height={36}

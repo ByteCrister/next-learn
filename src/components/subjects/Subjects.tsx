@@ -43,7 +43,8 @@ export default function Subjects() {
       { label: 'Home', href: '/' },
       { label: 'Subjects', href: '/subjects' },
     ]);
-  }, [fetchSubjects, setBreadcrumbs, subjects]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjects]);
 
 
   const filteredSubjects = useMemo(() => {

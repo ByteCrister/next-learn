@@ -19,4 +19,5 @@ export interface SubjectCounts {
     notes: number;
     externalLinks: number;
     studyMaterials: number;
+    chapters: number;
 }

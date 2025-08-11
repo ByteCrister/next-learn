@@ -1,7 +1,7 @@
 
 const page = () => {
     return (
-        <div>Note Editor Page</div>
+        <div>Chapter</div>
     )
 }
 

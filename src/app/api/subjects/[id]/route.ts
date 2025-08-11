@@ -53,6 +53,8 @@ export async function GET(
             }
             : null;
 
+            const chapters = roadmapDoc ? (roadmapDoc.chapters ?? []).length : 0;
+
         // Build typed Subject
         const subject: SubjectTypes = {
             _id: subjectDoc._id.toString(),
@@ -66,6 +68,7 @@ export async function GET(
                 studyMaterials,
                 notes,
                 externalLinks,
+                chapters,
             },
         };
 

@@ -31,9 +31,9 @@ export default function SubjectPageLoading() {
             animate={{ opacity: 1 }}
             className="relative p-6 rounded-3xl bg-indigo-300/30 shadow-lg"
           >
-            <Skeleton className="h-10 w-10 bg-neutral-300 rounded-full mb-4" />
-            <Skeleton className="h-6 bg-neutral-200 w-2/3 mb-2" />
-            <Skeleton className="h-12 bg-neutral-200 w-1/2" />
+            <Skeleton className="h-10 w-10 bg-neutral-400 rounded-full mb-4" />
+            <Skeleton className="h-6 bg-neutral-400 w-2/3 mb-2" />
+            <Skeleton className="h-12 bg-neutral-400 w-1/2" />
           </motion.div>
         ))}
       </div>

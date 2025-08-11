@@ -1,39 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { useSubjectStore } from "@/store/useSubjectsStore";
-import { useChapterStore } from "@/store/useChapterStore";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import TipTapEditor from "@/components/Editor/TipTapEditor";
+import { Pencil, ArrowLeft } from "lucide-react";
 
 import { SubjectInput } from "@/types/types.subjects";
 import { updateRoadmapContent } from "@/utils/api/api.roadmap";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import EditSubjectForm from "./EditSubjectForm";
-import SubjectCounts from "./SubjectCounts";
+import SubjectCounts from "./SubjectBadges";
 import RoadmapInfoCard from "./RoadmapInfoCard";
 import SubjectPageLoading from "./SubjectPageLoading";
+import HtmlContent from "@/components/global/HtmlContent";
+import { ShareSubjectButton } from "./ShareSubjectButton";
 
 const fadeIn = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } };
-const hoverScale = { scale: 1.03 };
-const MotionButton = motion(Button);
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
-    const router = useRouter();
     const {
         fetchSubjectById,
         selectedSubject,
@@ -44,11 +32,9 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
         createRoadmap,
         editRoadmap,
         deleteRoadmap,
-        subjectCounts,
         loadingSubCrud,
     } = useSubjectStore();
 
-    const { createChapter, loadingCrud: loadingChapterCrud } = useChapterStore();
     const { setBreadcrumbs } = useBreadcrumbStore();
 
     const [subjectForm, setSubjectForm] = useState<SubjectInput>({
@@ -59,12 +45,12 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const [roadmapTitle, setRoadmapTitle] = useState("");
     const [roadmapDescription, setRoadmapDescription] = useState("");
     const [roadmapContent, setRoadmapContent] = useState<string>("");
-    const [chapterTitle, setChapterTitle] = useState("");
-    const [open, setOpen] = useState(false);
+    const [viewMode, setViewMode] = useState(true);
 
     useEffect(() => {
         fetchSubjectById(subjectId);
-    }, [fetchSubjectById, subjectId]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subjectId]);
 
     useEffect(() => {
         if (selectedSubject) {
@@ -85,7 +71,6 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
             { label: `${selectedSubject?.title ?? ''}`, href: `/subjects/${selectedSubject?._id}` },
         ]);
 
-        console.log(selectedRoadmap);
     }, [selectedSubject, selectedRoadmap, setBreadcrumbs]);
 
     if (loadingSelectedSubject) return <SubjectPageLoading />
@@ -124,21 +109,11 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
         await deleteRoadmap(selectedRoadmap?._id ?? '');
     }
 
-    const handleCreateChapter = async () => {
-        if (!chapterTitle.trim()) return;
-        const id = await createChapter({
-            title: chapterTitle,
-            roadmapId: selectedRoadmap?._id ?? "",
-        });
-        if (id) {
-            setOpen(false);
-            setChapterTitle("");
-            router.push(`/subjects/${subjectId}/${id}`);
-        }
-    };
-
     return (
         <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-white space-y-10 rounded-2xl">
+            {/* Top right share button */}
+            <ShareSubjectButton subjectId={subjectId} />
+
             {/* Subject Form */}
             <EditSubjectForm
                 subjectForm={subjectForm}
@@ -151,7 +126,8 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
             {/* Counts */}
             <SubjectCounts
                 subjectId={subjectId}
-                subjectCounts={subjectCounts}
+                subjectCounts={selectedSubject?.selectedSubjectCounts || null}
+                loading={loadingSelectedSubject}
             />
 
             {/* Roadmap Info */}
@@ -167,80 +143,52 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                 loadingDelete={loadingSubCrud}
             />
 
-
             {/* Roadmap Content */}
-            {selectedRoadmap?._id && (<motion.div initial="hidden" animate="visible" variants={fadeIn}>
-                <h2 className="text-2xl font-bold text-center text-indigo-700 mb-4">
-                    Roadmap Content
-                </h2>
-                <TipTapEditor
-                    content={roadmapContent}
-                    onChange={setRoadmapContent}
-                    handleSave={handleSaveContent}
-                />
-            </motion.div>)}
+            {selectedRoadmap?._id && (
+                <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+                    <h2 className="text-2xl font-bold text-center text-indigo-700 mb-4">
+                        Roadmap Content
+                    </h2>
 
-            {/* Chapters List */}
-            <div className="max-w-4xl mx-auto space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-semibold text-purple-600">Chapters</h3>
-                    {selectedRoadmap && (
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger asChild>
-                                <MotionButton className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600">
-                                    Add Chapter
-                                </MotionButton>
-                            </DialogTrigger>
-                            <DialogContent className="bg-white/80 backdrop-blur-lg rounded-xl p-6">
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl">New Chapter</DialogTitle>
-                                </DialogHeader>
-                                <Input
-                                    placeholder="Chapter Title"
-                                    value={chapterTitle}
-                                    onChange={(e) => setChapterTitle(e.target.value)}
-                                />
-                                <MotionButton
-                                    onClick={handleCreateChapter}
-                                    disabled={loadingChapterCrud || !chapterTitle.trim()}
-                                    className="mt-4 w-full bg-gradient-to-r from-purple-600 to-indigo-600"
-                                >
-                                    Create
-                                </MotionButton>
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                </div>
+                    {viewMode ? (
+                        <div className="relative">
+                            <HtmlContent html={roadmapContent} />
 
-                {selectedRoadmap?.chapters?.length ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {selectedRoadmap.chapters.map((chapter) => (
-                            <motion.div
-                                key={chapter._id}
-                                whileHover={hoverScale}
-                                transition={{ type: "spring", stiffness: 300 }}
+                            {/* Edit Icon Button */}
+                            <Button
+                                size="icon"
+                                onClick={() => setViewMode(false)}
+                                className="absolute top-4 right-4 bg-indigo-500 hover:bg-indigo-600 p-2 rounded-full"
+                                title="Edit content"
                             >
-                                <Link
-                                    href={`/subjects/${subjectId}/${chapter._id}`}
-                                    className="block"
-                                >
-                                    <Card className="bg-white/30 backdrop-blur-lg rounded-xl shadow-md border border-white/20">
-                                        <CardHeader>
-                                            <CardTitle className="text-lg text-indigo-800">
-                                                {chapter.title}
-                                            </CardTitle>
-                                        </CardHeader>
-                                    </Card>
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-center text-gray-500">
-                        No chapters yet. Add your first!
-                    </p>
-                )}
-            </div>
+                                <Pencil className="w-5 h-5 text-white" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="relative">
+                            {/* Back button for editor */}
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                onClick={() => setViewMode(true)}
+                                className="absolute top-4 right-4 mb-3 flex items-center justify-center p-2 rounded-full"
+                                title="Back to view"
+                            >
+                                <ArrowLeft className="w-5 h-5" />
+                            </Button>
+
+                            <TipTapEditor
+                                content={roadmapContent}
+                                onChange={setRoadmapContent}
+                                handleSave={async () => {
+                                    await handleSaveContent();
+                                    setViewMode(true);
+                                }}
+                            />
+                        </div>
+                    )}
+                </motion.div>
+            )}
         </div>
     );
 };

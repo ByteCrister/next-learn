@@ -23,6 +23,7 @@ interface SubjectStore {
     selectedRoadmap: VCourseRoadmap | null;
     loadingSelectedSubject: boolean;
 
+    // * Total counts for all subjects
     subjectCounts: SubjectCounts;
     updateSubjectCounts: (countFiled: countFiledTypes, options: '+' | '-') => void;
     updateSelectedSubjectCounts: (countFiled: countFiledTypes, options: '+' | '-') => void;
@@ -49,7 +50,7 @@ interface SubjectStore {
 export const useSubjectStore = create<SubjectStore>()(
     devtools((set, get) => ({
         subjects: [],
-        subjectCounts: { notes: 0, externalLinks: 0, studyMaterials: 0 },
+        subjectCounts: { notes: 0, externalLinks: 0, studyMaterials: 0, chapters: 0 },
         selectedSubject: null,
 
         loadingSubjects: false,
@@ -146,25 +147,29 @@ export const useSubjectStore = create<SubjectStore>()(
         },
 
         fetchSubjectById: async (id) => {
-            set({ loadingSelectedSubject: true });
             const cache = get().selectedSubject?._id?.toString() === id.toString();
-            if (!cache) {
-                try {
-                    const data = await fetchSubjectById(id);
-                    if ("message" in data) {
-                        toast.error(data.message);
-                        set({ loadingSelectedSubject: false });
-                        return;
-                    }
-                    set({
-                        selectedSubject: data.subject,
-                        selectedRoadmap: data.roadmap,
-                        loadingSelectedSubject: false,
-                    });
-                } catch (err) {
-                    toast.error((err as Error).message);
+            if (cache) {
+                set({ loadingSelectedSubject: false });
+                return;
+            }
+
+            set({ loadingSelectedSubject: true });
+
+            try {
+                const data = await fetchSubjectById(id);
+                if ("message" in data) {
+                    toast.error(data.message);
                     set({ loadingSelectedSubject: false });
+                    return;
                 }
+                set({
+                    selectedSubject: data.subject,
+                    selectedRoadmap: data.roadmap,
+                    loadingSelectedSubject: false,
+                });
+            } catch (err) {
+                toast.error((err as Error).message);
+                set({ loadingSelectedSubject: false });
             }
         },
 

@@ -1,7 +1,7 @@
 
-const NewNotePage = () => {
+const page = () => {
     return (
         <div>New Note Page</div>
     )
 }
-export default NewNotePage;
+export default page;

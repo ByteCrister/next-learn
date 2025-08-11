@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',                   // only https
+        hostname: 'community.softr.io',
+        pathname: '/**',                     // allow any path under this host
+      },
+      {
+        protocol: 'https',                   // only https
         hostname: 'www.shutterstock.com',
         port: '',                            // default port
         pathname: '/**',                     // allow any path under this host

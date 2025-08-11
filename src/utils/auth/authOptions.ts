@@ -13,6 +13,9 @@ interface MyJWT extends DefaultJWT {
     remember?: boolean;
 }
 
+const ONE_DAY = 60 * 60 * 24;
+const ONE_MONTH = 60 * 60 * 24 * 30;
+
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -90,6 +93,13 @@ export const authOptions: NextAuthOptions = {
             if (dbUser) {
                 token.id = (dbUser._id as Types.ObjectId).toString();
             }
+
+            if (token.remember) {
+                token.exp = Math.floor(Date.now() / 1000) + ONE_MONTH;
+            } else {
+                token.exp = Math.floor(Date.now() / 1000) + ONE_DAY;
+            }
+
             return token;
         },
 

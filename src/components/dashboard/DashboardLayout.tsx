@@ -5,25 +5,28 @@ import { AnimatePresence, motion } from "framer-motion";
 import Sidebar from "./Sidebar";
 import NavBar from "./NavBar";
 import { usePathname } from "next/navigation";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { user } = useDashboardStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
   const noLayoutRoutes = useMemo(
-    () => ["/", "/login", "/reset"],
+    () => ["/", "/login", "/reset", "/view-subject"],
     []
   );
 
   // Check if current path matches any of them (exact or as a prefix)
   const isNoLayoutPage = noLayoutRoutes.some((route) =>
-    pathname === route || pathname.startsWith(`${route}/`)
+    pathname === route || pathname.startsWith(route + "/")
   );
+
   // Detect screen size on mount & resize
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +43,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (isNoLayoutPage) {
+  if (!user || isNoLayoutPage) {
     return <>{children}</>;
   }
 
