@@ -2,39 +2,59 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const AUTH_ONLY_ROUTES = new Set([
-    "/login",
-    "/reset",
-]);
+// Guest-only pages (cannot be visited if logged in)
+const AUTH_ONLY_ROUTES = [/^\/login$/, /^\/reset$/];
+
+// Public pages (accessible with or without login)
+const PUBLIC_ROUTES = [
+    /^\/$/,                      // home
+    // /^\/about$/,
+    // /^\/contact$/,
+    // /^\/terms$/,
+    // /^\/privacy$/,
+    /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
+];
+
+// Public API routes (accessible with or without login)
+const PUBLIC_APIS = [
+    /^\/api\/view\/subject$/,    // GET /api/view/subject
+    /^\/api\/view\/note$/,       // GET /api/view/note
+];
 
 const isPublicFile = (pathname: string) =>
     pathname.startsWith("/_next/") ||
-    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/auth") || // keep auth endpoints open
     pathname === "/favicon.ico" ||
-    /\.(.*)$/.test(pathname); // catches assets like .jpg, .js, .svg etc.
+    /\.(.*)$/.test(pathname);
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    // 1. Allow static files and Next.js internals
+    // 1. Allow static files & Next.js internals
     if (isPublicFile(pathname)) {
         return NextResponse.next();
     }
 
-    // 2. Get token to check auth status
+    // 2. Allow public API routes without authentication
+    if (PUBLIC_APIS.some(rx => rx.test(pathname))) {
+        return NextResponse.next();
+    }
+
+    // 3. Get token to check auth status
     const token = await getToken({
         req,
         secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // 3. If authenticated and trying to access auth-only (login/reset) pages → redirect to "/"
-    if (token && AUTH_ONLY_ROUTES.has(pathname)) {
+    // 4. Authenticated users visiting guest-only pages → redirect to home
+    if (token && AUTH_ONLY_ROUTES.some(rx => rx.test(pathname))) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 4. If unauthenticated and trying to access protected routes (excluding "/", login, reset) → redirect to login
+    // 5. If unauthenticated and route is not public → redirect to login
     const isProtectedRoute =
-        pathname !== "/" && !AUTH_ONLY_ROUTES.has(pathname);
+        !AUTH_ONLY_ROUTES.some(rx => rx.test(pathname)) &&
+        !PUBLIC_ROUTES.some(rx => rx.test(pathname));
 
     if (!token && isProtectedRoute) {
         const loginUrl = req.nextUrl.clone();
@@ -43,10 +63,9 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // 5. Allow access otherwise
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico|api/auth).*)"],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

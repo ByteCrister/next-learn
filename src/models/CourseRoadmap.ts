@@ -3,21 +3,11 @@ import { JSONContent } from "@tiptap/react"; // or '@tiptap/core'
 
 export type TipTapJSON = JSONContent;
 
-/** StudyMaterial sub-document */
-export interface IStudyMaterial {
-    name: string;
-    type: string;
-    data: string; // base64 or URL
-}
-
-
-/** Chapter interface, top-level subchapter container */
+/** Chapter interface **/
 export interface IChapter {
     _id?: Types.ObjectId;
     title: string;
     content: TipTapJSON;
-    subjectId: Types.ObjectId;
-    materials: IStudyMaterial[];
 }
 
 /** Top-level CourseRoadmap */
@@ -31,16 +21,9 @@ export interface ICourseRoadmap extends Document {
 
 /** Schemas */
 
-const StudyMaterialSchema = new Schema<IStudyMaterial>({
-    name: String,
-    type: String,
-    data: String,
-}, { _id: true });
-
 const ChapterSchema = new Schema<IChapter>({
     title: { type: String, required: true },
     content: { type: Schema.Types.Mixed },
-    materials: { type: [StudyMaterialSchema], default: [] },
 }, { _id: true });
 
 const CourseRoadmapSchema = new Schema<ICourseRoadmap>({

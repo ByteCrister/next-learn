@@ -140,7 +140,7 @@ export const useDashboardStore = create<DashboardState>()(
                     });
                 }
             } catch (err) {
-                toast.error((err as Error).message);
+                console.log((err as Error).message);
             } finally {
                 set({ loading: false });
             }
