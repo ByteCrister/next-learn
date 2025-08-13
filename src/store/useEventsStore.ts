@@ -1,0 +1,127 @@
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { toast } from "react-toastify";
+
+import {
+  createEvent,
+  updateEvent,
+  getEvents,
+  deleteEvent,
+} from "@/utils/api/api.events";
+
+import { VEvent } from "@/types/types.events";
+
+interface EventsState {
+  events: VEvent[];
+  eventsLoading: boolean;
+  buttonLoading: boolean;
+
+  fetchEvents: () => Promise<void>;
+  createEventAction: (values: VEvent) => Promise<void>;
+  updateEventAction: (id: string, values: VEvent) => Promise<void>;
+  deleteEventAction: (id: string) => Promise<void>;
+}
+
+export const useEventsStore = create<EventsState>()(
+  devtools((set) => ({
+    events: [],
+    eventsLoading: false,
+    buttonLoading: false,
+
+    fetchEvents: async () => {
+      set({ eventsLoading: true });
+      try {
+        const data = await getEvents();
+        if ("message" in data) {
+          toast.error(data.message);
+        } else {
+          set({
+            events: data.map((evt) => ({
+              ...evt,
+              start: new Date(evt.start??''),
+              end: new Date(evt.end??''),
+            })),
+          });
+        }
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        set({ eventsLoading: false });
+      }
+    },
+
+    createEventAction: async (values) => {
+      set({ buttonLoading: true });
+      try {
+        const result = await createEvent(values);
+        if ("message" in result) {
+          toast.error(result.message);
+        } else {
+          set((state) => ({
+            events: [
+              ...state.events,
+              {
+                ...result,
+                start: new Date(result.start??''),
+                end: new Date(result.end??''),
+                _id: result._id, // Ensure _id is present
+              },
+            ],
+          }));
+          toast.success("Event created successfully");
+        }
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        set({ buttonLoading: false });
+      }
+    },
+
+    updateEventAction: async (id, values) => {
+      set({ buttonLoading: true });
+      try {
+        const result = await updateEvent(id, values);
+        if ("message" in result) {
+          toast.error(result.message);
+        } else {
+          set((state) => ({
+            events: state.events.map((evt) =>
+              evt._id === id
+                ? {
+                    ...result,
+                    start: new Date(result.start??''),
+                    end: new Date(result.end??''),
+                    _id: result._id || id, // fallback id
+                  }
+                : evt
+            ),
+          }));
+          toast.success("Event updated successfully");
+        }
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        set({ buttonLoading: false });
+      }
+    },
+
+    deleteEventAction: async (id) => {
+      set({ buttonLoading: true });
+      try {
+        const result = await deleteEvent(id);
+        if ("message" in result) {
+          toast.error(result.message);
+        } else {
+          set((state) => ({
+            events: state.events.filter((evt) => evt._id !== id),
+          }));
+          toast.success("Event deleted successfully");
+        }
+      } catch (err) {
+        toast.error((err as Error).message);
+      } finally {
+        set({ buttonLoading: false });
+      }
+    },
+  }))
+);

@@ -64,13 +64,13 @@ export default function SignInPage() {
       toast.warning(msg);
     } else {
       toast.success("Welcome back!");
-      router.push("/");
+      router.push("/dashboard");
     }
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const res = await signIn("google", { callbackUrl: "/", redirect: false });
+    const res = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
     if (res?.error) {
       toast.error(`Sign-in failed: ${res.error}`);
       setIsGoogleLoading(false);
@@ -175,6 +175,7 @@ export default function SignInPage() {
                     <Checkbox
                       id="remember"
                       name="remember"
+                      variant="professionalBlue"
                       checked={values.remember}
                       onCheckedChange={(checked) =>
                         setFieldValue("remember", checked)

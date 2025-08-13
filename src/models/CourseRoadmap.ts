@@ -1,54 +1,40 @@
-import mongoose, { Document, Schema, Types, Model } from "mongoose";
+import { Schema, Types, model, models, Document, Model } from "mongoose";
+import { JSONContent } from "@tiptap/react"; // or '@tiptap/core'
 
-export interface ISubChapter {
-    title: string;
-    description?: string;
-}
+export type TipTapJSON = JSONContent;
 
+/** Chapter interface **/
 export interface IChapter {
+    _id?: Types.ObjectId;
     title: string;
-    description?: string;
-    subChapters: ISubChapter[];
+    content: TipTapJSON;
 }
 
+/** Top-level CourseRoadmap */
 export interface ICourseRoadmap extends Document {
-    userId: Types.ObjectId;
-    subjectId?: Types.ObjectId;
     title: string;
-    description?: string;
+    description: string;
+    roadmap: TipTapJSON;
+    subjectId: Types.ObjectId;
     chapters: IChapter[];
-    createdAt: Date;
-    updatedAt: Date;
 }
 
-const subChapterSchema = new Schema<ISubChapter>(
-    {
-        title: { type: String, required: true },
-        description: { type: String },
-    },
-    { _id: false }
-);
+/** Schemas */
 
-const chapterSchema = new Schema<IChapter>(
-    {
-        title: { type: String, required: true },
-        description: { type: String },
-        subChapters: { type: [subChapterSchema], default: [] },
-    },
-    { _id: false }
-);
+const ChapterSchema = new Schema<IChapter>({
+    title: { type: String, required: true },
+    content: { type: Schema.Types.Mixed },
+}, { _id: true });
 
-const courseRoadmapSchema = new Schema<ICourseRoadmap>(
-    {
-        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-        subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
-        title: { type: String, required: true },
-        description: { type: String },
-        chapters: { type: [chapterSchema], default: [] },
-    },
-    { timestamps: true }
-);
+const CourseRoadmapSchema = new Schema<ICourseRoadmap>({
+    title: { type: String, required: true },
+    description: { type: String, default: "" },
+    roadmap: { type: Schema.Types.Mixed },
+    subjectId: { type: Schema.Types.ObjectId, required: true, ref: "Subject" },
+    chapters: { type: [ChapterSchema], default: [] },
+});
 
+/** Export the model */
 export const CourseRoadmap: Model<ICourseRoadmap> =
-    mongoose.models.CourseRoadmap ||
-    mongoose.model<ICourseRoadmap>("CourseRoadmap", courseRoadmapSchema);
+    (models.CourseRoadmap as Model<ICourseRoadmap>) ||
+    model<ICourseRoadmap>("CourseRoadmap", CourseRoadmapSchema);

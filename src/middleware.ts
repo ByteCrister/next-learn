@@ -2,52 +2,70 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PUBLIC_FILE = /\.(.*)$/; // regex for static files
+// Guest-only pages (cannot be visited if logged in)
+const AUTH_ONLY_ROUTES = [/^\/login$/, /^\/reset$/];
 
-const AUTH_PAGES = ["/next-learn-user-auth", "/next-learn-user-reset-pass"]; // your public routes
+// Public pages (accessible with or without login)
+const PUBLIC_ROUTES = [
+    /^\/$/,                      // home
+    // /^\/about$/,
+    // /^\/contact$/,
+    // /^\/terms$/,
+    // /^\/privacy$/,
+    /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
+];
+
+// Public API routes (accessible with or without login)
+const PUBLIC_APIS = [
+    /^\/api\/view\/subject$/,    // GET /api/view/subject
+    /^\/api\/view\/note$/,       // GET /api/view/note
+];
+
+const isPublicFile = (pathname: string) =>
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/api/auth") || // keep auth endpoints open
+    pathname === "/favicon.ico" ||
+    /\.(.*)$/.test(pathname);
 
 export async function middleware(req: NextRequest) {
-    // Avoid checking static files (images, fonts, etc)
-    if (
-        PUBLIC_FILE.test(req.nextUrl.pathname) ||
-        req.nextUrl.pathname.startsWith("/_next") // next.js internals
-    ) {
+    const { pathname } = req.nextUrl;
+
+    // 1. Allow static files & Next.js internals
+    if (isPublicFile(pathname)) {
         return NextResponse.next();
     }
 
-    // Allow NextAuth API routes to pass through without auth check
-    if (req.nextUrl.pathname.startsWith("/api/auth")) {
+    // 2. Allow public API routes without authentication
+    if (PUBLIC_APIS.some(rx => rx.test(pathname))) {
         return NextResponse.next();
     }
 
-    // Get token from cookie using NextAuth JWT helper
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    // 3. Get token to check auth status
+    const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+    });
 
-    // If user is not signed in and tries to access protected route, redirect to login page
-    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname)) {
-        const loginUrl = new URL("/next-learn-user-auth", req.url);
-        loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
-        return NextResponse.redirect(loginUrl);
-    }
-
-    // If user is signed in and tries to visit login page, redirect to home
-    if (token && AUTH_PAGES.includes(req.nextUrl.pathname)) {
+    // 4. Authenticated users visiting guest-only pages → redirect to home
+    if (token && AUTH_ONLY_ROUTES.some(rx => rx.test(pathname))) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // Otherwise let them pass
+    // 5. If unauthenticated and route is not public → redirect to login
+    const isProtectedRoute =
+        !AUTH_ONLY_ROUTES.some(rx => rx.test(pathname)) &&
+        !PUBLIC_ROUTES.some(rx => rx.test(pathname));
+
+    if (!token && isProtectedRoute) {
+        const loginUrl = req.nextUrl.clone();
+        loginUrl.pathname = "/login";
+        loginUrl.searchParams.set("callbackUrl", pathname);
+        return NextResponse.redirect(loginUrl);
+    }
+
     return NextResponse.next();
 }
 
-// Define the routes this middleware should run on
 export const config = {
-    matcher: [
-        /*
-          Run middleware on all routes except:
-          - static files
-          - api/auth routes (NextAuth)
-          - public routes defined above (like login)
-        */
-        "/((?!_next/static|_next/image|favicon.ico).*)",
-    ],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

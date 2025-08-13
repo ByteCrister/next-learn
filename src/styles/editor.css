@@ -1,0 +1,109 @@
+.ProseMirror {
+  transition: background-color 0.3s ease, color 0.3s ease;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  padding: 0.75rem;
+}
+
+.ProseMirror a {
+  color: #3b82f6;
+  /* Tailwind blue-500 */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.ProseMirror a:hover {
+  color: #2563eb;
+  /* Tailwind blue-600 */
+}
+
+.ProseMirror h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+.ProseMirror h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #3b82f6;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: color 0.3s ease;
+}
+
+/* Dark mode tweaks */
+.dark .ProseMirror {
+  color: #d1d5db;
+  /* gray-300 */
+  background-color: transparent;
+}
+
+.dark .ProseMirror h1,
+.dark .ProseMirror h2 {
+  color: #bfdbfe;
+  /* light blue */
+}
+
+.dark .ProseMirror a:hover {
+  color: #60a5fa;
+  /* lighter blue */
+}
+
+.ProseMirror img {
+  position: relative;
+}
+
+.ProseMirror .drag-handle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg fill="gray" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="5" cy="5" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="19" cy="19" r="2"/></svg>') no-repeat center center;
+  cursor: grab;
+  z-index: 10;
+}
+
+
+.ProseMirror ul {
+  list-style-type: disc; /* default bullet */
+  margin-left: 1.25rem;
+}
+
+.ProseMirror ul ul {
+  list-style-type: circle; /* second level nested bullet */
+}
+
+.ProseMirror ul ul ul {
+  list-style-type: square; /* third level nested bullet */
+}
+
+.ProseMirror ol {
+  list-style-type: decimal; /* default numbering */
+  margin-left: 1.25rem;
+}
+
+.ProseMirror ol ol {
+  list-style-type: lower-alpha; /* second level */
+}
+
+.ProseMirror ol ol ol {
+  list-style-type: lower-roman; /* third level */
+}
+.ProseMirror li {
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+/* Optionally for dark mode */
+.dark .ProseMirror ul,
+.dark .ProseMirror ol,
+.dark .ProseMirror li {
+  color: #d1d5db; /* Tailwind gray-300 */
+}
