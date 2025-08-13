@@ -23,11 +23,17 @@ export interface Choice {
 
 /** A question with its contents and choices */
 export interface Question {
-    contents: QuestionContent[];
+    contents?: QuestionContent[];
     choices: Choice[];
-    timeLimitSeconds?: number;
 }
 
+
+/** One answer in a participant’s result */
+export interface AnswerDTO {
+    questionIndex: number;        // index in the exam.questions array
+    selectedChoiceIndex: number;  // index of the chosen option
+    isCorrect?: boolean;          // grading flag (optional)
+}
 
 /** One participant’s result for an exam */
 export interface ExamResultDTO {
@@ -37,7 +43,8 @@ export interface ExamResultDTO {
     score?: number;
     status: "in-progress" | "submitted" | "late" | "expired";
     startedAt: string;       // ISO date string
-    endedAt?: string;        // ISO date string, undefined if still in-progress
+    endedAt?: string;        // ISO date string
+    answers: AnswerDTO[];    // newly added field
 }
 
 
@@ -69,11 +76,11 @@ export interface ExamDTO {
 
 /** Exam Card type to show all exams in card form with view exam and result button */
 export interface ExamOverviewCard {
-  _id: string;
-  title: string;
-  description?: string;
-  subjectCode: string;
-  examCode: string;
+    _id: string;
+    title: string;
+    description?: string;
+    subjectCode: string;
+    examCode: string;
 }
 
 /** Response payload for listing exams */

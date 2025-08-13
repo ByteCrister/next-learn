@@ -15,28 +15,39 @@ async function ensureOwner(examId: string, userId: string) {
     return exam;
 }
 
+// * get a specific exam with the results
 export async function GET(
     _req: NextRequest,
     { params }: { params: { examId: string } }
 ) {
     try {
         await ConnectDB();
+        const { examId } = await params;
         const userId = await getUserIdFromSession();
-        const exam = await ensureOwner(params.examId, userId);
+        const exam = await ensureOwner(examId, userId);
 
+        // Include `answers` in the projection
         const results = await ExamResultModel.find({ exam: exam._id })
             .lean()
-            .select("participantId participantEmail score status startedAt endedAt");
+            .select(
+                "participantId participantEmail score status startedAt endedAt answers"
+            );
 
-        return NextResponse.json({ ...exam.toObject(), results }, { status: 200 });
+        return NextResponse.json(
+            {
+                ...exam.toObject(),
+                results,
+            },
+            { status: 200 }
+        );
     } catch (err) {
         const message =
             err instanceof Error ? err.message : "An unexpected error occurred";
         return NextResponse.json({ error: message }, { status: 404 });
     }
-
 }
 
+// * update a specific exams format/validation/questions/answers etc
 export async function PATCH(
     req: NextRequest,
     { params }: { params: { examId: string } }
@@ -62,6 +73,7 @@ export async function PATCH(
 
 }
 
+// * delete any specific question that created by that user
 export async function DELETE(
     _req: NextRequest,
     { params }: { params: { examId: string } }

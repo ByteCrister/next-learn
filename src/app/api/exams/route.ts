@@ -14,6 +14,7 @@ type ExamOverviewCardDB = {
     examCode: string;
 };
 
+// * get all exams as cards in the creator interface
 export async function GET() {
     try {
         await ConnectDB();
@@ -41,14 +42,23 @@ export async function GET() {
     }
 }
 
+// * create a new exam
 export async function POST(req: NextRequest) {
     try {
         await ConnectDB();
         const userId = await getUserIdFromSession();
         const data = await req.json();
 
-        const newExam = new ExamModel({ ...data, createdBy: userId });
-        await newExam.save();
+        const newExam = new ExamModel({
+            title: data.title,
+            description: data.description,
+            subjectCode: data.subjectCode,
+            examCode: data.examCode,
+            createdBy: userId,
+            validationRule: data.validationRule || {},
+            questions: [],
+            isTimed: false,
+        }); await newExam.save();
 
         return NextResponse.json(newExam, { status: 201 });
     } catch (err) {

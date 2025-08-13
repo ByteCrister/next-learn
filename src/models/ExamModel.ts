@@ -19,9 +19,8 @@ interface IQuestionContent {
 }
 
 interface IQuestion {
-    contents: IQuestionContent[];
+    contents?: IQuestionContent[];
     choices: IChoice[];
-    timeLimitSeconds?: number; // optional per-question timer
 }
 
 /* ---------- Main Exam interface ---------- */
@@ -90,7 +89,6 @@ const QuestionSchema = new Schema<IQuestion>(
                 message: "Each question must have at least two choices.",
             },
         },
-        timeLimitSeconds: { type: Number, min: 1, required: false },
     },
     { _id: false }
 );

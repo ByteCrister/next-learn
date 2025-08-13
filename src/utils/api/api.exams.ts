@@ -4,6 +4,7 @@ import {
     GetExamResponse,
     ExamDTO,
     ExamOverviewCard,
+    Question,
 } from "@/types/types.exam";
 
 const BASE_URL = "/exams";
@@ -86,6 +87,46 @@ export async function deleteExam(
         return data;
     } catch (err) {
         console.error(`deleteExam error (examId=${examId}):`, err);
+        return extractErrorData(err);
+    }
+}
+
+
+/**
+ * Update a specific question in an exam
+ */
+export async function updateExamQuestion(
+    examId: string,
+    questionIndex: number,
+    question: Question
+): Promise<{ message: string; question: Question } | ApiError> {
+    try {
+        const { data } = await api.put<{ message: string; question: Question }>(
+            `${BASE_URL}/questions`,
+            { examId, questionIndex, question }
+        );
+        return data;
+    } catch (err) {
+        console.error("updateExamQuestion error:", err);
+        return extractErrorData(err);
+    }
+}
+
+/**
+ * Delete a specific question from an exam
+ */
+export async function deleteExamQuestion(
+    examId: string,
+    questionIndex: number
+): Promise<{ message: string } | ApiError> {
+    try {
+        const { data } = await api.delete<{ message: string }>(
+            `${BASE_URL}/questions`,
+            { data: { examId, questionIndex } }
+        );
+        return data;
+    } catch (err) {
+        console.error("deleteExamQuestion error:", err);
         return extractErrorData(err);
     }
 }
