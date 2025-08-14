@@ -12,7 +12,7 @@ import { VEvent } from "@/types/types.events";
 //
 // ————————————————————————————————————————————————————
 // Types
-type CountFiled = 'subjectsCount' | 'classNoteCount' | 'routineCount'
+type CountFiled = 'subjectsCount' | 'examCount' | 'routineCount'
 
 // ————————————————————————————————————————————————————
 // Matches DashboardData from your API client
@@ -21,7 +21,7 @@ type CountFiled = 'subjectsCount' | 'classNoteCount' | 'routineCount'
 interface DashboardState {
     // data
     subjectsCount: number;
-    classNoteCount: number;
+    examCount: number;
     routineCount: number;
     upcomingEvents: VEvent[];
     user: UserProfile | null;
@@ -72,13 +72,7 @@ export const useDashboardStore = create<DashboardState>()(
                 } else {
                     set({
                         routineCount: data.routineCount,
-                        upcomingEvents: data.upcomingEvents.map((evt) => ({
-                            _id: evt._id!,
-                            title: evt.title,
-                            start: evt.start!.toString(),
-                            end: evt.end!.toString(),
-                            allDay: evt.allDay,
-                        })),
+                        upcomingEvents: data.upcomingEvents
                     });
                 }
             } catch (err) {

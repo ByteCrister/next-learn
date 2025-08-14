@@ -10,6 +10,7 @@ export type UserProfile = {
 export interface DashboardData {
     subjectsCount: number;
     routineCount: number;
+    examCount: number;
     upcomingEvents: VEvent[];
 }
 

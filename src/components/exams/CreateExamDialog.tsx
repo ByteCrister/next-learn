@@ -20,8 +20,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-toastify";
 import { useExamStore } from "@/store/useExamStore";
 import { v4 as uuidv4 } from "uuid";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
-function generateShortUUID() {
+export function generateShortUUID() {
     return uuidv4().replace(/-/g, "").slice(0, 10).toUpperCase();
 }
 
@@ -29,12 +30,13 @@ const schema = z.object({
     title: z.string().min(2, "Title is required"),
     description: z.string().optional(),
     subjectCode: z.string().min(6, "Subject code is required"),
-    examCode: z.string().min(1, "Exam code is required"),
+    examCode: z.string().min(10, "Exam code is required"),
 });
 
 export function CreateExamDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = React.useState(false);
     const { create } = useExamStore();
+    const { updateCounts } = useDashboardStore();
 
     const form = useForm<z.infer<typeof schema>>({
         resolver: zodResolver(schema),
@@ -54,15 +56,18 @@ export function CreateExamDialog({ children }: { children: React.ReactNode }) {
     }, [open, form]);
 
     const onSubmit = async (values: z.infer<typeof schema>) => {
-        await create(values);
-        toast.success("Exam created");
-        setOpen(false);
-        form.reset({
-            title: "",
-            description: "",
-            subjectCode: "",
-            examCode: "",
-        });
+        const isNew = await create(values);
+        if (isNew) {
+            updateCounts('examCount', '+')
+            toast.success("Exam created");
+            setOpen(false);
+            form.reset({
+                title: "",
+                description: "",
+                subjectCode: "",
+                examCode: "",
+            });
+        }
     };
 
     return (
@@ -108,7 +113,7 @@ export function CreateExamDialog({ children }: { children: React.ReactNode }) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="examCode">Exam code</Label>
-                            <Input id="examCode" {...form.register("examCode")} disabled />
+                            <Input id="examCode" {...form.register("examCode")} readOnly />
                             {form.formState.errors.examCode && (
                                 <p className="text-sm text-destructive">
                                     {form.formState.errors.examCode.message}

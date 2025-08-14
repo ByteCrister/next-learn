@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
 import { useExamStore } from "@/store/useExamStore";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 interface ConfirmDeleteDialogProps {
     examId: string;
@@ -32,15 +33,19 @@ export function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
     const [open, setOpen] = React.useState(false);
     const { remove } = useExamStore();
+    const { updateCounts } = useDashboardStore();
     const router = useRouter();
 
     const handleDelete = async () => {
         if (onConfirm) {
             await onConfirm();
         } else {
-            await remove(examId);
-            toast.success("Exam deleted");
-            router.push("/exams");
+            const isDeleted = await remove(examId);
+            if (isDeleted) {
+                updateCounts('examCount', '-')
+                toast.success("Exam deleted");
+                router.push("/exams");
+            }
         }
         setOpen(false);
     };

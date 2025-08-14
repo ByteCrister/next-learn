@@ -25,6 +25,15 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"; import ExamQAction from './ExamQAction';
+import SubjectQAction from './SubjectQAction';
 
 export const palettes = [
   {
@@ -65,11 +74,12 @@ export default function DashboardPage() {
   const {
     subjectsCount,
     routineCount,
+    examCount,
     user,
     loading,
     fetchDashboard,
   } = useDashboardStore();
-  const { events, eventsLoading, fetchEvents } = useEventsStore();
+  const { events, loading: eventsLoading, fetchEvents } = useEventsStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   useEffect(() => {
@@ -111,20 +121,35 @@ export default function DashboardPage() {
       palette: palettes[3],
       route: '/events',
     },
+    {
+      icon: <Zap size={20} />, // you can swap for any Lucide icon
+      label: 'Exams',
+      value: examCount,
+      palette: palettes[1], // purple-pink gradient for contrast
+      route: '/exams',
+    },
   ];
+
 
   const quickActions = [
     {
       label: 'Create Subject',
       icon: <PlusCircle size={18} />,
-      route: '/subjects/new',
       palette: palettes[1],
+      content: <SubjectQAction />
+    },
+
+    {
+      label: "Add Routine",
+      icon: <Link2 size={18} />,
+      palette: palettes[3],
+      content: <span className="text-sm text-gray-500">Will create soon</span>,
     },
     {
-      label: 'Add Routine',
-      icon: <Link2 size={18} />,
-      route: '/routines/new',
-      palette: palettes[3],
+      label: "Create Exam",
+      icon: <Zap size={18} />,
+      palette: palettes[0],
+      content: <ExamQAction />
     },
   ];
 
@@ -245,31 +270,37 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap gap-4">
-            {quickActions.map(({ label, icon, route, palette }, i) => (
-              <motion.div
-                key={i}
-                whileHover={{ scale: 1.03 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => router.push(route)}
-                  className={`
-                    flex items-center justify-center
-                    border-2 ${palette.border} ${palette.text}
-                    hover:bg-opacity-10 rounded-xl shadow-md
-                    transition-all duration-300 backdrop-blur-sm
-                  `}
-                >
-                  <div className="text-neutral-700 p-1 rounded-full">{icon}</div>
-                  <span className="ml-2 text-sm font-medium text-neutral-700">
-                    {label}
-                  </span>
-                </Button>
-              </motion.div>
+            {quickActions.map(({ label, icon, palette, content }, i) => (
+              <Dialog key={i}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className={`flex items-center justify-center border-2 ${palette.border} text-gray-800 
+    hover:bg-opacity-10 rounded-xl shadow-md transition-all duration-300 backdrop-blur-sm px-4 py-3`}
+                  >
+                    <div className="p-1 rounded-full">{icon}</div>
+                    <span className="ml-2 text-sm font-medium">{label}</span>
+                  </Button>
+
+                </DialogTrigger>
+
+                <DialogContent className="p-6 w-full max-w-lg rounded-xl shadow-lg border border-gray-200 bg-white backdrop-blur-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg font-semibold text-gray-800">
+                      {label}
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-500 text-sm">
+                      Fill in the required details below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {content}
+                </DialogContent>
+              </Dialog>
             ))}
           </div>
+
+
         </motion.section>
       </div>
     </motion.div>

@@ -25,60 +25,74 @@ export function ExamCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
+      transition={{ delay: index * 0.05, duration: 0.4 }}
     >
       <Card
         onClick={onClick}
-        className={`
-          group cursor-pointer overflow-hidden rounded-xl border border-transparent
-          bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50
-          p-[1px] shadow-md backdrop-blur
+        className="
+          group relative cursor-pointer overflow-hidden rounded-2xl
+          bg-white dark:bg-gray-900
+          border border-gray-200 dark:border-gray-700
+          shadow-md hover:shadow-2xl
+          transform hover:-translate-y-1
           transition-all duration-300
-          hover:shadow-xl hover:scale-[1.02] hover:from-gray-100 hover:to-gray-200
-        `}
+          focus-within:ring-2 focus-within:ring-indigo-500
+        "
       >
-        {/* Inner glass layer */}
-        <div className="rounded-[0.75rem] bg-white/70 p-4 backdrop-blur-xl transition-all duration-300 group-hover:bg-white/80">
-          <CardHeader className="space-y-2 p-0">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle
-                className="line-clamp-1 text-2xl font-semibold bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-500 bg-clip-text text-transparent"
-              >
+        {/* Soft color orb for depth */}
+        <div className="absolute -top-6 right-6 w-24 h-24 bg-gradient-to-br from-indigo-400 to-purple-500 opacity-20 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative p-6 flex flex-col h-full space-y-4">
+          <CardHeader className="p-0">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-100">
                 {exam.title}
               </CardTitle>
               <Badge
                 variant="outline"
-                className="font-mono border-indigo-300 bg-indigo-50 text-indigo-700 shadow-sm group-hover:border-indigo-500 group-hover:bg-indigo-100"
+                className="
+                  px-3 py-1 text-xs font-semibold uppercase
+                  text-indigo-600 dark:text-indigo-300
+                  border-indigo-300 dark:border-indigo-700
+                  bg-indigo-50 dark:bg-indigo-800
+                  transition-colors duration-200
+                  group-hover:bg-indigo-100 dark:group-hover:bg-indigo-700
+                "
               >
                 {exam.examCode}
               </Badge>
             </div>
 
             {exam.description && (
-              <CardDescription className="line-clamp-2 text-gray-600">
+              <CardDescription className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                 {exam.description}
               </CardDescription>
             )}
           </CardHeader>
 
-          <CardContent className="pt-2 px-0">
-            <div className="text-sm text-gray-700">
-              Subject:{" "}
-              <span className="font-medium text-gray-900">
+          <CardContent className="flex-1 p-0">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-medium">Subject:</span>{" "}
+              <span className="text-gray-900 dark:text-gray-100">
                 {exam.subjectCode}
               </span>
             </div>
           </CardContent>
 
-          <CardFooter className="px-0 pt-4 justify-end">
+          <CardFooter className="p-0 flex justify-end">
             <motion.div
               whileHover={{ x: 4 }}
-              className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 transition-colors group-hover:text-indigo-700"
+              className="
+                inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400
+                font-medium
+                hover:text-indigo-700 dark:hover:text-indigo-200
+                transition-colors duration-200
+              "
             >
-              View
-              <ArrowRight className="h-4 w-4" />
+              <span>View Details</span>
+              <ArrowRight className="w-5 h-5" />
             </motion.div>
           </CardFooter>
         </div>

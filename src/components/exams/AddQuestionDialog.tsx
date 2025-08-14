@@ -13,6 +13,8 @@ import type { ExamDTO, Question } from "@/types/types.exam";
 import { toast } from "react-toastify";
 import { useExamStore } from "@/store/useExamStore";
 import NextImage from "next/image";
+import { motion } from 'framer-motion'
+import { FiX } from "react-icons/fi"
 
 // Compress image
 export async function compressImage(file: File, maxWidth = 1024, quality = 0.7): Promise<File> {
@@ -42,7 +44,6 @@ export const schema = z.object({
         z.object({
             type: z.enum(["text", "image"]),
             value: z.string().min(1, "Content is required"),
-            caption: z.string().optional(),
         })
     ).min(1, "At least one content is required"),
     choices: z.array(z.object({ text: z.string().min(1, "Choice text required") })).min(2, "At least 2 choices"),
@@ -63,7 +64,7 @@ export function AddQuestionDialog({ exam, asChild }: { exam: ExamDTO; asChild?: 
     });
 
     const { fields: choiceFields, append: appendChoice, remove: removeChoice } = useFieldArray({ control: form.control, name: "choices" });
-    const { fields: contentFields, append: appendContent } = useFieldArray({ control: form.control, name: "contents" });
+    const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({ control: form.control, name: "contents" });
 
     // Handle image upload
     const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +79,7 @@ export function AddQuestionDialog({ exam, asChild }: { exam: ExamDTO; asChild?: 
             const compressed = await compressImage(file);
             const reader = new FileReader();
             reader.onload = () => {
-                appendContent({ type: "image", value: reader.result as string, caption: "" });
+                appendContent({ type: "image", value: reader.result as string });
             };
             reader.readAsDataURL(compressed);
         }
@@ -90,8 +91,8 @@ export function AddQuestionDialog({ exam, asChild }: { exam: ExamDTO; asChild?: 
             choices: values.choices.map((c, idx) => ({ text: c.text, isCorrect: idx === values.correctIndex })),
         };
         const payload = { questions: [...exam.questions, newQ] };
-        await update(exam._id, payload);
-        toast.success("Question added");
+        const isAdded = await update(exam._id, payload);
+        if (isAdded) toast.success("Question added");
         setOpen(false);
         form.reset();
     };
@@ -123,12 +124,35 @@ export function AddQuestionDialog({ exam, asChild }: { exam: ExamDTO; asChild?: 
                                 <>
                                     <Label>Image</Label>
                                     <div className="relative w-40 h-40 border rounded overflow-hidden">
-                                        <NextImage src={field.value} alt={`image-${idx}`} height={150} width={100} className="w-full h-full object-cover" />
+                                        <NextImage
+                                            src={field.value}
+                                            alt={`image-${idx}`}
+                                            height={150}
+                                            width={100}
+                                            className="w-full h-full object-cover"
+                                        />
+
+                                        {/* Polished Remove Button */}
+                                        <motion.button
+                                            type="button"
+                                            onClick={() => removeContent(idx)}
+                                            aria-label="Remove image"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className="
+      absolute top-2 right-2
+      p-1
+      bg-white/80 hover:bg-white
+      text-red-600
+      rounded-full
+      shadow-md
+      focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400
+      transition-colors
+    "
+                                        >
+                                            <FiX className="w-4 h-4" aria-hidden="true" />
+                                        </motion.button>
                                     </div>
-                                    <Input
-                                        {...form.register(`contents.${idx}.caption` as const)}
-                                        placeholder="Optional caption"
-                                    />
                                 </>
                             )}
                         </div>

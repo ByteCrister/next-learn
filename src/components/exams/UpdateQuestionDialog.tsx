@@ -15,6 +15,8 @@ import { useExamStore } from "@/store/useExamStore";
 import NextImage from "next/image";
 import { compressImage, schema } from "./AddQuestionDialog";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter } from "@/components/ui/alert-dialog";
+import { motion } from 'framer-motion'
+import { FiTrash2, FiX } from "react-icons/fi";
 
 interface UpdateQuestionDialogProps {
     exam: ExamDTO;
@@ -24,7 +26,7 @@ interface UpdateQuestionDialogProps {
 }
 
 export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: UpdateQuestionDialogProps) {
-    const { update, deleteQuestion } = useExamStore();
+    const { updateQuestion, deleteQuestion } = useExamStore();
     // Get the question safely
     const question = exam.questions[questionIndex];
 
@@ -40,7 +42,7 @@ export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: Upd
 
     // If the question does not exist (deleted), return null early
     const { fields: choiceFields, append: appendChoice, remove: removeChoice } = useFieldArray({ control: form.control, name: "choices" });
-    const { fields: contentFields, append: appendContent } = useFieldArray({ control: form.control, name: "contents" });
+    const { fields: contentFields, append: appendContent, remove: removeContent } = useFieldArray({ control: form.control, name: "contents" });
 
     const [deleteOpen, setDeleteOpen] = React.useState(false);
 
@@ -58,7 +60,7 @@ export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: Upd
             const compressed = await compressImage(file);
             const reader = new FileReader();
             reader.onload = () => {
-                appendContent({ type: "image", value: reader.result as string, caption: "" });
+                appendContent({ type: "image", value: reader.result as string });
             };
             reader.readAsDataURL(compressed);
         }
@@ -73,14 +75,12 @@ export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: Upd
         const updatedQuestions = [...exam.questions];
         updatedQuestions[questionIndex] = updatedQuestion;
 
-        await update(exam._id, { questions: updatedQuestions });
-        toast.success("Question updated");
+        await updateQuestion(exam._id, questionIndex, updatedQuestion);
         onClose();
     };
 
     const handleDelete = async () => {
         await deleteQuestion(exam._id, questionIndex);
-        toast.success("Question deleted");
         setDeleteOpen(false);
         onClose();
     };
@@ -105,9 +105,35 @@ export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: Upd
                                     <>
                                         <Label>Image</Label>
                                         <div className="relative w-40 h-40 border rounded overflow-hidden">
-                                            <NextImage src={field.value} alt={`image-${idx}`} height={150} width={100} className="w-full h-full object-cover" />
+                                            <NextImage
+                                                src={field.value}
+                                                alt={`image-${idx}`}
+                                                height={150}
+                                                width={100}
+                                                className="w-full h-full object-cover"
+                                            />
+
+                                            {/* Polished Remove Button */}
+                                            <motion.button
+                                                type="button"
+                                                onClick={() => removeContent(idx)}
+                                                aria-label="Remove image"
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className="
+                                             absolute top-2 right-2
+                                             p-1
+                                             bg-white/80 hover:bg-white
+                                             text-red-600
+                                             rounded-full
+                                             shadow-md
+                                             focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-400
+                                             transition-colors
+                                           "
+                                            >
+                                                <FiX className="w-4 h-4" aria-hidden="true" />
+                                            </motion.button>
                                         </div>
-                                        <Input {...form.register(`contents.${idx}.caption` as const)} placeholder="Optional caption" />
                                     </>
                                 )}
                             </div>
@@ -146,29 +172,48 @@ export function UpdateQuestionDialog({ exam, questionIndex, open, onClose }: Upd
                             </Button>
                         </div>
 
-                        <DialogFooter className="mt-2 flex justify-between items-center w-full">
-                            {/* Delete button on the left */}
-                            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-                                <AlertDialogTrigger asChild>
-                                    <Button type="button" variant="destructive" size="sm">Delete</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure you want to delete this question?</AlertDialogTitle>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter className="flex justify-end gap-2">
-                                        <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-                                        <Button variant="destructive" onClick={handleDelete}>Delete</Button>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                        <DialogFooter>
+                            <div className="flex w-full items-center justify-between">
+                                {/* Left: Destructive Delete */}
+                                <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                                    <AlertDialogTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:bg-red-50"
+                                        >
+                                            <FiTrash2 className="mr-1 h-4 w-4" aria-hidden="true" />
+                                            Delete
+                                        </Button>
+                                    </AlertDialogTrigger>
 
-                            {/* Cancel + Update buttons on the right */}
-                            <div className="flex gap-2">
-                                <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                                <Button type="submit" disabled={form.formState.isSubmitting}>
-                                    {form.formState.isSubmitting ? "Updating…" : "Update question"}
-                                </Button>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>
+                                                Are you sure you want to delete this question?
+                                            </AlertDialogTitle>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter className="flex justify-end gap-2">
+                                            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(false)}>
+                                                Cancel
+                                            </Button>
+                                            <Button variant="destructive" size="sm" onClick={handleDelete}>
+                                                Delete
+                                            </Button>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+
+                                {/* Right: Cancel + Update */}
+                                <div className="flex gap-2">
+                                    <Button variant="outline" size="sm" onClick={onClose}>
+                                        Cancel
+                                    </Button>
+                                    <Button type="submit" size="sm" disabled={form.formState.isSubmitting}>
+                                        {form.formState.isSubmitting ? "Updating…" : "Update question"}
+                                    </Button>
+                                </div>
                             </div>
                         </DialogFooter>
 

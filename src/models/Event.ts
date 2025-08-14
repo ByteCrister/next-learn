@@ -4,8 +4,8 @@ export interface IEvent extends Document {
   userId: Types.ObjectId;
   title: string;
   description?: string;
-  start: Date;
-  end: Date;
+  start: Date;              // stored as Date
+  durationMinutes: number;  // length of event
   allDay: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -13,15 +13,40 @@ export interface IEvent extends Document {
 
 const eventSchema = new Schema<IEvent>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    title: { type: String, required: true },
-    description: { type: String, default: "" }, // Optional, better to set default empty string
-    start: { type: Date, required: true },
-    end: { type: Date, required: true },
-    allDay: { type: Boolean, default: false },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      default: "",
+    },
+    start: {
+      type: Date,
+      required: true,
+      set: (val: string | Date) => new Date(val),
+    },
+    durationMinutes: {
+      type: Number,
+      default: 60,   // default to 60 minutes (1 hour)
+      min: 1,
+    },
+    allDay: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// Export the model properly; avoid redeclaring Model type
-export const Event = mongoose.models.Event || mongoose.model<IEvent>("Event", eventSchema);
+
+export const Event =
+  mongoose.models.Event ||
+  mongoose.model<IEvent>("Event", eventSchema);

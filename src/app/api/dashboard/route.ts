@@ -11,6 +11,7 @@ import { Event } from "@/models/Event";
 import { DashboardData } from "@/types/types.dashboard";
 import { Subject } from "@/models/Subject";
 import { Routine } from "@/models/Routine";
+import ExamModel from "@/models/ExamModel";
 
 function errorResponse(
     message: string = "Internal Server Error",
@@ -29,20 +30,21 @@ export async function GET() {
         await ConnectDB();
         const objectUserId = new Types.ObjectId(userId);
         // fetch counts + next 5 events as plain objects
-        const [subjectsCount, routineCount, eventsDocs] =
+        const [subjectsCount, routineCount, examCount, eventsDocs] =
             await Promise.all([
                 Subject.countDocuments({ objectUserId }),
                 Routine.countDocuments({ objectUserId }),
+                ExamModel.countDocuments({ createdBy: objectUserId }),
                 Event.find({ userId: objectUserId, start: { $gte: new Date() } })
                     .sort({ start: 1 })
                     .limit(5)
-                    .select('_id title start end description allDay')
+                    .select('_id title start description durationMinutes allDay')
                     .lean<{
                         _id: Types.ObjectId;
                         title: string;
                         start: Date;
-                        end: Date;
                         description: string;
+                        durationMinutes: number;
                         allDay: boolean;
                     }[]>(),
             ]);
@@ -52,14 +54,15 @@ export async function GET() {
             _id: evt._id.toString(),
             title: evt.title,
             start: evt.start.toISOString(),
-            end: evt.end.toISOString(),
             description: evt.description,
+            durationMinutes: evt.durationMinutes,
             allDay: evt.allDay,
         }));
 
         const payload: DashboardData = {
             subjectsCount,
             routineCount,
+            examCount,
             upcomingEvents,
         };
 

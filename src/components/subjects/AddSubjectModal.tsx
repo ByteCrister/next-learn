@@ -8,7 +8,7 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "@/store/useDashboardStore";
 
-export default function NewSubjectModal() {
+export default function AddSubjectModal() {
   const { addSubject, loadingSubCrud } = useSubjectStore();
   const {updateCounts} = useDashboardStore();
   const router = useRouter();
@@ -64,7 +64,7 @@ export default function NewSubjectModal() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+                  className="fixed inset-0 bg-black/30"
                 />
               </DialogPrimitive.Overlay>
 

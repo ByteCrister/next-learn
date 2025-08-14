@@ -53,25 +53,25 @@ export default function ExamsClient() {
 
   React.useEffect(() => {
     fetchExams();
-  }, [fetchExams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   React.useEffect(() => {
     setBreadcrumbs([
       { label: "Home", href: "/" },
       { label: "Exams", href: "/exams" },
     ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setBreadcrumbs]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = q
       ? exams.filter((e) =>
-          [e.title, e.description ?? "", e.subjectCode, e.examCode]
-            .join(" ")
-            .toLowerCase()
-            .includes(q)
-        )
+        [e.title, e.description ?? "", e.subjectCode, e.examCode]
+          .join(" ")
+          .toLowerCase()
+          .includes(q)
+      )
       : exams;
 
     const sorted = [...list].sort((a, b) => {

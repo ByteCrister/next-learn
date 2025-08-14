@@ -22,7 +22,6 @@ export async function getAllSubjects(): Promise<
         const { data } = await api.get<{ subjects: Subject[]; counts: SubjectCounts }>(
             BASE_URL
         );
-        console.log("Fetched subjects:", data);
         return data;
     } catch (err) {
         console.error("getAllSubjects error:", err);

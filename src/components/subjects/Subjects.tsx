@@ -11,7 +11,7 @@ import { BsBook, BsFileEarmarkText, BsLink45Deg } from "react-icons/bs";
 import SearchBar from "./SearchBar";
 import { SortSelect } from "./SortSelect";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
-import NewSubjectPopover from "./NewSubjectModal";
+import AddSubjectModal from "./AddSubjectModal";
 import { StatCard } from "./StatCard";
 import FullSubjectsSkeleton from "./SubjectsSkeleton";
 
@@ -36,15 +36,17 @@ export default function Subjects() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    if (subjects.length === 0) {
-      fetchSubjects();
-    }
+    fetchSubjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     setBreadcrumbs([
       { label: 'Home', href: '/' },
       { label: 'Subjects', href: '/subjects' },
     ]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjects]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
 
   const filteredSubjects = useMemo(() => {
@@ -129,7 +131,7 @@ export default function Subjects() {
         <SortSelect value={sortOption} options={SORT_OPTIONS} onChange={(v) => setSortOption(v)} />
 
         {/* Add Button */}
-        <NewSubjectPopover />
+        <AddSubjectModal />
       </div>
 
       {/* Subject Grid */}

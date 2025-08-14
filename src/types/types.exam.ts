@@ -5,7 +5,6 @@ export interface ValidationRule {
     startsWith?: string[];
     maxLength?: number;
     minLength?: number;
-    regex?: string;
 }
 
 /** A piece of question content (text or image) */
@@ -43,7 +42,6 @@ export interface ExamResultDTO {
     score?: number;
     status: "in-progress" | "submitted" | "late" | "expired";
     startedAt: string;       // ISO date string
-    endedAt?: string;        // ISO date string
     answers: AnswerDTO[];    // newly added field
 }
 

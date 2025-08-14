@@ -18,6 +18,7 @@ import RoadmapInfoCard from "./RoadmapInfoCard";
 import SubjectPageLoading from "./SubjectPageLoading";
 import HtmlContent from "@/components/global/HtmlContent";
 import { ShareSubjectButton } from "./ShareSubjectButton";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 const fadeIn = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } };
 
@@ -34,7 +35,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
         deleteRoadmap,
         loadingSubCrud,
     } = useSubjectStore();
-
+    const { updateCounts } = useDashboardStore();
     const { setBreadcrumbs } = useBreadcrumbStore();
 
     const [subjectForm, setSubjectForm] = useState<SubjectInput>({
@@ -85,7 +86,11 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
 
     const handleSubjectUpdate = () =>
         editSubject(selectedSubject._id, subjectForm);
-    const handleDeleteSubject = () => removeSubject(selectedSubject._id);
+    
+    const handleDeleteSubject = async () => {
+        const isRemoved = await removeSubject(selectedSubject._id)
+        if (isRemoved) updateCounts('subjectsCount', '-')
+    };
 
     const handleRoadmapSave = async () => {
         if (selectedRoadmap?._id) {

@@ -23,9 +23,9 @@ interface ExamStoreState {
 
     fetchExams: () => Promise<void>;
     fetchExamById: (id: string, forceRefresh?: boolean) => Promise<ExamDTO | void>;
-    create: (payload: Partial<ExamDTO>) => Promise<void>;
-    update: (id: string, payload: Partial<ExamDTO>) => Promise<void>;
-    remove: (id: string) => Promise<void>;
+    create: (payload: Partial<ExamDTO>) => Promise<string | boolean>;
+    update: (id: string, payload: Partial<ExamDTO>) => Promise<boolean>;
+    remove: (id: string) => Promise<boolean>;
     updateQuestion: (examId: string, questionIndex: number, question: Question) => Promise<void>;
     deleteQuestion: (examId: string, questionIndex: number) => Promise<void>;
     clearCache: () => void;
@@ -45,7 +45,7 @@ export const useExamStore = create<ExamStoreState>()(
         // 1. Load overview list (always fetch)
         fetchExams: async () => {
             // If we've already loaded exams and aren't forcing, bail out
-            if ((get().hasFetchedExams || get().exams.length > 0)) {
+            if ((get().hasFetchedExams || get().fetching || get().exams.length > 0)) {
                 return;
             }
             set((s) => {
@@ -75,7 +75,7 @@ export const useExamStore = create<ExamStoreState>()(
         // 2. Load or reuse a single exam by ID
         fetchExamById: async (id, forceRefresh = false) => {
             const cache = get().examsById[id];
-            if (cache && !forceRefresh) {
+            if (cache && !forceRefresh || get().fetching) {
                 return cache;
             }
 
@@ -107,12 +107,18 @@ export const useExamStore = create<ExamStoreState>()(
         //    but you should update caches on success:
 
         create: async (payload) => {
+            set((s) => {
+                s.loading = true
+            });
+
             const newExam = await createExam(payload);
             if ("message" in newExam) {
                 toast.error(newExam.message || "Failed to create exam");
-                return set((s) => {
+                set((s) => {
                     s.message = newExam.message;
+                    s.loading = false
                 });
+                return false;
             }
 
             set((s) => {
@@ -126,16 +132,22 @@ export const useExamStore = create<ExamStoreState>()(
                 // prime detailed cache
                 s.examsById[newExam._id] = newExam;
                 s.resultsByExamId[newExam._id] = newExam.results;
+                s.loading = false
             });
+            return newExam._id;
         },
 
         update: async (id, payload) => {
+            set((s) => {
+                s.loading = true
+            });
             const updated = await updateExam(id, payload);
             if ("message" in updated) {
                 toast.error(updated.message || "Failed to update exam");
-                return set((s) => {
-                    s.message = updated.message;
+                set((s) => {
+                    s.loading = false
                 });
+                return false;
             }
 
             set((s) => {
@@ -153,32 +165,46 @@ export const useExamStore = create<ExamStoreState>()(
                 // update detail & results cache
                 s.examsById[id] = updated;
                 s.resultsByExamId[id] = updated.results;
+                s.loading = false
+
             });
+            return true;
         },
 
         remove: async (id) => {
+            set((s) => {
+                s.loading = true
+            });
             const deleted = await deleteExam(id);
             if ("message" in deleted || !deleted.success) {
                 const msg = "message" in deleted ? deleted.message : "Failed to delete.";
                 toast.error(msg);
-                return set((s) => {
+                set((s) => {
                     s.message = msg;
+                    s.loading = false
                 });
+                return false
             }
 
             set((s) => {
                 s.exams = s.exams.filter((e: ExamOverviewCard) => e._id !== id);
                 delete s.examsById[id];
                 delete s.resultsByExamId[id];
+                s.loading = false
             });
+            return true
         },
 
         updateQuestion: async (examId, questionIndex, question) => {
+            set((s) => {
+                s.loading = true
+            });
             const res = await updateExamQuestion(examId, questionIndex, question);
             if ("message" in res && !("question" in res)) {
                 toast.error(res.message || "Failed to update question");
                 return set((s) => {
                     s.message = res.message;
+                    s.loading = false
                 });
             }
 
@@ -187,12 +213,16 @@ export const useExamStore = create<ExamStoreState>()(
                 if (exam) {
                     exam.questions[questionIndex] = res.question;
                 }
+                s.loading = false
             });
 
             toast.success(res.message);
         },
 
         deleteQuestion: async (examId, questionIndex) => {
+            set((s) => {
+                s.loading = true
+            });
             const res = await deleteExamQuestion(examId, questionIndex);
             if ("message" in res && !("success" in res)) {
                 // Here success isn't returned, so just rely on message
@@ -200,6 +230,7 @@ export const useExamStore = create<ExamStoreState>()(
                     toast.error(res.message || "Failed to delete question");
                     return set((s) => {
                         s.message = res.message;
+                        s.loading = false
                     });
                 }
             }
@@ -209,6 +240,7 @@ export const useExamStore = create<ExamStoreState>()(
                 if (exam) {
                     exam.questions.splice(questionIndex, 1);
                 }
+                s.loading = false
             });
 
             toast.success(res.message);
@@ -221,6 +253,7 @@ export const useExamStore = create<ExamStoreState>()(
                 s.examsById = {};
                 s.resultsByExamId = {};
                 s.message = null;
+                s.loading = false
             });
         },
     }))

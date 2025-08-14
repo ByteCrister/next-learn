@@ -56,9 +56,10 @@ export async function PATCH(
         await ConnectDB();
         const userId = await getUserIdFromSession();
         const updates = await req.json();
+        const { examId } = await params;
 
         const updated = await ExamModel.findOneAndUpdate(
-            { _id: params.examId, createdBy: userId },
+            { _id: examId, createdBy: userId },
             updates,
             { new: true, runValidators: true }
         ).lean();

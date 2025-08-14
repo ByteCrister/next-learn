@@ -31,7 +31,7 @@ const Sidebar = () => {
             {/* Navigation Links */}
             <div className="flex-1 px-4 py-6 space-y-2">
                 {links.map(({ href, label, icon: Icon }) => {
-                    const active = pathname === href;
+                    const active = pathname === href || pathname.startsWith(`${href}/`);
                     return (
                         <Link
                             key={href}

@@ -5,7 +5,6 @@ interface IExamValidationRule {
     startsWith?: string[]; // e.g., ["065","000","011"]
     maxLength?: number; // e.g., 10
     minLength?: number;
-    regex?: string;
 }
 
 interface IChoice {
@@ -52,7 +51,6 @@ const ValidationRuleSchema = new Schema<IExamValidationRule>(
         startsWith: [{ type: String }],
         maxLength: { type: Number },
         minLength: { type: Number },
-        regex: { type: String },
     },
     { _id: false }
 );
@@ -107,7 +105,6 @@ const ExamSchema = new Schema<IExam>(
         isTimed: { type: Boolean, default: false },
         durationMinutes: { type: Number, min: 1 },
         scheduledStartAt: { type: Date },
-        scheduledEndAt: { type: Date },
         allowLateSubmissions: { type: Boolean, default: false },
         lateWindowMinutes: { type: Number, default: 0, min: 0 },
         autoSubmitOnEnd: { type: Boolean, default: true },
@@ -117,43 +114,26 @@ const ExamSchema = new Schema<IExam>(
 
 /* ---------- Hooks & Validations ---------- */
 ExamSchema.pre<IExam>("validate", function (next) {
-    // auto-generate examCode if absent
     if (!this.examCode) {
         this.examCode = Math.random().toString(36).substring(2, 10).toUpperCase();
     }
 
-    // Timing logic
     if (this.isTimed) {
-        // derive duration if start and end are present
-        if (!this.durationMinutes && this.scheduledStartAt && this.scheduledEndAt) {
-            const diffMin = (this.scheduledEndAt.getTime() - this.scheduledStartAt.getTime()) / 60000;
-            this.durationMinutes = Math.max(1, Math.ceil(diffMin));
+        if (!this.durationMinutes || this.durationMinutes <= 0) {
+            return next(new Error("Timed exam must have a positive durationMinutes."));
         }
 
-        // derive end from start + duration
-        if (this.scheduledStartAt && !this.scheduledEndAt && this.durationMinutes) {
-            this.scheduledEndAt = new Date(this.scheduledStartAt.getTime() + this.durationMinutes * 60000);
+        if (!this.scheduledStartAt) {
+            return next(new Error("Timed exam must have a scheduledStartAt."));
         }
 
-        // derive start from end - duration
-        if (!this.scheduledStartAt && this.scheduledEndAt && this.durationMinutes) {
-            this.scheduledStartAt = new Date(this.scheduledEndAt.getTime() - this.durationMinutes * 60000);
-        }
+        // Always calculate scheduledEndAt based on start + duration
+        this.scheduledEndAt = new Date(
+            this.scheduledStartAt.getTime() + this.durationMinutes * 60000
+        );
 
-        // require at least a duration or a fully defined start/end
-        if (!this.durationMinutes && !(this.scheduledStartAt && this.scheduledEndAt)) {
-            return next(
-                new Error(
-                    "Timed exam must have durationMinutes or both scheduledStartAt and scheduledEndAt."
-                )
-            );
-        }
-
-        if (this.durationMinutes && this.durationMinutes <= 0) {
-            return next(new Error("durationMinutes must be greater than 0."));
-        }
     } else {
-        // not timed: clear timing fields to avoid confusion
+        // Not timed → clear all timing fields
         this.durationMinutes = undefined;
         this.scheduledStartAt = undefined;
         this.scheduledEndAt = undefined;
@@ -161,15 +141,16 @@ ExamSchema.pre<IExam>("validate", function (next) {
         this.lateWindowMinutes = 0;
     }
 
-    // lateWindow consistency
+    // Late window consistency
     if (!this.allowLateSubmissions) {
         this.lateWindowMinutes = 0;
-    } else {
-        if (this.lateWindowMinutes == null) this.lateWindowMinutes = 0;
+    } else if (this.lateWindowMinutes == null) {
+        this.lateWindowMinutes = 0;
     }
 
     next();
 });
+
 
 /* ---------- Export Model ---------- */
 const ExamModel: Model<IExam> = mongoose.models.Exam || mongoose.model<IExam>("Exam", ExamSchema);

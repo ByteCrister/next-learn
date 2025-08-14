@@ -34,11 +34,12 @@ interface SubjectStore {
     loadingSubjects: boolean;
 
     loadingSubCrud: boolean;
+    subjectsFetched: boolean,
 
     fetchSubjects: () => Promise<void>;
     addSubject: (input: SubjectInput) => Promise<string | false>;
     editSubject: (id: string, updates: Partial<SubjectInput>) => Promise<void>;
-    removeSubject: (id: string) => Promise<void>;
+    removeSubject: (id: string) => Promise<boolean>;
 
     fetchSubjectById: (id: string) => Promise<void>;
 
@@ -59,11 +60,14 @@ export const useSubjectStore = create<SubjectStore>()(
         loadingStudyMaterials: false,
 
         loadingSubCrud: false,
+        subjectsFetched: false,
 
         fetchSubjects: async () => {
+            const { subjectsFetched, subjects } = get();
+            if (subjectsFetched && subjects.length > 0) return; // use cache
+
             set({ loadingSubjects: true });
             try {
-                //  API now returns { subjects, subjectCounts }
                 const data = (await getAllSubjects()) as
                     | { subjects: Subject[]; subjectCounts: SubjectCounts }
                     | { message: string };
@@ -78,6 +82,7 @@ export const useSubjectStore = create<SubjectStore>()(
                     subjects: data.subjects,
                     subjectCounts: data.subjectCounts,
                     loadingSubjects: false,
+                    subjectsFetched: true, // mark as fetched
                 });
             } catch (err) {
                 set({ loadingSubjects: false });
@@ -134,15 +139,17 @@ export const useSubjectStore = create<SubjectStore>()(
                 if ("message" in res && res.message !== "Deleted successfully") {
                     set({ loadingSubCrud: false });
                     toast.error(res.message);
-                    return;
+                    return false;
                 }
                 set((state) => ({
                     subjects: state.subjects.filter((sub) => sub._id !== id),
                     loadingSubCrud: false,
                 }));
+                return true;
             } catch (err) {
                 set({ loadingSubCrud: false });
                 toast.error((err as Error).message);
+                return false;
             }
         },
 

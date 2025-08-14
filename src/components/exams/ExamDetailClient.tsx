@@ -27,16 +27,23 @@ export default function ExamDetailClient() {
   const [selectedQuestionIndex, setSelectedQuestionIndex] = React.useState<number | null>(null);
 
   React.useEffect(() => {
-    (async () => {
-      await fetchExamById(examId);
-    })();
+    const loadExam = async () => {
+      const cached = examsById[examId];
+      if (!cached) {
+        await fetchExamById(examId);
+      }
+    };
+    loadExam();
+  }, [examId, examsById, fetchExamById]);
+
+
+  React.useEffect(() => {
     setBreadcrumbs([
       { label: "Home", href: "/" },
       { label: "Exams", href: "/exams" },
       { label: `${examsById[examId]?.title ?? ''} - ${examsById[examId]?.examCode ?? ''}`, href: `/exams/${examId}` },
     ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examId, examsById, fetchExamById]);
+  }, [examId, examsById, setBreadcrumbs]);
 
   const exam: ExamDTO | undefined = examsById[examId];
   const results = resultsByExamId[examId] ?? [];
@@ -64,7 +71,7 @@ export default function ExamDetailClient() {
   const hasQuestions = exam.questions && exam.questions.length > 0;
   const hasRule =
     !!exam.validationRule &&
-    (exam.validationRule.regex ||
+    (
       (exam.validationRule.startsWith && exam.validationRule.startsWith.length > 0) ||
       exam.validationRule.maxLength ||
       exam.validationRule.minLength);
@@ -126,7 +133,7 @@ export default function ExamDetailClient() {
             </CardContent>
           </Card>
 
-          <Card className="border-muted/60">
+          <Card className="border-muted/60 self-start">
             <CardHeader>
               <CardTitle>Exam settings</CardTitle>
               <CardDescription>Timing, rules, and behavior.</CardDescription>
@@ -134,11 +141,17 @@ export default function ExamDetailClient() {
             <CardContent className="space-y-3">
               <MetaRow label="Timed">{exam.isTimed ? "Yes" : "No"}</MetaRow>
               {exam.isTimed && <MetaRow label="Duration">{exam.durationMinutes ?? 0} minutes</MetaRow>}
+              <MetaRow label="Date">
+                {exam.scheduledStartAt ? new Date(exam.scheduledStartAt).toLocaleDateString() : "Not scheduled"}
+              </MetaRow>
               <MetaRow label="Start">
-                {exam.scheduledStartAt ? new Date(exam.scheduledStartAt).toLocaleString() : "Not scheduled"}
+                {exam.scheduledStartAt ? new Date(exam.scheduledStartAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Not scheduled"}
               </MetaRow>
               <MetaRow label="End">
-                {exam.scheduledEndAt ? new Date(exam.scheduledEndAt).toLocaleString() : "Not scheduled"}
+                {exam.scheduledStartAt
+                  && exam.durationMinutes
+                  ? new Date(new Date(exam.scheduledStartAt).getTime() + exam.durationMinutes * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : "Not scheduled"}
               </MetaRow>
               <Separator />
               <MetaRow label="Allow late">{exam.allowLateSubmissions ? "Yes" : "No"}</MetaRow>
@@ -156,7 +169,6 @@ export default function ExamDetailClient() {
                     )}
                     {exam.validationRule.minLength && <div>Min length: {exam.validationRule.minLength}</div>}
                     {exam.validationRule.maxLength && <div>Max length: {exam.validationRule.maxLength}</div>}
-                    {exam.validationRule.regex && <div>Regex: <span className="font-mono">{exam.validationRule.regex}</span></div>}
                   </div>
                 )}
                 <EditExamDialog exam={exam} asChild>
@@ -205,7 +217,6 @@ export default function ExamDetailClient() {
                         <TableCell><ResultStatusBadge status={r.status} /></TableCell>
                         <TableCell className="hidden md:table-cell">{r.score ?? "-"}</TableCell>
                         <TableCell className="hidden lg:table-cell">{new Date(r.startedAt).toLocaleString()}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{r.endedAt ? new Date(r.endedAt).toLocaleString() : "-"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -13,8 +13,9 @@ import { VEvent } from "@/types/types.events";
 
 interface EventsState {
   events: VEvent[];
-  eventsLoading: boolean;
-  buttonLoading: boolean;
+  fetching: boolean;
+  hasFetched: boolean;
+  loading: boolean;
 
   fetchEvents: () => Promise<void>;
   createEventAction: (values: VEvent) => Promise<void>;
@@ -23,35 +24,39 @@ interface EventsState {
 }
 
 export const useEventsStore = create<EventsState>()(
-  devtools((set) => ({
+  devtools((set, get) => ({
     events: [],
     eventsLoading: false,
     buttonLoading: false,
 
     fetchEvents: async () => {
-      set({ eventsLoading: true });
+      if (get().hasFetched || get().fetching)
+        return
+
+      set({ fetching: true });
       try {
         const data = await getEvents();
         if ("message" in data) {
           toast.error(data.message);
         } else {
           set({
+            hasFetched: true,
             events: data.map((evt) => ({
               ...evt,
-              start: new Date(evt.start??''),
-              end: new Date(evt.end??''),
+              start: new Date(evt.start ?? ''),
+              end: new Date(evt.end ?? ''),
             })),
           });
         }
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
-        set({ eventsLoading: false });
+        set({ fetching: false });
       }
     },
 
     createEventAction: async (values) => {
-      set({ buttonLoading: true });
+      set({ loading: true });
       try {
         const result = await createEvent(values);
         if ("message" in result) {
@@ -62,8 +67,8 @@ export const useEventsStore = create<EventsState>()(
               ...state.events,
               {
                 ...result,
-                start: new Date(result.start??''),
-                end: new Date(result.end??''),
+                start: new Date(result.start ?? ''),
+                end: new Date(result.end ?? ''),
                 _id: result._id, // Ensure _id is present
               },
             ],
@@ -73,12 +78,12 @@ export const useEventsStore = create<EventsState>()(
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
-        set({ buttonLoading: false });
+        set({ loading: false });
       }
     },
 
     updateEventAction: async (id, values) => {
-      set({ buttonLoading: true });
+      set({ loading: true });
       try {
         const result = await updateEvent(id, values);
         if ("message" in result) {
@@ -88,11 +93,11 @@ export const useEventsStore = create<EventsState>()(
             events: state.events.map((evt) =>
               evt._id === id
                 ? {
-                    ...result,
-                    start: new Date(result.start??''),
-                    end: new Date(result.end??''),
-                    _id: result._id || id, // fallback id
-                  }
+                  ...result,
+                  start: new Date(result.start ?? ''),
+                  end: new Date(result.end ?? ''),
+                  _id: result._id || id, // fallback id
+                }
                 : evt
             ),
           }));
@@ -101,12 +106,12 @@ export const useEventsStore = create<EventsState>()(
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
-        set({ buttonLoading: false });
+        set({ loading: false });
       }
     },
 
     deleteEventAction: async (id) => {
-      set({ buttonLoading: true });
+      set({ loading: true });
       try {
         const result = await deleteEvent(id);
         if ("message" in result) {
@@ -120,7 +125,7 @@ export const useEventsStore = create<EventsState>()(
       } catch (err) {
         toast.error((err as Error).message);
       } finally {
-        set({ buttonLoading: false });
+        set({ loading: false });
       }
     },
   }))
