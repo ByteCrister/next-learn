@@ -1,7 +1,7 @@
 
-const RoutinePage = () =>{
+const RoutinePage = () => {
     return (
-        <RoutinePage />
+        <div>Routine page</div>
     )
 }
 export default RoutinePage;

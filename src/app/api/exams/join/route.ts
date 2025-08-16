@@ -1,113 +1,137 @@
-/** to join on a exam user has to give this info first */
 // src/app/api/exams/join/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
 import ExamModel from "@/models/ExamModel";
-import ConnectDB from "@/config/ConnectDB";
+import isCryptoMatch from "@/utils/helpers/isCryptoMatch";
+import { AnswerDTO, ExamResultDTO } from "@/types/types.exam";
+import ExamResultModel, { IAnswer } from "@/models/ExamResultModel";
 
-type JoinExamSuccess = {
-    success: true;
-    message: "Exam code validated, you can join";
-    data: {
-        title: string;
-        subjectCode: string;
-    };
-};
-
-type JoinExamError = {
-    success: false;
-    message: string;
-};
-
-export async function POST(
-    req: NextRequest
-): Promise<NextResponse<JoinExamSuccess | JoinExamError>> {
-    // 1) Connect to DB
+export async function GET(req: NextRequest) {
     try {
-        await ConnectDB();
-    } catch (err) {
-        console.error("[JoinExam] DB connection failed:", err);
-        return NextResponse.json(
-            { success: false, message: "Database connection failed" },
-            { status: 500 }
-        );
-    }
+        const { searchParams } = new URL(req.url);
 
-    // 2) Parse & validate payload
-    let body: { examId: string, examCode: string };
-    try {
-        body = await req.json();
-    } catch (err) {
-        console.error("[JoinExam] Invalid JSON body:", err);
-        return NextResponse.json(
-            { success: false, message: "Invalid JSON payload" },
-            { status: 400 }
-        );
-    }
+        const examId = searchParams.get("examId");
+        const createdBy = searchParams.get("createdBy");
+        const participantId = searchParams.get("participantId"); // from URL param
+        const hashedExamCode = searchParams.get("examCode"); // hashed examCode from URL
 
-    const { examId, examCode } = body;
-    if (!examId || !mongoose.Types.ObjectId.isValid(examId)) {
-        return NextResponse.json(
-            { success: false, message: "Invalid or missing examId" },
-            { status: 400 }
-        );
-    }
-    if (!examCode || typeof examCode !== "string") {
-        return NextResponse.json(
-            { success: false, message: "Exam code is required" },
-            { status: 400 }
-        );
-    }
-
-    // 3) Lookup exam
-    let exam;
-    try {
-        exam = await ExamModel.findById(examId).lean();
-    } catch (err) {
-        console.error(`[JoinExam] Error fetching exam ${examId}:`, err);
-        return NextResponse.json(
-            { success: false, message: "Error retrieving exam" },
-            { status: 500 }
-        );
-    }
-
-    if (!exam) {
-        return NextResponse.json(
-            { success: false, message: "Exam not found" },
-            { status: 404 }
-        );
-    }
-
-    // 4) Verify code
-    if (exam.examCode !== examCode) {
-        return NextResponse.json(
-            { success: false, message: "Invalid exam code" },
-            { status: 401 }
-        );
-    }
-
-    // 5) Check schedule
-    if (exam.scheduledEndAt) {
-        const now = Date.now();
-        const end = new Date(exam.scheduledEndAt).getTime();
-        if (now > end) {
-            return NextResponse.json(
-                { success: false, message: "Exam has already ended" },
-                { status: 403 }
-            );
+        // Basic validation
+        if (!examId || !mongoose.Types.ObjectId.isValid(examId)) {
+            return NextResponse.json({ success: false, message: "Invalid or missing examId." }, { status: 400 });
         }
-    }
+        if (!createdBy || !mongoose.Types.ObjectId.isValid(createdBy)) {
+            return NextResponse.json({ success: false, message: "Invalid or missing createdBy." }, { status: 400 });
+        }
+        if (!participantId) {
+            return NextResponse.json({ success: false, message: "Missing participantId." }, { status: 400 });
+        }
+        if (!hashedExamCode) {
+            return NextResponse.json({ success: false, message: "Missing examCode." }, { status: 400 });
+        }
 
-    // 6) Success
-    return NextResponse.json(
-        {
-            success: true,
-            message: "Exam code validated, you can join",
-            data: {
-                title: exam.title,
-                subjectCode: exam.subjectCode,
-            },
-        },
-        { status: 200 }
-    );
+        // Fetch exam by ID and creator
+        const exam = await ExamModel.findOne({ _id: examId, createdBy });
+        if (!exam) {
+            return NextResponse.json({ success: false, message: "Exam not found." }, { status: 404 });
+        }
+
+        // Validate hashed examCode
+        if (!isCryptoMatch(exam.examCode, hashedExamCode)) {
+            return NextResponse.json({ success: false, message: "Exam code mismatch." }, { status: 400 });
+        }
+
+        // Validate participantId according to validationRule
+        const { startsWith, minLength, maxLength } = exam.validationRule || {};
+        if (startsWith?.length) {
+            const isValidPrefix = startsWith.some((prefix) => participantId.startsWith(prefix));
+            if (!isValidPrefix) {
+                return NextResponse.json({ success: false, message: "Participant ID does not match required prefix." }, { status: 400 });
+            }
+        }
+        if (minLength && participantId.length < minLength) {
+            return NextResponse.json({ success: false, message: `Participant ID must be at least ${minLength} characters.` }, { status: 400 });
+        }
+        if (maxLength && participantId.length > maxLength) {
+            return NextResponse.json({ success: false, message: `Participant ID must not exceed ${maxLength} characters.` }, { status: 400 });
+        }
+
+        // Timing check
+        if (exam.scheduledStartAt && exam.durationMinutes) {
+            const now = Date.now();
+            const endsAt =
+                exam.scheduledStartAt.getTime() +
+                exam.durationMinutes * 60 * 1000 +
+                (exam.lateWindowMinutes ?? 0) * 60 * 1000;
+            if (now > endsAt) {
+                return NextResponse.json({ success: false, message: "The exam window has closed." }, { status: 400 });
+            }
+        }
+
+        // Passed all checks
+        return NextResponse.json(exam, { status: 200 });
+    } catch (err) {
+        console.error("Error validating exam:", err);
+        return NextResponse.json({ success: false, message: "Server error." }, { status: 500 });
+    }
+}
+
+
+// * Submit participant answers
+
+/** Helper to map DTO to Mongoose IAnswer */
+const mapAnswers = (answers: AnswerDTO[]): IAnswer[] =>
+    answers.map((a) => ({
+        questionIndex: a.questionIndex,
+        selectedChoiceIndex: a.selectedChoiceIndex,
+        isCorrect: a.isCorrect, // optionally precomputed or left undefined
+    }));
+
+export async function POST(req: NextRequest) {
+    try {
+        const body: ExamResultDTO = await req.json();
+
+        const { _id, participantId, participantEmail, status, startedAt, answers } = body;
+
+        // Validate required fields
+        if (!participantId || !_id || !participantEmail || !startedAt || !status || !answers) {
+            return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+        }
+
+        // Find the exam to ensure it exists
+        const exam = await ExamModel.findOne({ _id });
+        if (!exam) {
+            return NextResponse.json({ message: "Exam not found" }, { status: 404 });
+        }
+
+        // Check if participant has already submitted
+        const existingResult = await ExamResultModel.findOne({ exam: exam._id, participantId });
+        if (existingResult && existingResult.status === "submitted") {
+            return NextResponse.json({ message: "Already submitted" }, { status: 409 });
+        }
+
+        // Create or update the result
+        const result = existingResult
+            ? existingResult
+            : new ExamResultModel({
+                exam: exam._id,
+                participantId,
+                participantEmail: participantEmail, // you can add email if available
+                startedAt: startedAt,
+                totalQuestions: exam.questions.length,
+            });
+
+        result.answers = mapAnswers(answers);
+        result.endedAt = new Date();
+        result.status = "submitted";
+
+        // Optional: calculate score
+        result.score = answers.reduce((sum, a) => (a.isCorrect ? sum + 1 : sum), 0);
+
+        await result.save();
+
+        return NextResponse.json({ success: true });
+    } catch (err) {
+        console.error("SubmitExam error:", err);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    }
 }

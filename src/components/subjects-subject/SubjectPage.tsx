@@ -69,7 +69,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
         setBreadcrumbs([
             { label: 'Home', href: '/' },
             { label: 'Subjects', href: '/subjects' },
-            { label: `${selectedSubject?.title ?? ''}`, href: `/subjects/${selectedSubject?._id}` },
+            { label: `${selectedSubject?.title ?? '-'}`, href: `/subjects/${selectedSubject?._id}` },
         ]);
 
     }, [selectedSubject, selectedRoadmap, setBreadcrumbs]);

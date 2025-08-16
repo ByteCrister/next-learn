@@ -32,8 +32,8 @@ export async function GET() {
         // fetch counts + next 5 events as plain objects
         const [subjectsCount, routineCount, examCount, eventsDocs] =
             await Promise.all([
-                Subject.countDocuments({ objectUserId }),
-                Routine.countDocuments({ objectUserId }),
+                Subject.countDocuments({ userId: objectUserId }),
+                Routine.countDocuments({ userId: objectUserId }),
                 ExamModel.countDocuments({ createdBy: objectUserId }),
                 Event.find({ userId: objectUserId, start: { $gte: new Date() } })
                     .sort({ start: 1 })
@@ -58,6 +58,7 @@ export async function GET() {
             durationMinutes: evt.durationMinutes,
             allDay: evt.allDay,
         }));
+
 
         const payload: DashboardData = {
             subjectsCount,

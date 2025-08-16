@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 /* ---------- Sub-interfaces ---------- */
-interface IExamValidationRule {
+export interface IExamValidationRule {
     startsWith?: string[]; // e.g., ["065","000","011"]
     maxLength?: number; // e.g., 10
     minLength?: number;
@@ -36,7 +36,6 @@ export interface IExam extends Document {
     isTimed?: boolean;              // if true, exam enforces timing
     durationMinutes?: number;       // exam total duration in minutes
     scheduledStartAt?: Date | null; // UTC start time (optional)
-    scheduledEndAt?: Date | null;   // UTC end time (auto-calculated if possible)
     allowLateSubmissions?: boolean;
     lateWindowMinutes?: number;     // minutes allowed after scheduledEndAt
     autoSubmitOnEnd?: boolean;      // auto-submit when time is up
@@ -127,16 +126,10 @@ ExamSchema.pre<IExam>("validate", function (next) {
             return next(new Error("Timed exam must have a scheduledStartAt."));
         }
 
-        // Always calculate scheduledEndAt based on start + duration
-        this.scheduledEndAt = new Date(
-            this.scheduledStartAt.getTime() + this.durationMinutes * 60000
-        );
-
     } else {
         // Not timed → clear all timing fields
         this.durationMinutes = undefined;
         this.scheduledStartAt = undefined;
-        this.scheduledEndAt = undefined;
         this.allowLateSubmissions = false;
         this.lateWindowMinutes = 0;
     }

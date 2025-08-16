@@ -47,6 +47,7 @@ export const useDashboardStore = create<DashboardState>()(
     devtools((set, get) => ({
         // initial state
         subjectsCount: 0,
+        examCount: 0,
         roadmapsCount: 0,
         routineCount: 0,
         upcomingEvents: [],
@@ -70,7 +71,10 @@ export const useDashboardStore = create<DashboardState>()(
                 if ("message" in data) {
                     toast.error(data.message);
                 } else {
+                    console.log(data.upcomingEvents);
                     set({
+                        subjectsCount: data.subjectsCount,
+                        examCount: data.examCount,
                         routineCount: data.routineCount,
                         upcomingEvents: data.upcomingEvents
                     });

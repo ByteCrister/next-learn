@@ -1,5 +1,20 @@
 // types/types.exam.ts
 
+
+/** Input for checking an existing exam */
+export interface CheckExamInput {
+    participantId: string;
+    subjectCode: string;
+    examCode: string;
+    createdBy: string; // user ObjectId as string
+}
+
+/** Response from checking an existing exam */
+export interface ExamCheckResponse {
+    exam?: ExamDTO; // optional, present if check passes
+}
+
+
 /** Validation rule for participant IDs */
 export interface ValidationRule {
     startsWith?: string[];
@@ -39,7 +54,6 @@ export interface ExamResultDTO {
     _id: string;
     participantId: string;
     participantEmail: string;
-    score?: number;
     status: "in-progress" | "submitted" | "late" | "expired";
     startedAt: string;       // ISO date string
     answers: AnswerDTO[];    // newly added field
@@ -60,7 +74,6 @@ export interface ExamDTO {
     isTimed?: boolean;
     durationMinutes?: number;
     scheduledStartAt?: string | null;
-    scheduledEndAt?: string | null;
     allowLateSubmissions?: boolean;
     lateWindowMinutes?: number;
     autoSubmitOnEnd?: boolean;
@@ -80,6 +93,58 @@ export interface ExamOverviewCard {
     subjectCode: string;
     examCode: string;
 }
+
+/** Timing info for an exam relative to the current time */
+interface Time {
+    /** Whether the exam has a scheduled start time */
+    hasSchedule: boolean;
+
+    /** True if the current time is before the scheduled start time */
+    beforeSchedule: boolean;
+
+    /** Milliseconds remaining until the exam's scheduled start (0 if already started) */
+    beforeStartCountdownMs: number;
+
+    /** True if the exam has a time limit */
+    isTimed: boolean;
+
+    /** True if the exam is untimed (no limit) */
+    unlimited: boolean;
+
+    /** True if late submissions are allowed */
+    allowLate: boolean;
+
+    /** Late submission window in milliseconds (0 if not allowed) */
+    lateWindowMs: number;
+
+    /** True if the participant has started the exam */
+    started: boolean;
+
+    /** Timestamp (ms) when the main exam period ends, null if not started or untimed */
+    mainEnd: number | null;
+
+    /** Timestamp (ms) when the absolute cut-off (including late window) ends, null if not started or untimed */
+    hardEnd: number | null;
+
+    /** Remaining milliseconds in the main exam period, null if not started or untimed */
+    remainingMainMs: number | null;
+
+    /** Remaining milliseconds in the late submission window, null if not applicable */
+    remainingLateMs: number | null;
+
+    /** True if currently in the main exam period */
+    inMainTime: boolean;
+
+    /** True if currently in the late submission window */
+    inLateWindow: boolean;
+
+    /** True if the exam time has fully expired (main + late window) */
+    isExpired: boolean;
+}
+
+/** Complete timing info for an exam, or null if exam data is not available */
+export type ExamTiming = Time | null;
+
 
 /** Response payload for listing exams */
 export type GetExamOverviewResponse = ExamOverviewCard[];

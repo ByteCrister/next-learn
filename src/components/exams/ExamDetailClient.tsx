@@ -18,11 +18,16 @@ import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
 import { ExamDetailSkeleton } from "./ExamDetailSkeleton";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import { UpdateQuestionDialog } from "./UpdateQuestionDialog";
+import { ShareButton } from "./ShareButton";
+import { useDashboardStore } from "@/store/useDashboardStore";
+import { rearrangeObjectId } from "@/utils/helpers/rearrangeObjectId";
+
 
 export default function ExamDetailClient() {
   const { examId } = useParams<{ examId: string }>();
   const router = useRouter();
   const { examsById, resultsByExamId, fetchExamById, fetching } = useExamStore();
+  const { user } = useDashboardStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
   const [selectedQuestionIndex, setSelectedQuestionIndex] = React.useState<number | null>(null);
 
@@ -34,7 +39,8 @@ export default function ExamDetailClient() {
       }
     };
     loadExam();
-  }, [examId, examsById, fetchExamById]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   React.useEffect(() => {
@@ -43,7 +49,8 @@ export default function ExamDetailClient() {
       { label: "Exams", href: "/exams" },
       { label: `${examsById[examId]?.title ?? ''} - ${examsById[examId]?.examCode ?? ''}`, href: `/exams/${examId}` },
     ]);
-  }, [examId, examsById, setBreadcrumbs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examId]);
 
   const exam: ExamDTO | undefined = examsById[examId];
   const results = resultsByExamId[examId] ?? [];
@@ -52,13 +59,23 @@ export default function ExamDetailClient() {
     return <ExamDetailSkeleton />;
   }
 
+  const handleShare = () => {
+    if (!user?._id || !exam?._id) return;
+
+    const createdBy = rearrangeObjectId(user._id); // split every 6 chars
+    const examId = rearrangeObjectId(exam._id);
+
+    const examLink = `${window.location.origin}/join-exam/${createdBy}-join-${examId}`;
+    navigator.clipboard.writeText(examLink);
+  };
+
   if (!exam) {
     return (
       <div className="container mx-auto px-4 py-10">
         <Card>
           <CardHeader>
             <CardTitle>Exam not found</CardTitle>
-            <CardDescription>The exam you’re looking for does not exist or was removed.</CardDescription>
+            <CardDescription>The exam you&apos;re looking for does not exist or was removed.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="outline" onClick={() => router.push("/exams")}>Back to exams</Button>
@@ -76,30 +93,45 @@ export default function ExamDetailClient() {
       exam.validationRule.maxLength ||
       exam.validationRule.minLength);
 
-  const now = new Date();
-  const scheduledEnd = exam.scheduledEndAt ? new Date(exam.scheduledEndAt) : null;
-  const isEnded = scheduledEnd ? scheduledEnd.getTime() <= now.getTime() : false;
+  const isEnded =
+    exam.scheduledStartAt && exam.durationMinutes
+      ? Date.now() >
+      new Date(exam.scheduledStartAt).getTime() +
+      exam.durationMinutes * 60 * 1000 +
+      (!exam.isTimed ? (exam.lateWindowMinutes ?? 0) * 60 * 1000 : 0)
+      : false;
+
+
+  const hasResults = results.length > 0;
+  const isEditable = !(isEnded && hasResults);
+
 
   return (
     <div className="container mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">{exam.title}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+              {exam.title}
+              {isEnded && (
+                <Badge variant="secondary" className="text-xs">Ended</Badge>
+              )}
+              <ShareButton onShare={() => handleShare()} isEditable={isEditable} />
+            </h1>
+
             <p className="text-muted-foreground">
               <span className="font-mono">{exam.examCode}</span> • Subject <span className="font-medium">{exam.subjectCode}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
             <EditExamDialog exam={exam} asChild>
-              <Button variant="outline">Edit</Button>
+              <Button variant="outline" disabled={!isEditable} >Edit</Button>
             </EditExamDialog>
             <AddQuestionDialog exam={exam} asChild />
-            <Button variant="outline" onClick={() => fetchExamById(exam._id, true)}>Refresh</Button>
+            <Button variant="outline" disabled={!isEditable} onClick={() => fetchExamById(exam._id, true)}>Refresh</Button>
             <ConfirmDeleteDialog examId={exam._id} asChild />
           </div>
         </div>
-
         {exam.description && (
           <Card className="border-muted/60">
             <CardContent className="py-4 text-sm text-muted-foreground">
@@ -119,7 +151,7 @@ export default function ExamDetailClient() {
                 <EmptyBlock
                   title="No questions yet"
                   description="Add your first question to get started."
-                  cta={<AddQuestionDialog exam={exam} asChild><Button>Add question</Button></AddQuestionDialog>}
+                  cta={<AddQuestionDialog exam={exam} asChild><Button disabled={!isEditable} >Add question</Button></AddQuestionDialog>}
                 />
               ) : (
                 <div className="space-y-3">
@@ -172,7 +204,7 @@ export default function ExamDetailClient() {
                   </div>
                 )}
                 <EditExamDialog exam={exam} asChild>
-                  <Button variant="outline" size="sm" className="mt-1">Update settings</Button>
+                  <Button variant="outline" size="sm" className="mt-1" disabled={!isEditable} >Update settings</Button>
                 </EditExamDialog>
               </div>
             </CardContent>
@@ -226,7 +258,7 @@ export default function ExamDetailClient() {
           </CardContent>
         </Card>
       </motion.div>
-      {selectedQuestionIndex !== null && (
+      {selectedQuestionIndex !== null && isEditable && (
         <UpdateQuestionDialog
           exam={exam}
           questionIndex={selectedQuestionIndex}

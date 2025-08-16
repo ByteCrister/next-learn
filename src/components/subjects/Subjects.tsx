@@ -61,7 +61,7 @@ export default function Subjects() {
       );
     }
 
-    return list.sort((a, b) => {
+    return [...list].sort((a, b) => {
       switch (sortOption) {
         case "alpha-desc":
           return b.title.localeCompare(a.title);
@@ -75,6 +75,7 @@ export default function Subjects() {
           return 0;
       }
     });
+
   }, [subjects, debouncedSearchTerm, sortOption]);
 
   const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);
