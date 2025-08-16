@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ExamDTO, ExamResultDTO, AnswerDTO, ExamTiming } from "@/types/types.exam";
+import type { ExamDTO, AnswerDTO, ExamTiming, SubmitResult } from "@/types/types.exam";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge"; // if you have it in shadcn
@@ -16,6 +16,8 @@ import ExamSkeleton from "./ExamSkeleton";
 import { HeaderCard } from "./HeaderCard";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { useRouter } from "next/navigation";
+import SubmitAlert from "./SubmitAlert";
 // --- email validation helper ---
 function validateEmail(value: string) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,9 +39,10 @@ function isApiError(x: unknown): x is ApiError {
 export default function ClientExamRunner(props: Props) {
     const { createdBy, examId, participantId, examCode } = props;
 
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [exam, setExam] = useState<ExamDTO | null>(null);
-    const [result, setResult] = useState<ExamResultDTO | null>(null);
+    const [result, setResult] = useState<SubmitResult | null>(null);
     const [answers, setAnswers] = useState<AnswerDTO[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [email, setEmail] = useState("");
@@ -70,7 +73,6 @@ export default function ClientExamRunner(props: Props) {
                 setResult(null);
             } else {
                 setExam(res);
-                console.log(res);
 
                 // If participant already has a result, attach it
                 const existing = res.results?.find((r) => r.participantId === participantId) || null;
@@ -180,49 +182,62 @@ export default function ClientExamRunner(props: Props) {
         if (!exam || !timing) return;
         if (timing.started) return; // already started
 
+        // only start once the countdown reaches 0
         if (!timing.beforeSchedule && !result) {
-            // auto-start when time comes
             void handleStart();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [exam, timing, result]);
-
+    }, [exam, timing?.beforeSchedule, timing?.started, result]);
 
     function setAnswer(questionIndex: number, choiceIndex: number) {
+        if (!exam) return;
+
+        // get the question
+        const question = exam.questions[questionIndex];
+        // check if the selected choice is correct
+        const isCorrect = question.choices[choiceIndex]?.isCorrect === true;
+
         setAnswers((prev) => {
             const next = [...prev];
             const idx = next.findIndex((a) => a.questionIndex === questionIndex);
+
+            const newAnswer: AnswerDTO = {
+                questionIndex,
+                selectedChoiceIndex: choiceIndex,
+                isCorrect, // ✅ store correctness here
+            };
+
             if (idx >= 0) {
-                next[idx] = { ...next[idx], selectedChoiceIndex: choiceIndex };
+                next[idx] = newAnswer;
             } else {
-                next.push({ questionIndex, selectedChoiceIndex: choiceIndex });
+                next.push(newAnswer);
             }
             return next;
         });
     }
 
     async function handleStart() {
-        if (!exam) return;
+        if (!exam || !timing) return;
 
-        if (timing?.beforeSchedule) {
+        if (timing.beforeSchedule) {
             toast.info("The exam hasn’t started yet.");
             return;
         }
 
         const startedAt = new Date().toISOString();
-        const newResult: ExamResultDTO = {
+        const newResult: SubmitResult = {
             _id: result?._id || crypto.randomUUID(),
             participantId,
             participantEmail: result?.participantEmail || "",
             status: "in-progress",
             startedAt,
-            answers: answers,
+            answers,
         };
         setResult(newResult);
         toast.success("Exam started");
     }
 
-    async function handleSubmit(statusOverride?: ExamResultDTO["status"]) {
+    async function handleSubmit(statusOverride?: SubmitResult["status"]) {
         if (!exam) return;
         if (!result) {
             toast.error("You need to start the exam first.");
@@ -240,7 +255,7 @@ export default function ClientExamRunner(props: Props) {
                 _id: examId,
                 participantId: participantId,
                 startedAt: result.startedAt,
-                answers: result.answers,
+                answers: answers,
                 participantEmail: email,
                 status:
                     statusOverride ||
@@ -253,6 +268,7 @@ export default function ClientExamRunner(props: Props) {
             } else if (res.success) {
                 setResult((r) => (r ? { ...r, status: toSend.status, answers: toSend.answers } : r));
                 toast.success("Submitted successfully");
+                router.push('/');
             } else {
                 toast.error("Unexpected submission response");
             }
@@ -278,7 +294,7 @@ export default function ClientExamRunner(props: Props) {
                 </CardHeader>
                 <CardContent>
                     <p className="text-sm text-muted-foreground">
-                        We couldn’t validate your exam link. Please check the URL or try again.
+                        We couldn&apos;t validate your exam link. Please check the URL or try again.
                     </p>
                     <div className="mt-4">
                         <Button onClick={() => window.location.reload()}>Retry</Button>
@@ -288,7 +304,6 @@ export default function ClientExamRunner(props: Props) {
         );
     }
 
-    const canStart = !timing?.started && !timing?.beforeSchedule;
     const canAnswer = timing?.started && !(timing?.isTimed && timing?.isExpired);
     const canSubmit =
         timing?.started &&
@@ -339,13 +354,6 @@ export default function ClientExamRunner(props: Props) {
                                     <p className="text-sm text-gray-500">Ready to start.</p>
                                 )}
                             </div>
-                            <Button
-                                onClick={handleStart}
-                                disabled={!canStart}
-                                className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300"
-                            >
-                                Start exam
-                            </Button>
                         </div>
                     ) : (
                         <div className="flex flex-wrap items-center gap-3 animate-fadeIn">
@@ -389,109 +397,101 @@ export default function ClientExamRunner(props: Props) {
                 </CardContent>
             </Card>
 
+            {timing?.started ? (<>
+                {/* Questions */}
+                <Card className="rounded-2xl bg-white/80 backdrop-blur-md border border-gray-100 p-6 shadow-md hover:shadow-lg transition-all duration-300">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-semibold text-gray-800">
+                            Questions
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {exam.questions.map((q, qi) => {
+                            const selected =
+                                answers.find((a) => a.questionIndex === qi)?.selectedChoiceIndex ?? -1;
 
-            {/* Questions */}
-            <Card className="rounded-2xl bg-white/80 backdrop-blur-md border border-gray-100 p-6 shadow-md hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                    <CardTitle className="text-xl font-semibold text-gray-800">
-                        Questions
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {exam.questions.map((q, qi) => {
-                        const selected =
-                            answers.find((a) => a.questionIndex === qi)?.selectedChoiceIndex ?? -1;
+                            return (
+                                <div
+                                    key={qi}
+                                    className="rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-indigo-200 transition-all duration-300"
+                                >
+                                    <div className="mb-3 space-y-2">
+                                        {q.contents?.map((c, idx) =>
+                                            c.type === "text" ? (
+                                                <p
+                                                    key={idx}
+                                                    className="text-base leading-relaxed text-gray-700"
+                                                >
+                                                    {c.value}
+                                                </p>
+                                            ) : (
+                                                <div
+                                                    key={idx}
+                                                    className="flex justify-center"
+                                                >
+                                                    <Image
+                                                        height={180}
+                                                        width={180}
+                                                        src={c.value}
+                                                        alt={`Question ${qi + 1} image ${idx + 1}`}
+                                                        className="max-h-64 w-auto rounded-xl bg-gray-50 object-contain shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:ring-indigo-300 transition-all duration-300"
+                                                    />
+                                                </div>
+                                            )
+                                        )}
 
-                        return (
-                            <div
-                                key={qi}
-                                className="rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-indigo-200 transition-all duration-300"
-                            >
-                                <div className="mb-3 space-y-2">
-                                    {q.contents?.map((c, idx) =>
-                                        c.type === "text" ? (
-                                            <p
-                                                key={idx}
-                                                className="text-base leading-relaxed text-gray-700"
-                                            >
-                                                {c.value}
-                                            </p>
-                                        ) : (
-                                            <div
-                                                key={idx}
-                                                className="flex justify-center"
-                                            >
-                                                <Image
-                                                    height={180}
-                                                    width={180}
-                                                    src={c.value}
-                                                    alt={`Question ${qi + 1} image ${idx + 1}`}
-                                                    className="max-h-64 w-auto rounded-xl bg-gray-50 object-contain shadow-sm ring-1 ring-gray-200 hover:shadow-md hover:ring-indigo-300 transition-all duration-300"
-                                                />
-                                            </div>
-                                        )
-                                    )}
+                                    </div>
 
+                                    <div className={clsx("grid gap-3", "sm:grid-cols-2")}>
+                                        {q.choices.map((choice, ci) => {
+                                            const id = `q${qi}-c${ci}`;
+                                            const disabled = !canAnswer;
+
+                                            return (
+                                                <label
+                                                    key={ci}
+                                                    htmlFor={id}
+                                                    className={clsx(
+                                                        "flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-gray-700 transition-all duration-300",
+                                                        disabled
+                                                            ? "opacity-60"
+                                                            : "hover:bg-indigo-50 hover:border-indigo-200",
+                                                        selected === ci
+                                                            ? "ring-2 ring-indigo-400 bg-indigo-50"
+                                                            : "ring-1 ring-transparent"
+                                                    )}
+                                                >
+                                                    <input
+                                                        id={id}
+                                                        type="radio"
+                                                        name={`q-${qi}`}
+                                                        className="sr-only"
+                                                        disabled={disabled}
+                                                        checked={selected === ci}
+                                                        onChange={() => setAnswer(qi, ci)}
+                                                    />
+                                                    <span className="text-sm">{choice.text}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-
-                                <div className={clsx("grid gap-3", "sm:grid-cols-2")}>
-                                    {q.choices.map((choice, ci) => {
-                                        const id = `q${qi}-c${ci}`;
-                                        const disabled = !canAnswer;
-
-                                        return (
-                                            <label
-                                                key={ci}
-                                                htmlFor={id}
-                                                className={clsx(
-                                                    "flex cursor-pointer items-center gap-2 rounded-lg border p-3 text-gray-700 transition-all duration-300",
-                                                    disabled
-                                                        ? "opacity-60"
-                                                        : "hover:bg-indigo-50 hover:border-indigo-200",
-                                                    selected === ci
-                                                        ? "ring-2 ring-indigo-400 bg-indigo-50"
-                                                        : "ring-1 ring-transparent"
-                                                )}
-                                            >
-                                                <input
-                                                    id={id}
-                                                    type="radio"
-                                                    name={`q-${qi}`}
-                                                    className="sr-only"
-                                                    disabled={disabled}
-                                                    checked={selected === ci}
-                                                    onChange={() => setAnswer(qi, ci)}
-                                                />
-                                                <span className="text-sm">{choice.text}</span>
-                                            </label>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </CardContent>
+                </Card>
+                {/* Actions */}
+                <div className="flex items-center justify-end gap-4">
+                    <SubmitAlert canSubmit={canSubmit} submitting={submitting} handleSubmit={handleSubmit} />
+                </div>
+            </>) : (<Card>
+                <CardContent className="text-center text-gray-500 py-8">
+                    Exam hasn&apos;t started yet. Starts in{" "}
+                    <span className="font-semibold text-indigo-600">
+                        {formatMs(timing?.beforeStartCountdownMs || 0)}
+                    </span>.
                 </CardContent>
-            </Card>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-4">
-                <Button
-                    variant="secondary"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    className="rounded-lg px-5 py-2 text-gray-700 border border-gray-300 hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all duration-300"
-                >
-                    Review
-                </Button>
-                <Button
-                    onClick={() => handleSubmit()}
-                    disabled={!canSubmit || submitting}
-                    className="rounded-lg px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-500 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300"
-                >
-                    {submitting ? "Submitting..." : "Submit answers"}
-                </Button>
-            </div>
+            </Card>)}
         </div>
-
-
     );
 }

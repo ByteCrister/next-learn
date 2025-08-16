@@ -29,10 +29,15 @@ export default function Providers({ children }: ProvidersProps) {
           {children}
         </DashboardLayout>
         <ToastContainer
-          position="top-right"
+          position="bottom-right"
           autoClose={4000}
           hideProgressBar={false}
           newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
       </TooltipProvider>
     </>

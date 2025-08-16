@@ -7,7 +7,7 @@ import {
     Question,
     ExamCheckResponse,
     CheckExamInput,
-    ExamResultDTO,
+    SubmitResult,
 } from "@/types/types.exam";
 
 const ROOT_URL = "/exams";
@@ -215,7 +215,7 @@ export async function getJoinExam(
  * @param result ExamResultDTO object containing answers and participant info
  * @returns Promise resolving to submitted result
  */
-export const submitExamAnswers = async (result: ExamResultDTO): Promise<{ success: boolean } | ApiError> => {
+export const submitExamAnswers = async (result: SubmitResult): Promise<{ success: boolean } | ApiError> => {
     try {
         const { data } = await api.post(`${ROOT_URL}/join`, result);
         return data;

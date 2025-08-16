@@ -55,7 +55,9 @@ export interface ExamResultDTO {
     participantId: string;
     participantEmail: string;
     status: "in-progress" | "submitted" | "late" | "expired";
+    score: number;
     startedAt: string;       // ISO date string
+    endedAt: string;       // ISO date string
     answers: AnswerDTO[];    // newly added field
 }
 
@@ -154,3 +156,5 @@ export type GetExamsResponse = ExamDTO[];
 
 /** Response from GET /api/exams/[examId] */
 export type GetExamResponse = ExamDTO;
+
+export type SubmitResult = Omit<ExamResultDTO, "score">

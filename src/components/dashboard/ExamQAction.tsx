@@ -42,7 +42,7 @@ const fieldVariants = {
     visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
 };
 
-const MotionForm = motion(Form);
+const MotionForm = motion.create(Form);
 
 export default function ExamQAction() {
     const router = useRouter();

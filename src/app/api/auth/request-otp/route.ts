@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         const { email } = await req.json();
         if (typeof email !== "string" || !email.trim()) {
             return NextResponse.json(
-                { error: "A valid email is required" },
+                { message: "A valid email is required" },
                 { status: 400 }
             );
         }
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         const user = await User.findOne({ email });
         if (!user) {
             return NextResponse.json(
-                { error: "User with that email not found" },
+                { message: "There is no user exist with the email." },
                 { status: 404 }
             );
         }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             now - user.lastOTPSentAt.getTime() < 30 * 1000
         ) {
             return NextResponse.json(
-                { error: "Please wait 30s before requesting a new OTP" },
+                { message: "Please wait 30s before requesting a new OTP" },
                 { status: 429 }
             );
         }
@@ -55,9 +55,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, message: "OTP sent" });
     } catch (err) {
-        console.error("POST /api/auth/request-otp error:", err);
+        console.log("POST /api/auth/request-otp message:", err);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { message: "Internal server message" },
             { status: 500 }
         );
     }

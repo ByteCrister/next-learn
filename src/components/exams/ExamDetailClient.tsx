@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import type { Choice, ExamDTO, QuestionContent } from "@/types/types.exam";
+import type { Choice, ExamDTO, ExamResultDTO, QuestionContent } from "@/types/types.exam";
 import { useExamStore } from "@/store/useExamStore";
 import Image from "next/image";
 import { ResultStatusBadge } from "./ResultStatusBadge";
@@ -21,6 +21,7 @@ import { UpdateQuestionDialog } from "./UpdateQuestionDialog";
 import { ShareButton } from "./ShareButton";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { rearrangeObjectId } from "@/utils/helpers/rearrangeObjectId";
+import { ResultDetailDialog } from "./ResultDetailDialog";
 
 
 export default function ExamDetailClient() {
@@ -30,12 +31,14 @@ export default function ExamDetailClient() {
   const { user } = useDashboardStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
   const [selectedQuestionIndex, setSelectedQuestionIndex] = React.useState<number | null>(null);
+  const [selectedResult, setSelectedResult] = React.useState<ExamResultDTO | null>(null);
 
   React.useEffect(() => {
     const loadExam = async () => {
       const cached = examsById[examId];
       if (!cached) {
         await fetchExamById(examId);
+        console.log(resultsByExamId);
       }
     };
     loadExam();
@@ -49,8 +52,7 @@ export default function ExamDetailClient() {
       { label: "Exams", href: "/exams" },
       { label: `${examsById[examId]?.title ?? ''} - ${examsById[examId]?.examCode ?? ''}`, href: `/exams/${examId}` },
     ]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examId]);
+  }, [examId, examsById, setBreadcrumbs]);
 
   const exam: ExamDTO | undefined = examsById[examId];
   const results = resultsByExamId[examId] ?? [];
@@ -243,12 +245,17 @@ export default function ExamDetailClient() {
                   </TableHeader>
                   <TableBody>
                     {results.map((r) => (
-                      <TableRow key={r._id}>
+                      <TableRow
+                        key={r._id}
+                        onClick={() => setSelectedResult(r)}
+                        className="cursor-pointer hover:bg-muted/50"
+                      >
                         <TableCell className="font-medium">{r.participantId}</TableCell>
                         <TableCell className="hidden sm:table-cell">{r.participantEmail}</TableCell>
                         <TableCell><ResultStatusBadge status={r.status} /></TableCell>
                         <TableCell className="hidden md:table-cell">{r.score ?? "-"}</TableCell>
                         <TableCell className="hidden lg:table-cell">{new Date(r.startedAt).toLocaleString()}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{new Date(r.endedAt).toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -266,6 +273,15 @@ export default function ExamDetailClient() {
           onClose={() => setSelectedQuestionIndex(null)}
         />
       )}
+      {selectedResult && (
+        <ResultDetailDialog
+          open={!!selectedResult}
+          exam={exam}
+          result={selectedResult}
+          onClose={() => setSelectedResult(null)}
+        />
+      )}
+
     </div>
   );
 }
