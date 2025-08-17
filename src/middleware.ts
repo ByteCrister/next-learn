@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 // Guest-only pages (cannot be visited if logged in)
-const AUTH_ONLY_ROUTES = [/^\/login$/, /^\/reset$/];
+const AUTH_ONLY_ROUTES = [/^\/signin$/, /^\/signup$/, /^\/reset$/];
 
 // Public pages (accessible with or without login)
 const PUBLIC_ROUTES = [

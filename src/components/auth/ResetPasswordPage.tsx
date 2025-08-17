@@ -328,9 +328,9 @@ export default function ResetPasswordPage() {
                 </p>
                 <Button
                   className="mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-                  onClick={() => (window.location.href = '/next-learn-user-auth')}
+                  onClick={() => (window.location.href = '/signin')}
                 >
-                  Go to Login
+                  Go to Sign In
                 </Button>
               </div>
             )}

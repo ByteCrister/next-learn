@@ -10,7 +10,7 @@ const Breadcrumbs = () => {
   const breadcrumbs = useBreadcrumbStore((state) => state.breadcrumbs);
   const pathname = usePathname();
 
-  const isPublicPage = pathname === "/" || pathname.startsWith("/login") || pathname.startsWith("/reset");
+  const isPublicPage = pathname === "/" || pathname.startsWith("/signin") || pathname.startsWith("/signup") || pathname.startsWith("/reset");
 
   if (isPublicPage) return null;
   if (breadcrumbs.length === 0) return null;

@@ -125,7 +125,8 @@ export const useDashboardStore = create<DashboardState>()(
             try {
                 const data = await getUserData();
                 if ("message" in data) {
-                    toast.error(data.message);
+                    console.log(data.message);
+                    // toast.error(data.message);
                 } else {
                     set({
                         user: data,

@@ -263,6 +263,16 @@ export default function SignInPage() {
                 Reset
               </Link>
             </div>
+            {/* Sign Up link */}
+            <div className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/signup"
+                className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                Sign Up
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
