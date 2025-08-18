@@ -1,0 +1,306 @@
+import { Metadata } from 'next';
+import { motion } from 'framer-motion';
+
+export const metadata: Metadata = {
+  title: 'Features - Next-Learn Platform',
+  description: 'Discover powerful features of Next-Learn including interactive learning tools, personalized roadmaps, study materials, and collaborative learning experiences.',
+  keywords: 'learning features, educational tools, study platform, interactive learning, personalized education',
+  openGraph: {
+    title: 'Features - Next-Learn Platform',
+    description: 'Explore comprehensive learning features designed for modern education',
+    url: '/features',
+    siteName: 'Next-Learn',
+    images: [
+      {
+        url: '/og-features.jpg',
+        width: 1200,
+        height: 630,
+    alt: 'Next-Learn Features',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Features - Next-Learn Platform',
+    description: 'Discover powerful features of Next-Learn including interactive learning tools and personalized roadmaps',
+    images: ['/og-features.jpg'],
+  },
+  alternates: {
+    canonical: '/features',
+  },
+};
+
+// Static data
+const features = [
+  {
+    title: "Interactive Learning",
+    description: "Engage with dynamic content and interactive exercises that make learning fun and effective.",
+    icon: "🎯",
+    color: "from-blue-500 to-cyan-500"
+  },
+  {
+    title: "Personalized Roadmaps",
+    description: "Get custom learning paths tailored to your goals and pace with AI-powered recommendations.",
+    icon: "🗺️",
+    color: "from-purple-500 to-pink-500"
+  },
+  {
+    title: "Study Materials",
+    description: "Access comprehensive study materials including notes, videos, and practice exercises.",
+    icon: "📚",
+    color: "from-green-500 to-emerald-500"
+  },
+  {
+    title: "Progress Tracking",
+    description: "Monitor your learning progress with detailed analytics and achievement badges.",
+    icon: "📊",
+    color: "from-orange-500 to-red-500"
+  },
+  {
+    title: "Collaborative Learning",
+    description: "Connect with peers and mentors for group study sessions and knowledge sharing.",
+    icon: "👥",
+    color: "from-indigo-500 to-blue-500"
+  },
+  {
+    title: "Mobile Friendly",
+    description: "Learn anywhere, anytime with our responsive design that works on all devices.",
+    icon: "📱",
+    color: "from-teal-500 to-green-500"
+  }
+];
+
+const highlightItems = [
+  "AI-Powered Personalization",
+  "Real-time Progress Tracking",
+  "Interactive Learning Modules",
+  "24/7 Support Community"
+];
+
+export default function FeaturesPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
+      <div className="container mx-auto px-4 py-16">
+        {/* Hero Section */}
+        <motion.section 
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h1 
+            className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+              Powerful Features
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              for Modern Learning
+            </span>
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            Discover how Next-Learn transforms your educational journey with cutting-edge tools and personalized experiences.
+          </motion.p>
+        </motion.section>
+
+        {/* Features Grid */}
+        <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {features.map((feature, index) => (
+            <motion.div 
+              key={index}
+              className="relative group"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              whileHover={{ 
+                scale: 1.05,
+                y: -10,
+                transition: { duration: 0.3 }
+              }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg blur-xl scale-110"
+                style={{ backgroundImage: `linear-gradient(to right, ${feature.color.split(' ')[1]}, ${feature.color.split(' ')[3]})` }}
+              />
+              <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
+                <motion.div
+                  className="text-5xl mb-4"
+                  whileHover={{ rotate: 360, scale: 1.2 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {feature.icon}
+                </motion.div>
+                
+                <motion.h3 
+                  className="text-xl font-semibold text-gray-900 dark:text-white mb-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+                >
+                  {feature.title}
+                </motion.h3>
+                
+                <motion.p 
+                  className="text-gray-600 dark:text-gray-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                >
+                  {feature.description}
+                </motion.p>
+
+                <motion.div 
+                  className="mt-4 h-1 bg-gradient-to-r rounded-full"
+                  style={{ backgroundImage: `linear-gradient(to right, ${feature.color})` }}
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "100%" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </section>
+
+        {/* Feature Highlights */}
+        <motion.section 
+          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div 
+            className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl p-8 md:p-12 relative overflow-hidden"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <motion.div 
+              className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div 
+              className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 1
+              }}
+            />
+            
+            <motion.h3 
+              className="text-3xl md:text-4xl font-bold mb-6 relative z-10"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              What Makes Us Different
+            </motion.h3>
+            
+            <div className="grid md:grid-cols-2 gap-6 relative z-10">
+              {highlightItems.map((item, index) => (
+                <motion.div 
+                  key={index}
+                  className="flex items-center space-x-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ x: 10 }}
+                >
+                  <motion.div 
+                    className="w-3 h-3 bg-white rounded-full"
+                    whileHover={{ scale: 1.5 }}
+                  />
+                  <span className="text-lg">{item}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </motion.section>
+
+        {/* CTA Section */}
+        <motion.section 
+          className="text-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            Ready to Start Your Learning Journey?
+          </motion.h2>
+          
+          <motion.p 
+            className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            Join thousands of learners who are already benefiting from our platform.
+          </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <motion.a 
+              href="/user-signup" 
+              className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-full text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Get Started Now
+              <motion.span
+                className="ml-2"
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                →
+              </motion.span>
+            </motion.a>
+          </motion.div>
+        </motion.section>
+      </div>
+    </div>
+  );
+}
