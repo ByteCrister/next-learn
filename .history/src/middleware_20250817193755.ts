@@ -23,13 +23,8 @@ export async function middleware(req: NextRequest) {
     // Get token from cookie using NextAuth JWT helper
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
-    // Redirect root to home
-    if (req.nextUrl.pathname === "/") {
-        return NextResponse.redirect(new URL("/home", req.url));
-    }
-
     // If user is not signed in and tries to access protected route, redirect to login page
-    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname) && req.nextUrl.pathname !== "/home") {
+    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname)) {
         const loginUrl = new URL("/next-learn-user-auth", req.url);
         loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);
@@ -37,7 +32,7 @@ export async function middleware(req: NextRequest) {
 
     // If user is signed in and tries to visit login page, redirect to home
     if (token && AUTH_PAGES.includes(req.nextUrl.pathname)) {
-        return NextResponse.redirect(new URL("/home", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
     }
 
     // Otherwise let them pass

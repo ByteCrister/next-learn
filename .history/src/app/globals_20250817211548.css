@@ -120,27 +120,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-@layer utilities {
-  .bg-grid-pattern {
-    background-image: 
-      linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-  
-  .bg-grid-pattern-dark {
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-  
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-}

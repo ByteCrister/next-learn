@@ -35,7 +35,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(loginUrl);
     }
 
-    // If user is signed in and tries to visit login page, redirect to home
+    // If user is signed in and tries to visit login page, redirect to hom
     if (token && AUTH_PAGES.includes(req.nextUrl.pathname)) {
         return NextResponse.redirect(new URL("/home", req.url));
     }

@@ -118,29 +118,86 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
 @layer utilities {
-  .bg-grid-pattern {
-    background-image: 
-      linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
-    background-size: 50px 50px;
+  /* Enhanced dark mode focus states */
+  .dark *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
-  
-  .bg-grid-pattern-dark {
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
+
+  /* Improved dark mode hover states */
+  .dark .hover\:bg-accent:hover {
+    background-color: oklch(0.45 0.06 250);
   }
-  
-  .animation-delay-2000 {
-    animation-delay: 2s;
+
+  .dark .hover\:bg-secondary:hover {
+    background-color: oklch(0.4 0.05 250);
   }
-  
-  .animation-delay-4000 {
-    animation-delay: 4s;
+
+  /* Enhanced dark mode borders */
+  .dark .border {
+    border-color: oklch(0.4 0.02 250);
   }
-}
+
+  /* Improved dark mode inputs */
+  .dark input[type="text"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark input[type="number"],
+  .dark input[type="search"],
+  .dark textarea,
+  .dark select {
+    @apply bg-input border-border text-foreground placeholder-muted-foreground;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    @apply border-ring ring-2 ring-ring/30;
+  }
+
+  /* Enhanced dark mode buttons */
+  .dark .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .dark .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  /* Dark mode scrollbar styling */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ring;
+  }
+
+  /* Dark mode selection */
+  .dark ::selection {
+    @apply bg-primary/30 text-primary-foreground;
+  }
+
+  /* Enhanced card shadows in dark mode */
+  .dark .shadow-sm {
+    box-shadow: 0 1px 2px 0 oklch(0 0 0 / 30%);
+  }
+
+  .dark .shadow-md {
+    box-shadow: 0 4px 6px -1px oklch(0 0 0 / 40%), 0 2px 4px -2px oklch(0 0 0 / 40%);
+  }
+
+  .dark .shadow-lg {

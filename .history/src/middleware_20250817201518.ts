@@ -29,13 +29,13 @@ export async function middleware(req: NextRequest) {
     }
 
     // If user is not signed in and tries to access protected route, redirect to login page
-    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname) && req.nextUrl.pathname !== "/home") {
+    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname) && req.nextUrl.pathname !== "/hom") {
         const loginUrl = new URL("/next-learn-user-auth", req.url);
         loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    // If user is signed in and tries to visit login page, redirect to home
+    // If user is signed in and tries to visit login page, redirect to hom
     if (token && AUTH_PAGES.includes(req.nextUrl.pathname)) {
         return NextResponse.redirect(new URL("/home", req.url));
     }
