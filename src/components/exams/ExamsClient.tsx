@@ -37,6 +37,7 @@ import {
   ChevronRight,
   FileSearch,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type SortKey = "title" | "subjectCode" | "examCode";
 type SortDir = "asc" | "desc";
@@ -118,13 +119,31 @@ export default function ExamsClient() {
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
-            <h1 className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-3xl font-bold tracking-tight text-transparent md:text-4xl">
+            <h1
+              className="
+      bg-gradient-to-r
+      from-slate-800
+      via-slate-600
+      to-slate-500
+      dark:from-slate-100
+      dark:via-slate-300
+      dark:to-slate-400
+      bg-clip-text
+      text-transparent
+      text-4xl
+      md:text-5xl
+      font-semibold
+      tracking-tight
+      leading-tight
+    "
+            >
               Exams
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-base md:text-lg text-muted-foreground">
               Browse, search, and manage all exams.
             </p>
           </div>
+
 
           <div className="flex items-center gap-2">
             <Button
@@ -135,15 +154,45 @@ export default function ExamsClient() {
               aria-label="Refresh exams"
             >
               <RefreshCw
-                className={`h-4 w-4 ${fetching ? "animate-spin" : ""}`}
+                className={cn("h-4 w-4", fetching && "animate-spin")}
               />
               Refresh
             </Button>
+
             <CreateExamDialog>
-              <Button className="relative gap-2 overflow-hidden">
-                <span className="absolute inset-0 -z-10 bg-[linear-gradient(110deg,hsl(var(--primary)/.1),45%,transparent,55%,hsl(var(--primary)/.1))] [animation:shimmer_2s_infinite] [background-size:200%_100%]" />
-                <Plus className="h-4 w-4" />
-                Add exam
+              <Button
+                className="
+    relative gap-2 overflow-hidden
+    rounded-md
+    bg-gradient-to-r from-blue-50 to-blue-100
+    dark:from-blue-900 dark:to-blue-800
+    border border-blue-200 dark:border-blue-700
+    transition-all duration-300 ease-out
+    hover:from-blue-100 hover:to-blue-200
+    dark:hover:from-blue-800 dark:hover:to-blue-700
+    hover:shadow-md hover:scale-[1.02]
+    active:scale-[0.99]
+  "
+              >
+                <span
+                  className="
+      absolute inset-0 -z-10
+      bg-[linear-gradient(
+        110deg,
+        hsl(var(--primary)/0.06),
+        45%,
+        transparent,
+        55%,
+        hsl(var(--primary)/0.06)
+      )]
+      [animation:shimmer_3s_infinite]
+      [background-size:200%_100%]
+    "
+                />
+                <Plus className="h-4 w-4 text-blue-700 dark:text-blue-100 transition-colors duration-300" />
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-50 transition-colors duration-300">
+                  Add exam
+                </span>
               </Button>
             </CreateExamDialog>
           </div>

@@ -21,7 +21,8 @@ import { toast } from "react-toastify";
 import { useExamStore } from "@/store/useExamStore";
 import { v4 as uuidv4 } from "uuid";
 import { useDashboardStore } from "@/store/useDashboardStore";
-
+import { FiType, FiFileText, FiHash } from "react-icons/fi"
+import { Variants, motion } from "framer-motion";
 export function generateShortUUID() {
     return uuidv4().replace(/-/g, "").slice(0, 10).toUpperCase();
 }
@@ -37,6 +38,15 @@ export function CreateExamDialog({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = React.useState(false);
     const { create } = useExamStore();
     const { updateCounts } = useDashboardStore();
+
+    const fadeIn: Variants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: (i) => ({
+            opacity: 1,
+            y: 0,
+            transition: { delay: i * 0.05, duration: 0.3, ease: "easeOut" }
+        })
+    }
 
     const form = useForm<z.infer<typeof schema>>({
         resolver: zodResolver(schema),
@@ -80,53 +90,155 @@ export function CreateExamDialog({ children }: { children: React.ReactNode }) {
                         Provide the basics. You can enrich details later.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="title">Title</Label>
-                        <Input id="title" {...form.register("title")} />
+                <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="grid gap-5 py-1"
+                >
+                    {/** Title */}
+                    <motion.div
+                        className="grid gap-2"
+                        variants={fadeIn}
+                        initial="hidden"
+                        animate="visible"
+                        custom={0}
+                    >
+                        <Label
+                            htmlFor="title"
+                            className="flex items-center gap-2 font-semibold text-sm text-slate-700 dark:text-slate-200"
+                        >
+                            <FiType className="h-4 w-4 text-blue-500" />
+                            Title
+                        </Label>
+                        <Input
+                            id="title"
+                            placeholder="Enter exam title"
+                            {...form.register("title")}
+                            className="focus:ring-2 focus:ring-blue-500/50"
+                        />
                         {form.formState.errors.title && (
-                            <p className="text-sm text-destructive">
+                            <p className="text-xs text-red-500">
                                 {form.formState.errors.title.message}
                             </p>
                         )}
-                    </div>
+                    </motion.div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="description">Description</Label>
+                    {/** Description */}
+                    <motion.div
+                        className="grid gap-2"
+                        variants={fadeIn}
+                        initial="hidden"
+                        animate="visible"
+                        custom={1}
+                    >
+                        <Label
+                            htmlFor="description"
+                            className="flex items-center gap-2 font-semibold text-sm text-slate-700 dark:text-slate-200"
+                        >
+                            <FiFileText className="h-4 w-4 text-blue-500" />
+                            Description
+                        </Label>
                         <Textarea
                             id="description"
                             rows={3}
+                            placeholder="Short exam description"
                             {...form.register("description")}
+                            className="focus:ring-2 focus:ring-blue-500/50"
                         />
-                    </div>
+                    </motion.div>
 
+                    {/** Codes */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="subjectCode">Subject code</Label>
-                            <Input id="subjectCode" {...form.register("subjectCode")} />
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fadeIn}
+                            initial="hidden"
+                            animate="visible"
+                            custom={2}
+                        >
+                            <Label
+                                htmlFor="subjectCode"
+                                className="flex items-center gap-2 font-semibold text-sm text-slate-700 dark:text-slate-200"
+                            >
+                                <FiHash className="h-4 w-4 text-blue-500" />
+                                Subject code
+                            </Label>
+                            <Input
+                                id="subjectCode"
+                                placeholder="e.g. MATH101"
+                                {...form.register("subjectCode")}
+                                className="focus:ring-2 focus:ring-blue-500/50"
+                            />
                             {form.formState.errors.subjectCode && (
-                                <p className="text-sm text-destructive">
+                                <p className="text-xs text-red-500">
                                     {form.formState.errors.subjectCode.message}
                                 </p>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="examCode">Exam code</Label>
-                            <Input id="examCode" {...form.register("examCode")} readOnly />
+                        <motion.div
+                            className="grid gap-2"
+                            variants={fadeIn}
+                            initial="hidden"
+                            animate="visible"
+                            custom={3}
+                        >
+                            <Label
+                                htmlFor="examCode"
+                                className="flex items-center gap-2 font-semibold text-sm text-slate-700 dark:text-slate-200"
+                            >
+                                <FiHash className="h-4 w-4 text-blue-500" />
+                                Exam code
+                            </Label>
+                            <Input
+                                id="examCode"
+                                readOnly
+                                {...form.register("examCode")}
+                                className="bg-slate-50 dark:bg-slate-800"
+                            />
                             {form.formState.errors.examCode && (
-                                <p className="text-sm text-destructive">
+                                <p className="text-xs text-red-500">
                                     {form.formState.errors.examCode.message}
                                 </p>
                             )}
-                        </div>
+                        </motion.div>
                     </div>
 
-                    <DialogFooter className="mt-2">
-                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                    {/** Footer */}
+                    <DialogFooter className="mt-4 gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                            className="
+      rounded-md
+      border-slate-300 dark:border-slate-600
+      text-slate-700 dark:text-slate-200
+      hover:bg-slate-100 dark:hover:bg-slate-800
+      transition-all duration-300 ease-out
+      hover:shadow-sm hover:scale-[1.02]
+      active:scale-[0.98]
+    "
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={form.formState.isSubmitting}>
+
+                        <Button
+                            type="submit"
+                            disabled={form.formState.isSubmitting}
+                            className="
+      rounded-md
+      bg-gradient-to-r from-blue-600 to-blue-500
+      dark:from-blue-500 dark:to-blue-400
+      text-white
+      shadow-sm
+      transition-all duration-300 ease-out
+      hover:from-blue-500 hover:to-blue-400
+      dark:hover:from-blue-400 dark:hover:to-blue-300
+      hover:shadow-md hover:scale-[1.03]
+      active:scale-[0.98]
+      disabled:opacity-60 disabled:cursor-not-allowed
+    "
+                        >
                             {form.formState.isSubmitting ? "Creating…" : "Create"}
                         </Button>
                     </DialogFooter>

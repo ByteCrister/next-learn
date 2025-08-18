@@ -69,7 +69,7 @@ export default function ProfilePopover({ isOpen, setIsOpen }: PropTypes) {
             className="ml-auto flex items-center gap-2 px-3 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             <Image
-              src={user?.image || DEFAULT_AVATAR}
+              src={user?.image??DEFAULT_AVATAR}
               alt="Avatar"
               width={36}
               height={36}

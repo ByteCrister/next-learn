@@ -29,10 +29,10 @@ export async function POST(req: Request) {
 
         // generate OTP
         const otp = crypto.randomInt(100000, 999999).toString();
-        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        const otpExpires = new Date(Date.now() + 4 * 60 * 1000 + 5000); // 4 minutes but in frontend it will show 3 minutes, +5 seconds buffer
 
         // upsert pending user
-        await PendingUser.findOneAndUpdate(
+        const pendingUser = await PendingUser.findOneAndUpdate(
             { email },
             { name, email, otp, otpExpires },
             { upsert: true, new: true }
@@ -40,7 +40,10 @@ export async function POST(req: Request) {
         const subject = "Your password reset code";
         await SendEmail(email, subject, getOtpHTML(otp));
 
-        return NextResponse.json({ message: "OTP sent to email" });
+        return NextResponse.json({
+            message: "OTP sent to email",
+            otpExpiresAt: pendingUser.otpExpires.toISOString(),
+        });
     } catch (err) {
         console.error("Error creating pending user:", err);
         return NextResponse.json(

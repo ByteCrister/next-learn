@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -48,6 +49,7 @@ export default function SignUpPage() {
     });
     const [otpError, setOtpError] = useState(false);
     const inputsRef = useRef<(HTMLInputElement | null)[]>(Array(6).fill(null));
+    const otpExpired = timer === 0;
 
     // Timer
     useEffect(() => {
@@ -70,10 +72,10 @@ export default function SignUpPage() {
             setLoading((l) => ({ ...l, request: true }));
             try {
                 setEmail(values.email);
-                await requestOTP({ email: values.email, name: values.name });
+                const { otpExpiresAt } = await requestOTP({ email: values.email, name: values.name });
                 toast.success("OTP sent to your inbox");
                 setStep("otp");
-                setTimer(180);
+                setTimer(Math.max(0, Math.floor((new Date(otpExpiresAt).getTime() - Date.now()) / 1000)));
             } catch (err) {
                 let message = "Failed to send OTP";
 
@@ -92,14 +94,29 @@ export default function SignUpPage() {
     });
 
     const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
-        const val = e.target.value.replace(/[^0-9]/g, "");
-        if (!val) return;
+        const val = e.target.value.replace(/[^0-9]/g, ""); // allow only digits
         const next = otp.split("");
-        next[idx] = val[0];
+
+        next[idx] = val[0] || ""; // set digit or empty
         const newOtp = next.join("");
         setOtp(newOtp);
-        if (idx < 5) inputsRef.current[idx + 1]?.focus();
+
+        // Move focus forward if a digit was entered
+        if (val && idx < 5) inputsRef.current[idx + 1]?.focus();
     };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
+        if (e.key === "Backspace") {
+            if (!otp[idx] && idx > 0) {
+                // Move focus to previous input if current is empty
+                inputsRef.current[idx - 1]?.focus();
+                const next = otp.split("");
+                next[idx - 1] = ""; // optionally clear previous box
+                setOtp(next.join(""));
+            }
+        }
+    };
+
 
     const handleVerifyOTP = async () => {
         if (otp.length !== 6) {
@@ -149,7 +166,7 @@ export default function SignUpPage() {
                 className="w-full max-w-md"
             >
                 <Card className="bg-white dark:bg-gray-800 shadow-lg border border-indigo-200 dark:border-gray-700 rounded-2xl">
-                    <CardHeader className="text-center space-y-3 pb-6">
+                    <CardHeader className="text-center space-y-1 pb-3">
                         <div className="flex items-center justify-center gap-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                             <SiNextdotjs size={28} /> NextLearn
                         </div>
@@ -165,86 +182,180 @@ export default function SignUpPage() {
                             <form onSubmit={formik.handleSubmit} className="flex flex-col gap-5">
                                 {/* Name */}
                                 <div>
-                                    <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Name</Label>
-                                    <div className="relative">
+                                    <Label
+                                        htmlFor="name"
+                                        className={`block text-sm font-medium transition-colors duration-200 ${formik.touched.name && formik.errors.name
+                                            ? "text-red-500"
+                                            : "text-gray-700 dark:text-gray-300"
+                                            }`}
+                                    >
+                                        {formik.touched.name && formik.errors.name ? formik.errors.name : "Name"}
+                                    </Label>
+                                    <div className="relative mt-1">
                                         <User className="absolute left-3 top-3 text-gray-400" size={18} />
                                         <Input
                                             id="name"
                                             name="name"
-                                            className="pl-10 rounded-xl border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400"
+                                            className={`pl-10 rounded-xl border ${formik.touched.name && formik.errors.name
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 dark:border-gray-600 focus:ring-indigo-500"
+                                                } placeholder:text-gray-400`}
                                             value={formik.values.name || ""}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             placeholder="John Doe"
                                         />
                                     </div>
-                                    {formik.touched.name && formik.errors.name && (
-                                        <p className="text-sm text-red-500 mt-1">{formik.errors.name}</p>
-                                    )}
                                 </div>
 
                                 {/* Email */}
                                 <div>
-                                    <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
-                                    <div className="relative">
+                                    <Label
+                                        htmlFor="email"
+                                        className={`block text-sm font-medium transition-colors duration-200 ${formik.touched.email && formik.errors.email
+                                            ? "text-red-500"
+                                            : "text-gray-700 dark:text-gray-300"
+                                            }`}
+                                    >
+                                        {formik.touched.email && formik.errors.email
+                                            ? formik.errors.email
+                                            : "Email"}
+                                    </Label>
+                                    <div className="relative mt-1">
                                         <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
                                         <Input
                                             id="email"
                                             name="email"
                                             type="email"
-                                            className="pl-10 rounded-xl border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400"
+                                            className={`pl-10 rounded-xl border ${formik.touched.email && formik.errors.email
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 dark:border-gray-600 focus:ring-indigo-500"
+                                                } placeholder:text-gray-400`}
                                             value={formik.values.email || ""}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             placeholder="you@example.com"
                                         />
                                     </div>
-                                    {formik.touched.email && formik.errors.email && (
-                                        <p className="text-sm text-red-500 mt-1">{formik.errors.email}</p>
-                                    )}
                                 </div>
 
                                 {/* Password */}
                                 <div>
-                                    <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Password</Label>
-                                    <div className="relative">
+                                    <Label
+                                        htmlFor="password"
+                                        className={`block text-sm font-medium transition-colors duration-200 ${formik.touched.password && formik.errors.password
+                                            ? "text-red-500"
+                                            : "text-gray-700 dark:text-gray-300"
+                                            }`}
+                                    >
+                                        {formik.touched.password && formik.errors.password
+                                            ? formik.errors.password
+                                            : "Password"}
+                                    </Label>
+                                    <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
                                         <Input
                                             id="password"
                                             name="password"
                                             type="password"
-                                            className="pl-10 rounded-xl border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400"
+                                            className={`pl-10 rounded-xl border ${formik.touched.password && formik.errors.password
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 dark:border-gray-600 focus:ring-indigo-500"
+                                                } placeholder:text-gray-400`}
                                             value={formik.values.password || ""}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             placeholder="••••••••"
                                         />
                                     </div>
-                                    {formik.touched.password && formik.errors.password && (
-                                        <p className="text-sm text-red-500 mt-1">{formik.errors.password}</p>
-                                    )}
                                 </div>
 
                                 {/* Confirm Password */}
                                 <div>
-                                    <Label htmlFor="confirmPassword" className="text-gray-700 dark:text-gray-300">Confirm Password</Label>
-                                    <div className="relative">
+                                    <Label
+                                        htmlFor="confirmPassword"
+                                        className={`block text-sm font-medium transition-colors duration-200 ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                                            ? "text-red-500"
+                                            : "text-gray-700 dark:text-gray-300"
+                                            }`}
+                                    >
+                                        {formik.touched.confirmPassword && formik.errors.confirmPassword
+                                            ? formik.errors.confirmPassword
+                                            : "Confirm Password"}
+                                    </Label>
+                                    <div className="relative mt-1">
                                         <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
                                         <Input
                                             id="confirmPassword"
                                             name="confirmPassword"
                                             type="password"
-                                            className="pl-10 rounded-xl border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-indigo-500 placeholder:text-gray-400"
+                                            className={`pl-10 rounded-xl border ${formik.touched.confirmPassword && formik.errors.confirmPassword
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 dark:border-gray-600 focus:ring-indigo-500"
+                                                } placeholder:text-gray-400`}
                                             value={formik.values.confirmPassword || ""}
                                             onChange={formik.handleChange}
                                             onBlur={formik.handleBlur}
                                             placeholder="••••••••"
                                         />
                                     </div>
-                                    {formik.touched.confirmPassword && formik.errors.confirmPassword && (
-                                        <p className="text-sm text-red-500 mt-1">{formik.errors.confirmPassword}</p>
-                                    )}
                                 </div>
+
+                                <div className="flex flex-col justify-between items-center gap-2 mt-1 text-sm">
+                                    {/* Sign In */}
+                                    <Link
+                                        href="/signin"
+                                        className="group relative inline-flex items-center font-medium 
+               text-[color:var(--link-color)] dark:text-[color:var(--link-color-dark)]
+               transition-colors duration-200 ease-out
+               hover:text-[color:var(--link-hover)] dark:hover:text-[color:var(--link-hover-dark)]
+               focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--link-focus)] focus-visible:rounded-lg"
+                                        style={{
+                                            // Smooth, harmonious blue blend
+                                            "--link-color": "#3B5BDB",          // Muted indigo-blue base
+                                            "--link-color-dark": "#7CA9FF",     // Softer for dark mode
+                                            "--link-hover": "#2F4AB5",          // Slightly deeper hover
+                                            "--link-hover-dark": "#96BAFF",
+                                            "--link-focus": "#4F7FFF"
+                                        } as React.CSSProperties}
+                                    >
+                                        <span className="pr-1 text-gray-600 dark:text-gray-300">Already have an account?</span>
+                                        <span
+                                            className="relative after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-[2px] 
+                 after:bg-gradient-to-r after:from-[#4F7FFF] after:to-[#3B5BDB] after:transition-all after:duration-300 
+                 group-hover:after:w-full"
+                                        >
+                                            Sign In
+                                        </span>
+                                    </Link>
+
+                                    {/* Forgot Password */}
+                                    <Link
+                                        href="/reset"
+                                        className="group relative inline-flex items-center font-medium
+               text-[color:var(--reset-color)] dark:text-[color:var(--reset-color-dark)]
+               transition-colors duration-200 ease-out
+               hover:text-[color:var(--reset-hover)] dark:hover:text-[color:var(--reset-hover-dark)]
+               focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--reset-focus)] focus-visible:rounded-lg"
+                                        style={{
+                                            // Warm, approachable accent
+                                            "--reset-color": "#D94877",         // Muted rose
+                                            "--reset-color-dark": "#FF99BB",    // Soft warm pink in dark mode
+                                            "--reset-hover": "#B63C65",
+                                            "--reset-hover-dark": "#FFB3CC",
+                                            "--reset-focus": "#FF6FA3"
+                                        } as React.CSSProperties}
+                                    >
+                                        <span
+                                            className="relative after:content-[''] after:absolute after:left-0 after:-bottom-0.5 after:w-0 after:h-[2px] 
+                 after:bg-gradient-to-r after:from-[#FF6FA3] after:to-[#D94877] after:transition-all after:duration-300 
+                 group-hover:after:w-full"
+                                        >
+                                            Forgot Password?
+                                        </span>
+                                    </Link>
+                                </div>
+
 
                                 {/* Button */}
                                 <motion.div whileHover={{ scale: 1.02 }}>
@@ -273,6 +384,7 @@ export default function SignUpPage() {
                                             inputMode="numeric"
                                             value={otp[idx] || ""}
                                             onChange={(e) => handleOtpChange(e, idx)}
+                                            onKeyDown={(e) => handleKeyDown(e, idx)}
                                             className={`w-12 h-12 text-center rounded-lg border font-semibold text-lg focus:ring-2 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 ${otpError ? "border-red-500 animate-shake" : ""}`}
                                             whileFocus={{ scale: 1.1 }}
                                         />
@@ -283,7 +395,7 @@ export default function SignUpPage() {
                                     <Button
                                         onClick={handleVerifyOTP}
                                         className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-semibold flex items-center justify-center gap-2 shadow-md"
-                                        disabled={loading.verify}
+                                        disabled={loading.verify || otpExpired} // <-- disable when expired
                                     >
                                         {loading.verify ? "Verifying…" : "Verify & Create Account"}
                                         <CheckCircle2 size={18} />
@@ -291,8 +403,29 @@ export default function SignUpPage() {
                                 </motion.div>
 
                                 <p className="text-sm text-center mt-4 text-gray-500 flex items-center justify-center gap-1">
-                                    <Timer size={16} /> Expires in:{" "}
-                                    <span className="font-mono">{formatTime(timer)}</span>
+                                    {otpExpired ? (
+                                        <span className="text-red-500 font-semibold">
+                                            OTP expired. <button className="underline cursor-pointer" onClick={async () => {
+                                                setLoading((l) => ({ ...l, request: true }));
+                                                try {
+                                                    const { otpExpiresAt } = await requestOTP({ email, name: formik.values.name });
+                                                    toast.success("OTP sent again!");
+                                                    setTimer(Math.max(0, Math.floor((new Date(otpExpiresAt).getTime() - Date.now()) / 1000)));
+                                                    setOtp(""); // reset OTP input
+                                                } catch (err) {
+                                                    toast.error("Failed to resend OTP");
+                                                } finally {
+                                                    setLoading((l) => ({ ...l, request: false }));
+                                                }
+                                            }}>Send again</button>
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <span className="flex items-center gap-1">
+                                                <Timer size={16} /> Expires in: <span className="font-mono">{formatTime(timer)}</span>
+                                            </span>
+                                        </>
+                                    )}
                                 </p>
                             </>
                         )}

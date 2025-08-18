@@ -12,9 +12,10 @@ export const getMessage = (err: ApiError) =>
 /** Send OTP */
 export async function requestOTP(
     payload: RequestOTPPayload
-): Promise<void> {
+) {
     try {
-        await api.post('/auth/request-otp', payload)
+        const res = await api.post('/auth/request-otp', payload)
+        return res.data
     } catch (err) {
         throw err
     }
@@ -34,9 +35,10 @@ export async function verifyOTP(
 /** Resend OTP */
 export async function resendOTP(
     payload: RequestOTPPayload
-): Promise<void> {
+){
     try {
-        await api.post('/auth/request-otp', payload)
+        const res = await api.post('/auth/request-otp', payload)
+        return res.data
     } catch (err) {
         throw err
     }

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         const subject = "Your password reset code";
         await SendEmail(email, subject, getOtpHTML(otp));
 
-        return NextResponse.json({ success: true, message: "OTP sent" });
+        return NextResponse.json({ success: true, message: "OTP sent", otpExpiresAt: user.resetPasswordOTPExpires });
     } catch (err) {
         console.log("POST /api/auth/request-otp message:", err);
         return NextResponse.json(

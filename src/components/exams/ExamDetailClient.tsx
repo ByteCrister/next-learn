@@ -22,7 +22,12 @@ import { ShareButton } from "./ShareButton";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { rearrangeObjectId } from "@/utils/helpers/rearrangeObjectId";
 import { ResultDetailDialog } from "./ResultDetailDialog";
+import { FiUser, FiMail, FiCheckCircle, FiAward, FiClock, FiBarChart2, FiActivity, FiCalendar, FiFlag, FiAlertTriangle, FiSettings } from "react-icons/fi"
 
+interface MetaRowProps {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}
 
 export default function ExamDetailClient() {
   const { examId } = useParams<{ examId: string }>();
@@ -168,45 +173,166 @@ export default function ExamDetailClient() {
           </Card>
 
           <Card className="border-muted/60 self-start">
-            <CardHeader>
-              <CardTitle>Exam settings</CardTitle>
-              <CardDescription>Timing, rules, and behavior.</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
+                <FiSettings className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                Exam settings
+              </CardTitle>
+              <CardDescription className="mt-0.5 text-slate-600 dark:text-slate-400">
+                Timing, rules, and behavior
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <MetaRow label="Timed">{exam.isTimed ? "Yes" : "No"}</MetaRow>
-              {exam.isTimed && <MetaRow label="Duration">{exam.durationMinutes ?? 0} minutes</MetaRow>}
-              <MetaRow label="Date">
-                {exam.scheduledStartAt ? new Date(exam.scheduledStartAt).toLocaleDateString() : "Not scheduled"}
+
+            <CardContent className="space-y-3 text-sm">
+              {/* Timed */}
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiClock className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    Timed
+                  </span>
+                }
+              >
+                {exam.isTimed ? "Yes" : "No"}
               </MetaRow>
-              <MetaRow label="Start">
-                {exam.scheduledStartAt ? new Date(exam.scheduledStartAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Not scheduled"}
-              </MetaRow>
-              <MetaRow label="End">
+
+              {exam.isTimed && (
+                <MetaRow
+                  label={
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                      <FiClock className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                      Duration
+                    </span>
+                  }
+                >
+                  {exam.durationMinutes ?? 0} minutes
+                </MetaRow>
+              )}
+
+              {/* Date & Time */}
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiCalendar className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    Date
+                  </span>
+                }
+              >
                 {exam.scheduledStartAt
-                  && exam.durationMinutes
-                  ? new Date(new Date(exam.scheduledStartAt).getTime() + exam.durationMinutes * 60 * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  ? new Date(exam.scheduledStartAt).toLocaleDateString()
                   : "Not scheduled"}
               </MetaRow>
+
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiFlag className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    Start
+                  </span>
+                }
+              >
+                {exam.scheduledStartAt
+                  ? new Date(exam.scheduledStartAt).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                  : "Not scheduled"}
+              </MetaRow>
+
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiFlag className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    End
+                  </span>
+                }
+              >
+                {exam.scheduledStartAt && exam.durationMinutes
+                  ? new Date(
+                    new Date(exam.scheduledStartAt).getTime() +
+                    exam.durationMinutes * 60 * 1000
+                  ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                  : "Not scheduled"}
+              </MetaRow>
+
               <Separator />
-              <MetaRow label="Allow late">{exam.allowLateSubmissions ? "Yes" : "No"}</MetaRow>
-              {exam.allowLateSubmissions && <MetaRow label="Late window">{exam.lateWindowMinutes ?? 0} minutes</MetaRow>}
-              <MetaRow label="Auto submit">{exam.autoSubmitOnEnd ? "Enabled" : "Disabled"}</MetaRow>
+
+              {/* Late submission */}
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiAlertTriangle className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    Allow late
+                  </span>
+                }
+              >
+                {exam.allowLateSubmissions ? "Yes" : "No"}
+              </MetaRow>
+
+              {exam.allowLateSubmissions && (
+                <MetaRow
+                  label={
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                      <FiClock className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                      Late window
+                    </span>
+                  }
+                >
+                  {exam.lateWindowMinutes ?? 0} minutes
+                </MetaRow>
+              )}
+
+              {/* Auto submit */}
+              <MetaRow
+                label={
+                  <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
+                    <FiCheckCircle className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                    Auto submit
+                  </span>
+                }
+              >
+                {exam.autoSubmitOnEnd ? "Enabled" : "Disabled"}
+              </MetaRow>
+
               <Separator />
+
+              {/* Validation rule */}
               <div className="space-y-2">
-                <div className="text-sm font-medium">Validation rule</div>
+                <div className="flex items-center gap-1 text-sm font-medium text-slate-700 dark:text-slate-300">
+                  <FiSettings className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                  Validation rule
+                </div>
+
                 {!hasRule ? (
                   <EmptyTiny title="No rule configured" />
                 ) : (
                   <div className="text-sm text-muted-foreground space-y-1">
-                    {exam.validationRule.startsWith && exam.validationRule.startsWith.length > 0 && (
-                      <div>Starts with: <span className="font-mono">{exam.validationRule.startsWith.join(", ")}</span></div>
+                    {exam?.validationRule?.startsWith && exam?.validationRule?.startsWith?.length > 0 && (
+                      <div>
+                        Starts with:{" "}
+                        <span className="font-mono">
+                          {exam.validationRule.startsWith.join(", ")}
+                        </span>
+                      </div>
                     )}
-                    {exam.validationRule.minLength && <div>Min length: {exam.validationRule.minLength}</div>}
-                    {exam.validationRule.maxLength && <div>Max length: {exam.validationRule.maxLength}</div>}
+                    {exam.validationRule.minLength && (
+                      <div>Min length: {exam.validationRule.minLength}</div>
+                    )}
+                    {exam.validationRule.maxLength && (
+                      <div>Max length: {exam.validationRule.maxLength}</div>
+                    )}
                   </div>
                 )}
+
                 <EditExamDialog exam={exam} asChild>
-                  <Button variant="outline" size="sm" className="mt-1" disabled={!isEditable} >Update settings</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-1"
+                    disabled={!isEditable}
+                  >
+                    Update settings
+                  </Button>
                 </EditExamDialog>
               </div>
             </CardContent>
@@ -216,15 +342,45 @@ export default function ExamDetailClient() {
         <Card className="border-muted/60">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Results</CardTitle>
-                <CardDescription>Participant outcomes and statuses.</CardDescription>
-              </div>
-              {isEnded ? (
-                <Badge variant="secondary">Exam ended</Badge>
-              ) : (
-                <Badge variant="outline">Ongoing</Badge>
-              )}
+              {/* Left side: title + description */}
+              <motion.div
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+              >
+                <CardTitle className="flex items-center gap-2 text-xl font-semibold text-slate-800 dark:text-slate-100">
+                  <FiBarChart2 className="h-5 w-5 text-blue-500" />
+                  Results
+                </CardTitle>
+                <CardDescription className="mt-0.5 text-slate-600 dark:text-slate-400">
+                  Participant outcomes and statuses
+                </CardDescription>
+              </motion.div>
+
+              {/* Right side: status badge */}
+              <motion.div
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut", delay: 0.05 }}
+              >
+                {isEnded ? (
+                  <Badge
+                    variant="secondary"
+                    className="flex items-center gap-1 px-3 py-1 text-sm font-medium"
+                  >
+                    <FiCheckCircle className="h-4 w-4 text-green-600" />
+                    Exam ended
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 px-3 py-1 text-sm font-medium"
+                  >
+                    <FiActivity className="h-4 w-4 text-blue-500" />
+                    Ongoing
+                  </Badge>
+                )}
+              </motion.div>
             </div>
           </CardHeader>
           <CardContent>
@@ -232,30 +388,77 @@ export default function ExamDetailClient() {
               <EmptyBlock title="No results yet" description="When participants submit, their results will appear here." />
             ) : (
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
+                <Table className="min-w-full border border-slate-200 dark:border-slate-700 rounded-md text-sm">
+                  <TableHeader className="bg-slate-50 dark:bg-slate-900">
                     <TableRow>
-                      <TableHead>Participant</TableHead>
-                      <TableHead className="hidden sm:table-cell">Email</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="hidden md:table-cell">Score</TableHead>
-                      <TableHead className="hidden lg:table-cell">Started</TableHead>
-                      <TableHead className="hidden lg:table-cell">Ended</TableHead>
+                      <TableHead className="whitespace-nowrap font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiUser className="h-4 w-4 text-blue-500" />
+                          Participant
+                        </span>
+                      </TableHead>
+                      <TableHead className="hidden sm:table-cell font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiMail className="h-4 w-4 text-blue-500" />
+                          Email
+                        </span>
+                      </TableHead>
+                      <TableHead className="font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiCheckCircle className="h-4 w-4 text-blue-500" />
+                          Status
+                        </span>
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiAward className="h-4 w-4 text-blue-500" />
+                          Score
+                        </span>
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiClock className="h-4 w-4 text-blue-500" />
+                          Started
+                        </span>
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell font-semibold text-slate-600 dark:text-slate-200">
+                        <span className="flex items-center gap-1.5">
+                          <FiClock className="h-4 w-4 text-blue-500" />
+                          Ended
+                        </span>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
+
                   <TableBody>
-                    {results.map((r) => (
+                    {results.map((r, idx) => (
                       <TableRow
                         key={r._id}
                         onClick={() => setSelectedResult(r)}
-                        className="cursor-pointer hover:bg-muted/50"
+                        className={`
+            cursor-pointer transition-colors duration-200
+            hover:bg-blue-50 dark:hover:bg-blue-900/30
+            ${idx % 2 === 0 ? "bg-white dark:bg-slate-950" : "bg-slate-50 dark:bg-slate-900"}
+          `}
                       >
-                        <TableCell className="font-medium">{r.participantId}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{r.participantEmail}</TableCell>
-                        <TableCell><ResultStatusBadge status={r.status} /></TableCell>
-                        <TableCell className="hidden md:table-cell">{r.score ?? "-"}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{new Date(r.startedAt).toLocaleString()}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{new Date(r.endedAt).toLocaleString()}</TableCell>
+                        <TableCell className="font-medium text-slate-800 dark:text-slate-100">
+                          {r.participantId}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-slate-600 dark:text-slate-300">
+                          {r.participantEmail}
+                        </TableCell>
+                        <TableCell>
+                          <ResultStatusBadge status={r.status} />
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell font-medium text-slate-700 dark:text-slate-200">
+                          {r.score ?? "-"}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell text-slate-600 dark:text-slate-300">
+                          {new Date(r.startedAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell text-slate-600 dark:text-slate-300">
+                          {new Date(r.endedAt).toLocaleString()}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -286,10 +489,10 @@ export default function ExamDetailClient() {
   );
 }
 
-function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+export function MetaRow({ label, children }: MetaRowProps) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <div className="text-muted-foreground">{label}</div>
+    <div className="flex items-center justify-between py-1">
+      <div className="text-slate-600 dark:text-slate-400">{label}</div>
       <div className="font-medium">{children}</div>
     </div>
   );
