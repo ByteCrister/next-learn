@@ -139,7 +139,7 @@ export const useDashboardStore = create<DashboardState>()(
                     });
                 }
             } catch (err) {
-                console.log((err as Error).message);
+                console.log((err as Error)?.message??`can't fetch the user!`);
             } finally {
                 set({ loading: false });
             }

@@ -51,14 +51,14 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 5. If unauthenticated and route is not public → redirect to login
+    // 5. If unauthenticated and route is not public → redirect to signin
     const isProtectedRoute =
         !AUTH_ONLY_ROUTES.some(rx => rx.test(pathname)) &&
         !PUBLIC_ROUTES.some(rx => rx.test(pathname));
 
     if (!token && isProtectedRoute) {
         const loginUrl = req.nextUrl.clone();
-        loginUrl.pathname = "/login";
+        loginUrl.pathname = "/signin";
         loginUrl.searchParams.set("callbackUrl", pathname);
         return NextResponse.redirect(loginUrl);
     }
