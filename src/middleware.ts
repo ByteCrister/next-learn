@@ -8,7 +8,9 @@ const AUTH_ONLY_ROUTES = [/^\/signin$/, /^\/signup$/, /^\/reset$/];
 // Public pages (accessible with or without login)
 const PUBLIC_ROUTES = [
     /^\/$/,                      // home
-    // /^\/about$/,
+    /^\/about$/,
+    /^\/features$/,
+    /^\/how-to-use$/,
     // /^\/contact$/,
     // /^\/terms$/,
     // /^\/privacy$/,

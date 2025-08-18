@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Formik, FormikHelpers } from "formik";
 import { Loader2 } from "lucide-react";
@@ -36,7 +36,6 @@ const errorMessages: Record<string, string> = {
 };
 
 export default function SignInPage() {
-  const router = useRouter();
   const params = useSearchParams();
   const oauthError = params.get("error");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -68,7 +67,7 @@ export default function SignInPage() {
       toast.warning(msg);
     } else {
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      window.location.href = '/dashboard';
     }
   };
 

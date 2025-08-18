@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { AlertTriangle, LogOut } from 'lucide-react';
@@ -16,7 +15,6 @@ import {
 import { Button } from '@/components/ui/button';
 
 export default function LogoutButton() {
-    const router = useRouter();
     const [open, setOpen] = useState(false);
 
     const handleLogOut = async () => {
@@ -24,7 +22,7 @@ export default function LogoutButton() {
             const res = await signOut({ redirect: false, callbackUrl: '/' });
             if (res?.url) {
                 toast.success('Successfully logged out!');
-                router.push(res.url);
+                window.location.href = '/'
             } else {
                 toast.error('Unexpected logout response.');
             }

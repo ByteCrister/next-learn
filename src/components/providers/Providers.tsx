@@ -1,4 +1,3 @@
-// components/providers/Providers.tsx
 'use client'
 
 import { ReactNode, useEffect } from 'react'
@@ -8,38 +7,53 @@ import { TooltipProvider } from '../ui/tooltip'
 import Breadcrumbs from '../global/Breadcrumbs'
 import DashboardLayout from '../dashboard/DashboardLayout'
 import { useDashboardStore } from '@/store/useDashboardStore'
+import { usePathname } from 'next/navigation'
+import Header from '../layout/Header'
+import Footer from '../layout/Footer'
 
 interface ProvidersProps {
   children: ReactNode
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  const { user, fetchUser } = useDashboardStore();
+  const { user, fetchUser } = useDashboardStore()
+  const pathname = usePathname()
+
+  const PUBLIC_PAGES = new Set(["/", "/features", "/how-to-use", "/about"])
+  const isPublic = PUBLIC_PAGES.has(pathname)
+
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) await fetchUser();
+      if (!user) await fetchUser()
     }
-    fetchUserData();
-  }, [fetchUser, user]);
-  return (
+    fetchUserData()
+  }, [user, fetchUser])
+
+  const PageLayout = ({ children }: { children: ReactNode }) => (
     <>
-      <TooltipProvider>
-        <DashboardLayout>
-          <Breadcrumbs />
-          {children}
-        </DashboardLayout>
-        <ToastContainer
-          position="bottom-right"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-      </TooltipProvider>
+      {isPublic && <Header />}
+      {children}
+      {isPublic && <Footer />}
     </>
+  )
+
+  return (
+    <TooltipProvider>
+      <DashboardLayout>
+        <Breadcrumbs />
+        <PageLayout>{children}</PageLayout>
+      </DashboardLayout>
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+    </TooltipProvider>
   )
 }
