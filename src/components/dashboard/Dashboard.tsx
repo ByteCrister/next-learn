@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Sora } from 'next/font/google';
-const CountUp = dynamic(() => import('react-countup'), { ssr: false });
-
+import Link from 'next/link';
 import {
   Map,
   FileText,
@@ -24,7 +23,6 @@ import { useBreadcrumbStore } from '@/store/useBreadcrumbStore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import Link from 'next/link';
 import {
   Dialog,
   DialogTrigger,
@@ -32,8 +30,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog"; import ExamQAction from './ExamQAction';
+} from '@/components/ui/dialog';
+import ExamQAction from './ExamQAction';
 import SubjectQAction from './SubjectQAction';
+import DashboardSkeleton from './DashboardSkeleton';
+
+const CountUp = dynamic(() => import('react-countup'), { ssr: true });
+
+const sora = Sora({ subsets: ['latin'], weight: ['400', '600', '700'] });
 
 export const palettes = [
   {
@@ -66,26 +70,26 @@ export const palettes = [
   },
 ];
 
-const sora = Sora({ subsets: ['latin'], weight: ['400', '600', '700'] });
-
 export default function DashboardPage() {
   const router = useRouter();
-
   const {
     subjectsCount,
     routineCount,
     examCount,
-    user,
-    loading,
+    loadingDashboard,
     fetchDashboard,
   } = useDashboardStore();
-  const { events, loading: eventsLoading, fetchEvents } = useEventsStore();
+  const { events, fetching: eventsLoading, fetchEvents } = useEventsStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
 
+  const fetchedRef = useRef(false);
+
+  // Fetch all data in one go
   useEffect(() => {
-    if (!user) {
+    if (!fetchedRef.current) {
       fetchDashboard();
       fetchEvents();
+      fetchedRef.current = true;
     }
     setBreadcrumbs([
       { label: 'Home', href: '/' },
@@ -100,209 +104,168 @@ export default function DashboardPage() {
   );
 
   const overviewCards = [
-    {
-      icon: <Map size={20} />,
-      label: 'Subjects',
-      value: subjectsCount,
-      palette: palettes[0],
-      route: '/subjects',
-    },
-    {
-      icon: <FileText size={20} />,
-      label: 'Routines',
-      value: routineCount,
-      palette: palettes[2],
-      route: '/routines',
-    },
-    {
-      icon: <Calendar size={20} />,
-      label: 'Upcoming',
-      value: events.length,
-      palette: palettes[3],
-      route: '/events',
-    },
-    {
-      icon: <Zap size={20} />, // you can swap for any Lucide icon
-      label: 'Exams',
-      value: examCount,
-      palette: palettes[1], // purple-pink gradient for contrast
-      route: '/exams',
-    },
+    { icon: <Map size={20} />, label: 'Subjects', value: subjectsCount, palette: palettes[0], route: '/subjects' },
+    { icon: <FileText size={20} />, label: 'Routines', value: routineCount, palette: palettes[2], route: '/routines' },
+    { icon: <Calendar size={20} />, label: 'Upcoming', value: events.length, palette: palettes[3], route: '/events' },
+    { icon: <Zap size={20} />, label: 'Exams', value: examCount, palette: palettes[1], route: '/exams' },
   ];
-
 
   const quickActions = [
-    {
-      label: 'Create Subject',
-      icon: <PlusCircle size={18} />,
-      palette: palettes[1],
-      content: <SubjectQAction />
-    },
-
-    {
-      label: "Add Routine",
-      icon: <Link2 size={18} />,
-      palette: palettes[3],
-      content: <span className="text-sm text-gray-500">Will create soon</span>,
-    },
-    {
-      label: "Create Exam",
-      icon: <Zap size={18} />,
-      palette: palettes[0],
-      content: <ExamQAction />
-    },
+    { label: 'Create Subject', icon: <PlusCircle size={18} />, palette: palettes[1], content: <SubjectQAction /> },
+    { label: 'Add Routine', icon: <Link2 size={18} />, palette: palettes[3], content: <span className="text-sm text-gray-500">Will create soon</span> },
+    { label: 'Create Exam', icon: <Zap size={18} />, palette: palettes[0], content: <ExamQAction /> },
   ];
+
+  const isLoading = loadingDashboard || eventsLoading;
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <motion.div
-      className={`${sora.className} p-6 grid grid-cols-1 lg:grid-cols-4 gap-8 bg-gradient-to-br from-gray-50 to-white min-h-screen`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      className={`${sora.className} p-6 grid grid-cols-1 lg:grid-cols-4 gap-8 bg-gradient-to-br from-gray-50 to-white min-h-screen relative`}
+      initial={false}
+      animate={{ opacity: !isLoading ? 1 : 0.9, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      {/* Sidebar */}
-      <motion.div
-        className="space-y-6"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Link href="/events">
-          <Card className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-400 to-red-400 opacity-80" />
-            <CardHeader className="relative z-10">
-              <CardTitle className="font-heading text-white text-xl">
-                Today’s Events
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="relative z-10 space-y-2">
-              {eventsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-4 w-full bg-white/30" />
-                ))
-              ) : !todaysEvents.length ? (
-                <p className="text-sm text-white/80">No events today</p>
-              ) : (
-                todaysEvents.map((evt) => (
-                  <div
-                    key={evt._id}
-                    className="flex justify-between items-center text-sm text-white"
-                  >
-                    <span>{evt.title}</span>
-                    <Calendar size={16} className="text-white/80" />
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        </Link>
-      </motion.div>
+      {/* Animated Skeleton Overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            className="absolute inset-0 z-50 flex flex-col gap-6 p-6 bg-white"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Main Section */}
-      <div className="col-span-3 space-y-16">
-        {/* Overview */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+      {/* Sidebar */}
+      {!isLoading && (
+        <motion.div
+          className="space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center mb-6 space-x-3">
-            <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-lg shadow-lg text-white">
-              <Bolt size={24} />
+          <Link href="/events">
+            <Card className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-400 to-red-400 opacity-80" />
+              <CardHeader className="relative z-10">
+                <CardTitle className="font-heading text-white text-xl">Today&apos;s Events</CardTitle>
+              </CardHeader>
+              <CardContent className="relative z-10 space-y-2">
+                {!todaysEvents.length ? (
+                  <p className="text-sm text-white/80">No events today</p>
+                ) : (
+                  todaysEvents.map((evt) => (
+                    <div key={evt._id} className="flex justify-between items-center text-sm text-white">
+                      <span>{evt.title}</span>
+                      <Calendar size={16} className="text-white/80" />
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* Main */}
+      {!isLoading && (
+        <div className="col-span-3 space-y-16">
+          {/* Overview */}
+          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+            <div className="flex items-center mb-6 space-x-3">
+              <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-lg shadow-lg text-white">
+                <Bolt size={24} />
+              </div>
+              <div>
+                <h2 className="text-3xl font-heading text-slate-900 uppercase tracking-wide">Overview</h2>
+                <span className="block mt-1 h-1 w-12 rounded-full bg-gradient-to-r from-primary-450 to-secondary-400" />
+              </div>
             </div>
-            <div>
-              <h2 className="text-3xl font-heading text-slate-900 uppercase tracking-wide">
-                Overview
-              </h2>
-              <span className="block mt-1 h-1 w-12 rounded-full bg-gradient-to-r from-primary-450 to-secondary-400" />
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {overviewCards.map(({ icon, label, value, palette, route }) => (
+                <motion.div
+                  key={label}
+                  whileHover={{ scale: 1.04, y: -2 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                  onClick={() => router.push(route)}
+                  className={`${palette.gradient} cursor-pointer rounded-2xl backdrop-blur-md border border-white/20 shadow-lg`}
+                >
+                  <CardHeader className="flex items-center gap-2 p-4 pb-0">
+                    <div className={`p-2 rounded-full ${palette.iconBg}`}>{icon}</div>
+                    <CardTitle className={`text-sm font-medium ${palette.text}`}>{label}</CardTitle>
+                  </CardHeader>
+                  <CardContent className={`text-3xl font-bold pt-2 pb-4 font-body ${palette.text}`}>
+                    {typeof value === 'number' ? (
+                      <CountUp
+                        start={0}
+                        end={value}
+                        duration={1.5}
+                        separator=","
+                        decimals={value % 1 !== 0 ? 2 : 0}
+                        preserveValue
+                      />
+                    ) : (
+                      0
+                    )}
+                  </CardContent>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.section>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {overviewCards.map(({ icon, label, value, palette, route }) => (
-              <motion.div
-                key={label}
-                whileHover={{ scale: 1.04, y: -2 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-                onClick={() => router.push(route)}
-                className={`${palette.gradient} cursor-pointer rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 shadow-lg transition-all duration-300`}
-              >
-                <CardHeader className="flex items-center gap-2 p-4 pb-0">
-                  <div className={`p-2 rounded-full ${palette.iconBg}`}>{icon}</div>
-                  <CardTitle className={`text-sm font-medium ${palette.text}`}>
-                    {label}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className={`text-3xl font-bold pt-2 pb-4 font-body ${palette.text}`}>
-                  {loading ? (
-                    <Skeleton className="h-8 w-16" />
-                  ) : (
-                    <CountUp
-                      start={0}
-                      end={typeof value === 'number' ? value : 0}
-                      duration={1.5}
-                      separator=","
-                      decimals={typeof value === 'number' && value % 1 !== 0 ? 2 : 0}
-                    />
-                  )}
-                </CardContent>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Quick Actions */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="flex items-center mb-6 space-x-3">
-            <div className="p-2 bg-gradient-to-tr from-teal-400 to-blue-500 rounded-lg shadow-lg text-white">
-              <Zap size={24} />
+          {/* Quick Actions */}
+          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+            <div className="flex items-center mb-6 space-x-3">
+              <div className="p-2 bg-gradient-to-tr from-teal-400 to-blue-500 rounded-lg shadow-lg text-white">
+                <Zap size={24} />
+              </div>
+              <div>
+                <h2 className="text-3xl font-heading text-slate-900 uppercase tracking-wide">Quick Actions</h2>
+                <span className="block mt-1 h-1 w-12 rounded-full bg-gradient-to-r from-accent-300 to-primary-450" />
+              </div>
             </div>
-            <div>
-              <h2 className="text-3xl font-heading text-slate-900 uppercase tracking-wide">
-                Quick Actions
-              </h2>
-              <span className="block mt-1 h-1 w-12 rounded-full bg-gradient-to-r from-accent-300 to-primary-450" />
+
+            <div className="flex flex-wrap gap-4">
+              {quickActions.map(({ label, icon, palette, content }, i) => (
+                <Dialog key={i}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className={`flex items-center justify-center border-2 ${palette.border} text-gray-800 
+                        hover:bg-opacity-10 rounded-xl shadow-md transition-all duration-300 backdrop-blur-sm px-4 py-3`}
+                    >
+                      <div className="p-1 rounded-full">{icon}</div>
+                      <span className="ml-2 text-sm font-medium">{label}</span>
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogContent className="p-6 w-full max-w-lg rounded-xl shadow-lg border border-gray-200 bg-white backdrop-blur-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-lg font-semibold text-gray-800">{label}</DialogTitle>
+                      <DialogDescription className="text-gray-500 text-sm">
+                        Fill in the required details below.
+                      </DialogDescription>
+                    </DialogHeader>
+                    {content}
+                  </DialogContent>
+                </Dialog>
+              ))}
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-4">
-            {quickActions.map(({ label, icon, palette, content }, i) => (
-              <Dialog key={i}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className={`flex items-center justify-center border-2 ${palette.border} text-gray-800 
-    hover:bg-opacity-10 rounded-xl shadow-md transition-all duration-300 backdrop-blur-sm px-4 py-3`}
-                  >
-                    <div className="p-1 rounded-full">{icon}</div>
-                    <span className="ml-2 text-sm font-medium">{label}</span>
-                  </Button>
-
-                </DialogTrigger>
-
-                <DialogContent className="p-6 w-full max-w-lg rounded-xl shadow-lg border border-gray-200 bg-white backdrop-blur-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-lg font-semibold text-gray-800">
-                      {label}
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-500 text-sm">
-                      Fill in the required details below.
-                    </DialogDescription>
-                  </DialogHeader>
-                  {content}
-                </DialogContent>
-              </Dialog>
-            ))}
-          </div>
-
-
-        </motion.section>
-      </div>
+          </motion.section>
+        </div>
+      )}
     </motion.div>
   );
 }

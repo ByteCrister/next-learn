@@ -77,9 +77,7 @@ export const authOptions: NextAuthOptions = {
                         provider: account.provider,
                         providerAccountId: account.providerAccountId,
                         emailVerified: new Date(),
-                        resetPasswordOTP: undefined,
-                        resetPasswordOTPExpires: undefined,
-                        resetPasswordOTPAttempts: 0,
+                        role: 'member'
                     });
                 }
             }

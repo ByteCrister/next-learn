@@ -2,8 +2,10 @@
 
 import { FC } from "react";
 import { motion, Variants } from "framer-motion";
-import Link from "next/link";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { useRouter } from "next/navigation";
+import routeDashboard from "@/utils/helpers/routeDashboard";
+import { Button } from "../ui/button";
 
 interface Feature {
     icon: React.ReactNode;
@@ -69,7 +71,17 @@ const fadeInUp: Variants = {
 };
 
 const Features: FC = () => {
-    const {user} = useDashboardStore();
+    const router = useRouter();
+    const { user } = useDashboardStore();
+
+    const handleClick = () => {
+        if (user) {
+            routeDashboard();
+        } else {
+            router.push('/signup');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black">
             <div className="container mx-auto px-4 py-16">
@@ -149,13 +161,19 @@ const Features: FC = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <Link
-                            href={user ? '/dashboard' : '/signup'}
-                            className="inline-flex items-center justify-center px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-300"
+                        <Button
+                            asChild
+                            size="lg"
+                            onClick={handleClick}
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
                         >
-                            {user ? 'Learn new things!' : 'Get Started Now'}
-                        </Link>
+                            <span>
+                                {user ? "Learn new things!" : "Get Started Now"}
+                            </span>
+                        </Button>
                     </motion.div>
+
+
                 </motion.section>
             </div>
         </div>

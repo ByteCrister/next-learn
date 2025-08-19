@@ -28,6 +28,7 @@ export const useEventsStore = create<EventsState>()(
     events: [],
     eventsLoading: false,
     buttonLoading: false,
+    hasFetched: false,
 
     fetchEvents: async () => {
       if (get().hasFetched || get().fetching)

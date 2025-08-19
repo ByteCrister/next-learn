@@ -1,9 +1,6 @@
 // app/api/subjects/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-
 import { Subject } from "@/models/Subject";
-import { authOptions } from "@/utils/auth/authOptions";
 import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 import { ClassNote } from "@/models/ClassNote";
@@ -50,8 +47,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -67,7 +64,7 @@ export async function POST(request: NextRequest) {
 
         await ConnectDB();
         const newSubject = await Subject.create({
-            userId: session.user.id,
+            userId,
             title,
             code,
             description,

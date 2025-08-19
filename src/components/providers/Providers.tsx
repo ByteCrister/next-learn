@@ -27,7 +27,8 @@ export default function Providers({ children }: ProvidersProps) {
       if (!user) await fetchUser()
     }
     fetchUserData()
-  }, [user, fetchUser])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const PageLayout = ({ children }: { children: ReactNode }) => (
     <>

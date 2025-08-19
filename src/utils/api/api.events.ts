@@ -3,11 +3,12 @@ import api from "./api.client";
 import extractErrorData from "../helpers/extractErrorData";
 import { VEvent } from "@/types/types.events";
 
+const MAIN_ROOT = '/events'
 export async function createEvent(
     values: VEvent
 ): Promise<VEvent | { message: string }> {
     try {
-        const { data } = await api.post<VEvent>("/events", values);
+        const { data } = await api.post<VEvent>(MAIN_ROOT, values);
         return data;
     } catch (err) {
         console.error("createEvent error:", err);
@@ -25,7 +26,7 @@ export async function updateEvent(
             start: values.start,
             end: values.end,
         };
-        const { data } = await api.put<VEvent>(`/events/${id}`, payload);
+        const { data } = await api.put<VEvent>(`${MAIN_ROOT}/${id}`, payload);
         return data;
     } catch (err) {
         console.error("updateEvent error:", err);
@@ -35,7 +36,7 @@ export async function updateEvent(
 
 export async function getEvents(): Promise<VEvent[] | { message: string }> {
     try {
-        const { data } = await api.get<VEvent[]>("/events");
+        const { data } = await api.get<VEvent[]>(MAIN_ROOT);
         return data;
     } catch (err) {
         console.error("getEvents error:", err);
@@ -45,7 +46,7 @@ export async function getEvents(): Promise<VEvent[] | { message: string }> {
 
 export async function deleteEvent(id: string): Promise<{ success: boolean } | { message: string }> {
     try {
-        const { data } = await api.delete<{ success: boolean }>(`/events/${id}`);
+        const { data } = await api.delete<{ success: boolean }>(`${MAIN_ROOT}/${id}`);
         return data;
     } catch (err) {
         console.error("deleteEvent error:", err);

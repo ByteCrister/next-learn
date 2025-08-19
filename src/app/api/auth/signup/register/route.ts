@@ -40,6 +40,7 @@ export async function POST(req: Request) {
             passwordHash,
             emailVerified: new Date(),
             provider: "credentials",
+            role: 'member'
         });
 
         // cleanup pending record

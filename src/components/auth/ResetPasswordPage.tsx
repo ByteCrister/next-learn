@@ -30,6 +30,8 @@ import {
   CardContent,
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { signIn } from 'next-auth/react'
+import { errorMessages } from './SignInPage'
 
 export default function ResetPasswordPage() {
   const [step, setStep] = useState<'email' | 'otp' | 'reset' | 'success'>('email')
@@ -73,6 +75,20 @@ export default function ResetPasswordPage() {
       try {
         await apiResetPassword({ email, newPassword: values.newPassword })
         toast.success('Password reset successful')
+        const res = await signIn("credentials", {
+          redirect: false,
+          callbackUrl: "/dashboard",
+          email: email,
+          password: values.newPassword,
+          remember: true,
+        });
+        if (res?.error) {
+          const msg = res.error ?? errorMessages[res.error] ?? errorMessages.default;
+          toast.warning(msg);
+        } else {
+          toast.success("Welcome back!");
+          window.location.href = '/dashboard';
+        }
         setStep('success')
       } catch (err) {
         toast.error(getMessage(err as ApiError))
@@ -327,20 +343,6 @@ export default function ResetPasswordPage() {
                   </Button>
                 </motion.div>
               </form>
-            )}
-
-            {step === 'success' && (
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-center text-green-600 dark:text-green-400">
-                  Your password has been reset. You can now log in with your new credentials.
-                </p>
-                <Button
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-                  onClick={() => (window.location.href = '/signin')}
-                >
-                  Go to Sign In
-                </Button>
-              </div>
             )}
           </CardContent>
         </Card>
