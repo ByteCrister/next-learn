@@ -13,3 +13,13 @@ export async function getUserData(): Promise<UserProfile | { message: string }> 
         return extractErrorData(err);
     }
 }
+
+export async function updateUserImage(imageDataUrl: string): Promise<{ updatedImage: string } | { message: string }> {
+    try {
+        const { data } = await api.put<{ updatedImage: string }>(`${MAIN_ROOT_URL}/profile-image`, { image: imageDataUrl });
+        return data;
+    } catch (err) {
+        console.error("updateUserImage error:", err);
+        return extractErrorData(err);
+    }
+}

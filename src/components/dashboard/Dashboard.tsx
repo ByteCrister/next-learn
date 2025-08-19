@@ -225,18 +225,27 @@ export default function DashboardPage() {
           </motion.section>
 
           {/* Quick Actions */}
-          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-            <div className="flex items-center mb-6 space-x-3">
-              <div className="p-2 bg-gradient-to-tr from-teal-400 to-blue-500 rounded-lg shadow-lg text-white">
-                <Zap size={24} />
+          <motion.section
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="w-full"
+          >
+            {/* Section heading */}
+            <div className="flex items-center mb-4 sm:mb-6 space-x-3 sm:space-x-4">
+              <div className="p-2 sm:p-3 bg-gradient-to-tr from-teal-400 to-blue-500 rounded-lg shadow-lg text-white flex-shrink-0">
+                <Zap size={20} className="sm:size-6" />
               </div>
               <div>
-                <h2 className="text-3xl font-heading text-slate-900 uppercase tracking-wide">Quick Actions</h2>
-                <span className="block mt-1 h-1 w-12 rounded-full bg-gradient-to-r from-accent-300 to-primary-450" />
+                <h2 className="text-xl sm:text-3xl font-heading text-slate-900 uppercase tracking-wide">
+                  Quick Actions
+                </h2>
+                <span className="block mt-1 h-1 w-10 sm:w-12 rounded-full bg-gradient-to-r from-accent-300 to-primary-450" />
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            {/* Buttons */}
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               {quickActions.map(({ label, icon, palette, content }, i) => (
                 <Dialog key={i}>
                   <DialogTrigger asChild>
@@ -244,17 +253,22 @@ export default function DashboardPage() {
                       variant="outline"
                       size="lg"
                       className={`flex items-center justify-center border-2 ${palette.border} text-gray-800 
-                        hover:bg-opacity-10 rounded-xl shadow-md transition-all duration-300 backdrop-blur-sm px-4 py-3`}
+              hover:bg-opacity-10 rounded-xl shadow-md transition-all duration-300 backdrop-blur-sm 
+              w-full sm:w-auto px-3 sm:px-4 py-3 sm:py-4`}
                     >
-                      <div className="p-1 rounded-full">{icon}</div>
-                      <span className="ml-2 text-sm font-medium">{label}</span>
+                      <div className="p-1 sm:p-1.5 rounded-full flex-shrink-0">{icon}</div>
+                      <span className="ml-2 text-xs sm:text-sm md:text-base font-medium truncate">
+                        {label}
+                      </span>
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="p-6 w-full max-w-lg rounded-xl shadow-lg border border-gray-200 bg-white backdrop-blur-md">
+                  <DialogContent className="p-4 sm:p-6 w-full max-w-lg rounded-xl shadow-lg border border-gray-200 bg-white backdrop-blur-md">
                     <DialogHeader>
-                      <DialogTitle className="text-lg font-semibold text-gray-800">{label}</DialogTitle>
-                      <DialogDescription className="text-gray-500 text-sm">
+                      <DialogTitle className="text-base sm:text-lg font-semibold text-gray-800">
+                        {label}
+                      </DialogTitle>
+                      <DialogDescription className="text-gray-500 text-xs sm:text-sm">
                         Fill in the required details below.
                       </DialogDescription>
                     </DialogHeader>
@@ -264,6 +278,7 @@ export default function DashboardPage() {
               ))}
             </div>
           </motion.section>
+
         </div>
       )}
     </motion.div>

@@ -29,6 +29,7 @@ interface DashboardState {
     fetchDashboard: () => Promise<void>;
     fetchUser: () => Promise<void>;
     updateUser: () => Promise<void>;
+    updateUserImage: (image: string) => void;
 }
 
 export const useDashboardStore = create<DashboardState>()(
@@ -116,6 +117,11 @@ export const useDashboardStore = create<DashboardState>()(
                 set({ loadingUserUpdate: false });
             }
         },
+
+        updateUserImage: (image) =>
+            set((state) => ({
+                user: state.user ? { ...state.user, image } : null,
+            })),
 
         setFormField: (field, value) => {
             set((state) => ({

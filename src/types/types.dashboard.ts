@@ -5,6 +5,7 @@ export type UserProfile = {
     name: string;
     email: string;
     image?: string;
+    role?: "member" | "admin"
 };
 
 export interface DashboardData {

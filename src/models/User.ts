@@ -1,6 +1,32 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema, Types } from "mongoose";
 
 export type UserRole = "member" | "admin";
+
+export type RestrictionType = "temporary" | "permanent";
+
+export interface IUserRestriction {
+    type: RestrictionType;
+    reason: string;
+    adminId: Types.ObjectId;
+    createdAt: Date;
+    expiresAt?: Date;          // only for temporary
+}
+
+const restrictionSchema = new Schema<IUserRestriction>(
+    {
+        type: {
+            type: String,
+            enum: ["temporary", "permanent"],
+            required: true,
+            default: "temporary",
+        },
+        reason: { type: String, required: true, trim: true },
+        adminId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        createdAt: { type: Date, default: () => new Date(), immutable: true },
+        expiresAt: { type: Date }, // omit for permanent bans
+    },
+    { _id: false }
+);
 
 export interface IUser extends Document {
     name: string;
@@ -20,6 +46,8 @@ export interface IUser extends Document {
     resetPasswordOTPExpires?: Date;
     resetPasswordOTPAttempts: number; // default 0
     lastOTPSentAt?: Date;
+
+    restrictions: IUserRestriction[];
 }
 
 const userSchema = new Schema<IUser>(
@@ -43,6 +71,12 @@ const userSchema = new Schema<IUser>(
         resetPasswordOTPExpires: { type: Date, default: null },
         resetPasswordOTPAttempts: { type: Number, default: 0 },
         lastOTPSentAt: { type: Date, default: null },
+
+        // history of all suspensions/bans
+        restrictions: {
+            type: [restrictionSchema],
+            default: [],
+        },
     },
     { timestamps: true }
 );

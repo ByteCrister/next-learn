@@ -121,29 +121,20 @@ export default function ExamsClient() {
           <div className="space-y-1">
             <h1
               className="
-      bg-gradient-to-r
-      from-slate-800
-      via-slate-600
-      to-slate-500
-      dark:from-slate-100
-      dark:via-slate-300
-      dark:to-slate-400
-      bg-clip-text
-      text-transparent
-      text-4xl
-      md:text-5xl
+      text-gray-800 dark:text-gray-200
+      text-4xl md:text-5xl
       font-semibold
       tracking-tight
       leading-tight
+      antialiased
     "
             >
               Exams
             </h1>
-            <p className="text-base md:text-lg text-muted-foreground">
+            <p className="text-base md:text-lg text-gray-500 dark:text-gray-400 max-w-prose">
               Browse, search, and manage all exams.
             </p>
           </div>
-
 
           <div className="flex items-center gap-2">
             <Button

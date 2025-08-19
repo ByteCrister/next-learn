@@ -19,7 +19,7 @@ export async function GET() {
         await ConnectDB();
 
         const rawUser = await User.findById(userId)
-            .select("_id name email image")
+            .select("_id name email image role")
             .lean();
 
         if (!rawUser) {
@@ -31,6 +31,7 @@ export async function GET() {
             name: rawUser.name,
             email: rawUser.email,
             image: rawUser.image,
+            role: rawUser.role,
         };
 
         return NextResponse.json(user, { status: 200 });
