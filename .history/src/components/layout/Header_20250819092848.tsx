@@ -195,7 +195,7 @@ const Header = () => {
 
               <Link href={`/user-signup?callbackUrl=${encodeURIComponent(pathname)}`} className="hidden sm:inline-flex">
                 <Button variant="default" className="bg-indigo-400 hover:bg-indigo-700 text-white">
-                  SignIn
+                  SignUp
                   <SparklesIcon className="-me-1 opacity-60" size={16} aria-hidden="true" />
                 </Button>
              </Link>
