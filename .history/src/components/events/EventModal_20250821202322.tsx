@@ -161,7 +161,24 @@ export function EventModal({ initial, isOpen, onClose }: Props) {
                       }
                       maxTime={new Date(new Date().setHours(23, 59, 59, 999))} // end of day
                       dateFormat="PPPp"
-                      className={`${ringOnFocus} mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 h-[42px]`}
+                      className={`w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 bg-white/70 text-sm ${ringOnFocus}`}
+                      popperPlacement="bottom-start"
+                      popperModifiers={[
+                        {
+                          name: 'offset',
+                          options: {
+                            offset: [0, 8],
+                          },
+                        },
+                        {
+                          name: 'preventOverflow',
+                          options: {
+                            boundary: 'viewport',
+                            padding: 8,
+                          },
+                        },
+                      ]}
+                      calendarClassName="!w-72 !text-sm"
                       wrapperClassName="w-full"
                     />
                     <ErrorMessage name="start" component="p" className="mt-1 text-red-500 text-sm" />

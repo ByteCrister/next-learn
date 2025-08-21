@@ -1,7 +1,9 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Shield, Heart, Users } from "lucide-react";
+import ShieldIcon from '@mui/icons-material/Shield';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import PeopleIcon from '@mui/icons-material/People';
 
 // Local animation variants
 const staggerContainer: Variants = {
@@ -19,7 +21,7 @@ const fadeIn: Variants = {
 const values = [
   {
     icon: (
-      <Shield className="w-8 h-8 text-blue-500" />
+      <ShieldIcon className="w-8 h-8 text-blue-500" />
     ),
     title: "Built for You",
     description:
@@ -27,7 +29,7 @@ const values = [
   },
   {
     icon: (
-      <Heart className="w-8 h-8 text-purple-500" />
+      <FavoriteIcon className="w-8 h-8 text-purple-500" />
     ),
     title: "Personalized Experience",
     description:
@@ -35,7 +37,7 @@ const values = [
   },
   {
     icon: (
-      <Users className="w-8 h-8 text-green-500" />
+      <PeopleIcon className="w-8 h-8 text-green-500" />
     ),
     title: "Your Content, Your Control",
     description:

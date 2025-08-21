@@ -145,27 +145,6 @@ export function EventModal({ initial, isOpen, onClose }: Props) {
 
                   {/* Date Picker */}
                   <div>
-                    <Label htmlFor="start" className="text-gray-800 font-medium flex items-center gap-2">
-                      <Calendar size={20} /> Date
-                    </Label>
-                    <DatePicker
-                      id="start"
-                      selected={toDate(values.start)}
-                      onChange={(d: Date | null) => d && setFieldValue('start', d)}
-                      showTimeSelect
-                      minDate={new Date()}
-                      minTime={
-                        toDate(values.start)?.toDateString() === new Date().toDateString()
-                          ? new Date() // today → now
-                          : new Date(new Date().setHours(0, 0, 0, 0)) // start of day
-                      }
-                      maxTime={new Date(new Date().setHours(23, 59, 59, 999))} // end of day
-                      dateFormat="PPPp"
-                      className={`${ringOnFocus} mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 h-[42px]`}
-                      wrapperClassName="w-full"
-                    />
-                    <ErrorMessage name="start" component="p" className="mt-1 text-red-500 text-sm" />
-                  </div>
 
                   {/* All Day Toggle */}
                   <div className="flex items-center gap-2">

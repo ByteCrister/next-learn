@@ -19,7 +19,7 @@ const fadeIn: Variants = {
 const values = [
   {
     icon: (
-      <Shield className="w-8 h-8 text-blue-500" />
+      <ShieldIcon className="w-8 h-8 text-blue-500" />
     ),
     title: "Built for You",
     description:
@@ -27,7 +27,7 @@ const values = [
   },
   {
     icon: (
-      <Heart className="w-8 h-8 text-purple-500" />
+      <FavoriteIcon className="w-8 h-8 text-purple-500" />
     ),
     title: "Personalized Experience",
     description:
@@ -35,7 +35,7 @@ const values = [
   },
   {
     icon: (
-      <Users className="w-8 h-8 text-green-500" />
+      <PeopleIcon className="w-8 h-8 text-green-500" />
     ),
     title: "Your Content, Your Control",
     description:

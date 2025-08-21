@@ -134,7 +134,7 @@ export default function Header() {
               ))}
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
                 <Link href={user ? "/dashboard" : "/signin"}>
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
+                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple- text-white shadow-md hover:shadow-lg transition-all duration-300">
                     Get Started <Sparkles className="ml-2 w-4 h-4 opacity-80" />
                   </Button>
                 </Link>

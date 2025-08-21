@@ -87,7 +87,7 @@ export default function Header() {
           {/* CTA + Mobile Menu Toggle */}
           <div className="flex items-center gap-3">
             <Link href={user ? '/dashboard' : '/signin'} className="hidden sm:inline-flex">
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
+              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-black hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
                 {user ? 'Dashboard' : 'Sign In'} <Sparkles className="ml-2 w-4 h-4 opacity-80" />
               </Button>
             </Link>
@@ -107,34 +107,34 @@ export default function Header() {
                 </svg>
               )}
             </button>
-          </div>
-        </div>
-      </div>
++          </div>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={menuVariants}
-            className="md:hidden border-t border-gray-200 dark:border-gray-700 overflow-hidden bg-white/80 dark:bg-black/70 backdrop-blur-lg"
-          >
-            <div className="px-4 py-3 space-y-2">
-              {navLinks.map((link) => (
-                <motion.div key={link.label} variants={itemVariants}>
-                  <Link
-                    href={link.href}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300"
-                  >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={menuVariants}
+                className="md:hidden border-t border-gray-200 dark:border-gray-700 overflow-hidden bg-white/80 dark:bg-black/70 backdrop-blur-lg"
+              >
+                <div className="px-4 py-3 space-y-2">
+                  {navLinks.map((link) => (
+                    <motion.div key={link.label} variants={itemVariants}>
+                      <Link
+                        href={link.href}
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300"
+                      >
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                  <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <Link href={user ? "/dashboard" : "/signin"}>
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
                 <Link href={user ? "/dashboard" : "/signin"}>
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
+                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
                     Get Started <Sparkles className="ml-2 w-4 h-4 opacity-80" />
                   </Button>
                 </Link>

@@ -1,7 +1,9 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
-import { Shield, Heart, Users } from "lucide-react";
+import ShieldIcon from '@mui/icons-material/Shield';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import PeopleIcon from '@mui/icons-material/People';
 
 // Local animation variants
 const staggerContainer: Variants = {
@@ -19,7 +21,16 @@ const fadeIn: Variants = {
 const values = [
   {
     icon: (
-      <Shield className="w-8 h-8 text-blue-500" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-8 h-8 text-blue-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
     ),
     title: "Built for You",
     description:
@@ -27,7 +38,16 @@ const values = [
   },
   {
     icon: (
-      <Heart className="w-8 h-8 text-purple-500" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-8 h-8 text-purple-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path d="M12 21C12 21 4 13.5 4 8.5C4 5.46243 6.46243 3 9.5 3C11.24 3 12.91 3.81 14 5.08C15.09 3.81 16.76 3 18.5 3C21.5376 3 24 5.46243 24 8.5C24 13.5 16 21 16 21H12Z" />
+      </svg>
     ),
     title: "Personalized Experience",
     description:
@@ -35,7 +55,19 @@ const values = [
   },
   {
     icon: (
-      <Users className="w-8 h-8 text-green-500" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-8 h-8 text-green-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path d="M17 20h5v-2a4 4 0 00-4-4h-1" />
+        <path d="M9 20H4v-2a4 4 0 014-4h1" />
+        <circle cx="9" cy="7" r="4" />
+        <circle cx="17" cy="7" r="4" />
+      </svg>
     ),
     title: "Your Content, Your Control",
     description:

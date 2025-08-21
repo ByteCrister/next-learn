@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FaTwitter, FaLinkedin, FaFacebook, FaAt, FaInstagram, FaTiktok } from "react-icons/fa";
+import { Twitter, Linkedin, Facebook, AtSign, Instagram } from "lucide-react";
 
 function Footer() {
   const navLinks = [
@@ -16,32 +16,45 @@ function Footer() {
     {
       name: "X",
       href: "#",
-      svg: <FaTwitter className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Twitter className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "LinkedIn",
       href: "#",
-      svg: <FaLinkedin className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Linkedin className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Facebook",
       href: "#",
-      svg: <FaFacebook className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Facebook className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Threads",
       href: "#",
-      svg: <FaAt className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <AtSign className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Instagram",
       href: "#",
-      svg: <FaInstagram className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Instagram className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "TikTok",
       href: "#",
-      svg: <FaTiktok className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: (
+        <svg
+          className="size-6 transition-transform duration-200 hover:scale-110"
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
+            d="M16.6 5.82s.51.5 0 0A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6c0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64c0 3.33 2.76 5.7 5.69 5.7c3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48"
+          ></path>
+        </svg>
+      ),
     },
   ];
 

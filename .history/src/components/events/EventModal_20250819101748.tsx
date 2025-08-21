@@ -146,7 +146,7 @@ export function EventModal({ initial, isOpen, onClose }: Props) {
                   {/* Date Picker */}
                   <div>
                     <Label htmlFor="start" className="text-gray-800 font-medium flex items-center gap-2">
-                      <Calendar size={20} /> Date
+                      <Calendar size={16} /> Date
                     </Label>
                     <DatePicker
                       id="start"
@@ -161,8 +161,7 @@ export function EventModal({ initial, isOpen, onClose }: Props) {
                       }
                       maxTime={new Date(new Date().setHours(23, 59, 59, 999))} // end of day
                       dateFormat="PPPp"
-                      className={`${ringOnFocus} mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 h-[42px]`}
-                      wrapperClassName="w-full"
+                      className={`w-full mt-1 px-3 py-2 rounded-lg border border-gray-300 bg-white/70 ${ringOnFocus}`}
                     />
                     <ErrorMessage name="start" component="p" className="mt-1 text-red-500 text-sm" />
                   </div>

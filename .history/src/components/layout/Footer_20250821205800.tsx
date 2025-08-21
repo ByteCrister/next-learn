@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { FaTwitter, FaLinkedin, FaFacebook, FaAt, FaInstagram, FaTiktok } from "react-icons/fa";
+import { Twitter, Linkedin, Facebook, AtSign, Instagram } from "lucide-react";
 
 function Footer() {
   const navLinks = [
@@ -16,33 +16,41 @@ function Footer() {
     {
       name: "X",
       href: "#",
-      svg: <FaTwitter className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Twitter className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "LinkedIn",
       href: "#",
-      svg: <FaLinkedin className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Linkedin className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Facebook",
       href: "#",
-      svg: <FaFacebook className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Facebook className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Threads",
       href: "#",
-      svg: <FaAt className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <AtSign className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "Instagram",
       href: "#",
-      svg: <FaInstagram className="size-6 transition-transform duration-200 hover:scale-110" />,
+      svg: <Instagram className="size-6 transition-transform duration-200 hover:scale-110" />,
     },
     {
       name: "TikTok",
       href: "#",
-      svg: <FaTiktok className="size-6 transition-transform duration-200 hover:scale-110" />,
-    },
+      svg: (
+        <svg
+          className="size-6 transition-transform duration-200 hover:scale-110"
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
   ];
 
   return (
