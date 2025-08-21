@@ -4,7 +4,7 @@ import { FC, useState, useRef, useEffect } from 'react';
 import { Menu, X, User, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProfilePopover from '../popovers/ProfilePopover';
-import { EventModal } from '../events/EventModal';
+import EventModal from '../events/EventModal';
 import SearchBar from './SearchBar';
 import { SidebarToggle } from './SidebarToggle';
 

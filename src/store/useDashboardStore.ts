@@ -4,7 +4,7 @@ import { getDashboard, updateUserDetails } from "@/utils/api/api.dashboard";
 import { getUserData } from "@/utils/api/api.user";
 import { toast } from "react-toastify";
 import { UpdateUserInput, UserProfile } from "@/types/types.dashboard";
-import { VEvent } from "@/types/types.events";
+import { VEventOverview } from "@/types/types.events";
 
 type CountField = "subjectsCount" | "examCount" | "routineCount";
 
@@ -12,7 +12,7 @@ interface DashboardState {
     subjectsCount: number;
     examCount: number;
     routineCount: number;
-    upcomingEvents: VEvent[];
+    upcomingEvents: VEventOverview[];
     user: UserProfile | null;
 
     form: UpdateUserInput;
@@ -30,6 +30,9 @@ interface DashboardState {
     fetchUser: () => Promise<void>;
     updateUser: () => Promise<void>;
     updateUserImage: (image: string) => void;
+
+    updateEventInDashboard: (id: string, updatedEvent: Partial<VEventOverview>) => void;
+    deleteEventFromDashboard: (id: string) => void;
 }
 
 export const useDashboardStore = create<DashboardState>()(
@@ -135,6 +138,21 @@ export const useDashboardStore = create<DashboardState>()(
                 const newValue = Math.max(0, state[field] + change); // prevent negative
                 return { [field]: newValue };
             });
+        },
+
+        
+        updateEventInDashboard: (id, updatedEvent) => {
+            set((state) => ({
+                upcomingEvents: state.upcomingEvents.map((evt) =>
+                    evt._id === id ? { ...evt, ...updatedEvent } : evt
+                ),
+            }));
+        },
+
+        deleteEventFromDashboard: (id) => {
+            set((state) => ({
+                upcomingEvents: state.upcomingEvents.filter((evt) => evt._id !== id),
+            }));
         },
     }))
 );

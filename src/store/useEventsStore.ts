@@ -19,8 +19,8 @@ interface EventsState {
 
   fetchEvents: () => Promise<void>;
   createEventAction: (values: VEvent) => Promise<void>;
-  updateEventAction: (id: string, values: VEvent) => Promise<void>;
-  deleteEventAction: (id: string) => Promise<void>;
+  updateEventAction: (id: string, values: VEvent) => Promise<boolean>;
+  deleteEventAction: (id: string) => Promise<boolean>;
 }
 
 export const useEventsStore = create<EventsState>()(
@@ -65,13 +65,8 @@ export const useEventsStore = create<EventsState>()(
         } else {
           set((state) => ({
             events: [
+              { ...result, start: new Date(result.start ?? ''), end: new Date(result.end ?? ''), _id: result._id },
               ...state.events,
-              {
-                ...result,
-                start: new Date(result.start ?? ''),
-                end: new Date(result.end ?? ''),
-                _id: result._id, // Ensure _id is present
-              },
             ],
           }));
           toast.success("Event created successfully");
@@ -89,6 +84,7 @@ export const useEventsStore = create<EventsState>()(
         const result = await updateEvent(id, values);
         if ("message" in result) {
           toast.error(result.message);
+          return false;
         } else {
           set((state) => ({
             events: state.events.map((evt) =>
@@ -103,6 +99,7 @@ export const useEventsStore = create<EventsState>()(
             ),
           }));
           toast.success("Event updated successfully");
+          return true;
         }
       } catch (err) {
         toast.error((err as Error).message);
@@ -117,14 +114,17 @@ export const useEventsStore = create<EventsState>()(
         const result = await deleteEvent(id);
         if ("message" in result) {
           toast.error(result.message);
+          return false;
         } else {
           set((state) => ({
             events: state.events.filter((evt) => evt._id !== id),
           }));
           toast.success("Event deleted successfully");
+          return true;
         }
       } catch (err) {
         toast.error((err as Error).message);
+        return false;
       } finally {
         set({ loading: false });
       }

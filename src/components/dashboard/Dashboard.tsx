@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Sora } from 'next/font/google';
@@ -71,7 +70,6 @@ export const palettes = [
 ];
 
 export default function DashboardPage() {
-  const router = useRouter();
   const {
     subjectsCount,
     routineCount,
@@ -194,34 +192,35 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {overviewCards.map(({ icon, label, value, palette, route }) => (
-                <motion.div
-                  key={label}
-                  whileHover={{ scale: 1.04, y: -2 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                  onClick={() => router.push(route)}
-                  className={`${palette.gradient} cursor-pointer rounded-2xl backdrop-blur-md border border-white/20 shadow-lg`}
-                >
-                  <CardHeader className="flex items-center gap-2 p-4 pb-0">
-                    <div className={`p-2 rounded-full ${palette.iconBg}`}>{icon}</div>
-                    <CardTitle className={`text-sm font-medium ${palette.text}`}>{label}</CardTitle>
-                  </CardHeader>
-                  <CardContent className={`text-3xl font-bold pt-2 pb-4 font-body ${palette.text}`}>
-                    {typeof value === 'number' ? (
-                      <CountUp
-                        start={0}
-                        end={value}
-                        duration={1.5}
-                        separator=","
-                        decimals={value % 1 !== 0 ? 2 : 0}
-                        preserveValue
-                      />
-                    ) : (
-                      0
-                    )}
-                  </CardContent>
-                </motion.div>
+                <Link key={label} href={route} className="block">
+                  <motion.div
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className={`${palette.gradient} cursor-pointer rounded-2xl backdrop-blur-md border border-white/20 shadow-lg`}
+                  >
+                    <CardHeader className="flex items-center gap-2 p-4 pb-0">
+                      <div className={`p-2 rounded-full ${palette.iconBg}`}>{icon}</div>
+                      <CardTitle className={`text-sm font-medium ${palette.text}`}>{label}</CardTitle>
+                    </CardHeader>
+                    <CardContent className={`text-3xl font-bold pt-2 pb-4 font-body ${palette.text}`}>
+                      {typeof value === 'number' ? (
+                        <CountUp
+                          start={0}
+                          end={value}
+                          duration={1.5}
+                          separator=","
+                          decimals={value % 1 !== 0 ? 2 : 0}
+                          preserveValue
+                        />
+                      ) : (
+                        0
+                      )}
+                    </CardContent>
+                  </motion.div>
+                </Link>
               ))}
             </div>
+
           </motion.section>
 
           {/* Quick Actions */}
