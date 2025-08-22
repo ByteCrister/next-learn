@@ -4,7 +4,7 @@ import { User } from "@/models/User";
 import crypto from "crypto";
 import ConnectDB from "@/config/ConnectDB";
 import { SendEmail } from "@/config/NodeEmailer";
-import { getOtpHTML } from "@/utils/html/getOtpHTML";
+import { HTMLContent } from "@/utils/html/html.signup.otp";
 
 export async function POST(req: Request) {
     try {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
         // generate OTP
         const otp = crypto.randomInt(100000, 999999).toString();
-        const otpExpires = new Date(Date.now() + 4 * 60 * 1000 + 5000); // 4 minutes but in frontend it will show 3 minutes, +5 seconds buffer
+        const otpExpires = new Date(Date.now() + 1 * 60 * 1000 + 5000); // 1 minutes + 5 seconds buffer
 
         // upsert pending user
         const pendingUser = await PendingUser.findOneAndUpdate(
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
             { upsert: true, new: true }
         );
         const subject = "Your password reset code";
-        await SendEmail(email, subject, getOtpHTML(otp));
+        await SendEmail(email, subject, HTMLContent(otp));
 
         return NextResponse.json({
             message: "OTP sent to email",

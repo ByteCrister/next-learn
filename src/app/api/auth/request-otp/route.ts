@@ -3,7 +3,7 @@ import ConnectDB from "@/config/ConnectDB";
 import { User } from "@/models/User";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { getOtpHTML } from "@/utils/html/getOtpHTML";
+import { HTMLContent } from "@/utils/html/html.reset.password.otp";
 import { SendEmail } from "@/config/NodeEmailer";
 
 export async function POST(req: NextRequest) {
@@ -44,14 +44,14 @@ export async function POST(req: NextRequest) {
         // 5) generate + save OTP
         const otp = crypto.randomInt(100000, 999999).toString();
         user.resetPasswordOTP = await bcrypt.hash(otp, 10);
-        user.resetPasswordOTPExpires = new Date(now + 3 * 60 * 1000); // 3m
+        user.resetPasswordOTPExpires = new Date(now + 1 * 60 * 1000 + 5000); // 1m + 5s buffer
         user.resetPasswordOTPAttempts = 0;
         user.lastOTPSentAt = new Date(now);
         await user.save();
 
         // 6) send email
         const subject = "Your password reset code";
-        await SendEmail(email, subject, getOtpHTML(otp));
+        await SendEmail(email, subject, HTMLContent(otp));
 
         return NextResponse.json({ success: true, message: "OTP sent", otpExpiresAt: user.resetPasswordOTPExpires });
     } catch (err) {
