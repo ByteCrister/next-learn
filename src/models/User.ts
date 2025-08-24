@@ -81,5 +81,20 @@ const userSchema = new Schema<IUser>(
     { timestamps: true }
 );
 
+// Add indexing after schema definition
+userSchema.index({ role: 1 }); // filter/sort by role (admin vs member)
+userSchema.index({ createdAt: -1 }); // sort by newest users
+userSchema.index({ updatedAt: -1 }); // sort by recent updates
+
+// Password reset related
+userSchema.index({ resetPasswordOTP: 1 }); // lookup by OTP
+userSchema.index({ resetPasswordOTPExpires: 1 }); // cleanup expired OTPs efficiently
+
+// Restriction-related (subdocuments)
+userSchema.index({ "restrictions.type": 1 }); // query temp vs permanent restrictions
+userSchema.index({ "restrictions.adminId": 1 }); // find bans by admin
+userSchema.index({ "restrictions.expiresAt": 1 }); // cleanup expired restrictions
+
+
 export const User: Model<IUser> =
     mongoose.models.User || mongoose.model<IUser>("User", userSchema);

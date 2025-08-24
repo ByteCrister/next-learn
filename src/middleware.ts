@@ -21,6 +21,7 @@ const PUBLIC_ROUTES = [
 const PUBLIC_APIS = [
     /^\/api\/view\/subject$/,    // GET /api/view/subject
     /^\/api\/view\/note$/,       // GET /api/view/note
+    // /^\/api\/make-admin$/,       // POST /api/make-admin
 ];
 
 const isPublicFile = (pathname: string) =>
@@ -47,6 +48,16 @@ export async function middleware(req: NextRequest) {
         req,
         secret: process.env.NEXTAUTH_SECRET,
     });
+
+    // 🚨 Special case: Block /api/make-admin unless role = admin
+    if (pathname.startsWith("/api/make-admin")) {
+        if (!token || token.role !== "admin") {
+            return NextResponse.json(
+                { success: false, message: "Forbidden: Admins only" },
+                { status: 403 }
+            );
+        }
+    }
 
     // 4. Authenticated users visiting guest-only pages → redirect to home
     if (token && AUTH_ONLY_ROUTES.some(rx => rx.test(pathname))) {
