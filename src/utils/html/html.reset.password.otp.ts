@@ -35,7 +35,7 @@ export const HTMLContent = (newOtp: string) => {
 
     <!-- Footer -->
     <div style="background:#f9f9f9;text-align:center;padding:16px;font-size:13px;color:#999;">
-      Made with ❤️ for lifelong learning 📖 by <strong>Next Learn</strong><br/>
+      Made with 🚀 for lifelong learning 📖 by <strong>Next Learn</strong><br/>
       <span style="font-size:12px;">© ${new Date().getFullYear()} All rights reserved.</span>
     </div>
 

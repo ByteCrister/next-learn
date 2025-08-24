@@ -1,5 +1,5 @@
 export const HTMLContent = (newOtp: string) => {
-    return `
+  return `
 <div style="max-width:600px;margin:auto;font-family:'Segoe UI',Arial,sans-serif;background:#f4f6f8;color:#333;">
   <div style="background:#fff;border-radius:12px;border:1px solid #e0e0e0;box-shadow:0 4px 12px rgba(0,0,0,0.05);overflow:hidden;">
     
@@ -34,7 +34,7 @@ export const HTMLContent = (newOtp: string) => {
 
     <!-- Footer -->
     <div style="background:#f9f9f9;text-align:center;padding:16px;font-size:13px;color:#999;">
-      Made with ❤️ for lifelong learning 📖 by <strong>Next Learn</strong><br/>
+      Made with 🚀 for lifelong learning 📖 by <strong>Next Learn</strong><br/>
       <span style="font-size:12px;">© ${new Date().getFullYear()} All rights reserved.</span>
     </div>
 

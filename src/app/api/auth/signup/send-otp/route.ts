@@ -37,7 +37,7 @@ export async function POST(req: Request) {
             { name, email, otp, otpExpires },
             { upsert: true, new: true }
         );
-        const subject = "Your password reset code";
+        const subject = "Signup OTP code";
         await SendEmail(email, subject, HTMLContent(otp));
 
         return NextResponse.json({
