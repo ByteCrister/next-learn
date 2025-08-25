@@ -26,8 +26,8 @@ interface EventsState {
 export const useEventsStore = create<EventsState>()(
   devtools((set, get) => ({
     events: [],
-    eventsLoading: false,
-    buttonLoading: false,
+    fetching: false,
+    loading: false,
     hasFetched: false,
 
     fetchEvents: async () => {

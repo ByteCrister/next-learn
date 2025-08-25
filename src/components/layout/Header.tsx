@@ -97,8 +97,11 @@ export default function Header() {
 
           {/* CTA + Mobile Menu Toggle */}
           <div className="flex items-center gap-3">
-            <Button onClick={handleClick} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
-              {user ? 'Dashboard' : 'Sign In'} <Sparkles className="ml-2 w-4 h-4 opacity-80" />
+            <Button 
+              onClick={handleClick}
+              className="hidden sm:inline-flex bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-sm text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              {user ? 'Dashboard' : 'Sign In'} 
             </Button>
 
             {/* Mobile Menu Button */}
@@ -141,8 +144,12 @@ export default function Header() {
                   </Link>
                 </motion.div>
               ))}
+              
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                <Button onClick={handleClick} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
+                <Button 
+                  onClick={handleClick}
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
                   Get Started <Sparkles className="ml-2 w-4 h-4 opacity-80" />
                 </Button>
               </motion.div>

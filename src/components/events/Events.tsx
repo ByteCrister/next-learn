@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useEventsStore } from '@/store/useEventsStore';
 import { useBreadcrumbStore } from '@/store/useBreadcrumbStore';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -46,10 +46,28 @@ function getValueByKey(event: VEvent, key: SortKey) {
 }
 
 const statusColors: Record<VEvent['eventStatus'], string> = {
-  upcoming: 'bg-blue-100 text-blue-800',
-  inProgress: 'bg-yellow-100 text-yellow-800',
-  expired: 'bg-red-100 text-red-700',
-  completed: 'bg-green-100 text-green-800',
+  upcoming: "bg-blue-500 text-white",
+  inProgress: "bg-amber-400 text-black",
+  expired: "bg-red-500 text-white",
+  completed: "bg-green-500 text-white"
+};
+
+// Helper function to get status color with fallback
+const getStatusColor = (status: VEvent['eventStatus']): string => {
+  return statusColors[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Card background colors based on status
+const cardStatusColors: Record<VEvent['eventStatus'], string> = {
+  upcoming: "bg-purple-500 text-white",
+  inProgress: "bg-orange-400 text-black",
+  expired: "bg-slate-700 text-white",
+  completed: "bg-teal-500 text-white"
+};
+
+// Helper function to get card status color with fallback
+const getCardStatusColor = (status: VEvent['eventStatus']): string => {
+  return cardStatusColors[status] || 'bg-gray-100 text-gray-800';
 };
 
 export default function Events() {
@@ -75,6 +93,10 @@ export default function Events() {
   }, []);
 
   const filteredEvents = useMemo(() => {
+    if (!events || !Array.isArray(events)) {
+      return [];
+    }
+    
     let filtered = events;
 
     if (searchTerm.trim()) {
@@ -217,7 +239,7 @@ export default function Events() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.35 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6 md:gap-8"
           >
             {fetching
               ? Array.from({ length: PAGE_SIZE }).map((_, i) => (
@@ -233,8 +255,8 @@ export default function Events() {
                   </p>
                 )
                 : paginatedEvents.map((evt) => {
-                  const doneCount = evt.tasks.filter((t) => t.isComplete).length;
-                  const totalCount = evt.tasks.length;
+                  const doneCount = (evt.tasks || []).filter((t) => t.isComplete).length;
+                  const totalCount = (evt.tasks || []).length;
 
                   return (
                     <motion.div
@@ -247,13 +269,13 @@ export default function Events() {
                       onClick={() => openEventModal(evt)}
                       className="cursor-pointer"
                     >
-                      <Card className="rounded-3xl overflow-hidden border border-indigo-100 shadow-md transition-all duration-300">
+                      <Card className={`px-0 py-0 rounded-3xl overflow-hidden border border-indigo-100 shadow-md transition-all duration-300 hover:shadow-indigo-hover ${getCardStatusColor(evt.eventStatus)}`}>
 
                         {/* Inner Background Layer */}
-                        <div className="bg-white/95 px-0 py-0">
+                        <div className={`px-0 py-0 rounded-3xl overflow-hidden border border-indigo-100 shadow-md transition-all duration-300 hover:shadow-indigo-hover ${getCardStatusColor(evt.eventStatus)}`}>
                           <CardHeader className="px-6 pt-6 pb-3 flex justify-between items-start">
                             <Badge
-                              className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-sm ${statusColors[evt.eventStatus]} uppercase`}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-sm ${getStatusColor(evt.eventStatus)} uppercase`}
                             >
                               {evt.eventStatus}
                             </Badge>
@@ -265,20 +287,29 @@ export default function Events() {
                           </CardHeader>
 
                           <CardContent className="px-6 pb-6 space-y-5">
+                            <CardTitle className="text-lg font-bold text-white">
+                              {evt.title}
+                            </CardTitle>
                             {/* Description */}
-                            <p className="line-clamp-3 text-gray-700 leading-relaxed text-sm">{evt.description || 'No description provided.'}</p>
+                            <p className="line-clamp-3 text-white leading-relaxed text-sm">
+                              {evt.description 
+                                ? (evt.description.length > 20 
+                                    ? `${evt.description.substring(0, 20)}...` 
+                                    : evt.description)
+                                : 'No description provided.'}
+                            </p>
 
                             <hr className="border-gray-100" />
 
                             {/* Dates */}
-                            <div className="text-indigo-900 text-sm space-y-1">
+                            <div className="text-white text-sm space-y-1">
                               <p>
-                                <span className="font-medium text-gray-500">Start:</span>{' '}
-                                <span className="font-semibold">{toDate(evt.start)?.toLocaleString() || '—'}</span>
+                                <span className="font-medium text-white">Start:</span>{' '}
+                                <span className="font-semibold text-white">{toDate(evt.start)?.toLocaleString() || '—'}</span>
                               </p>
                               <p>
-                                <span className="font-medium text-gray-500">End:</span>{' '}
-                                <span className="font-semibold">
+                                <span className="font-medium text-white">End:</span>{' '}
+                                <span className="font-semibold text-white">
                                   {(() => {
                                     const startDate = toDate(evt.start);
                                     const endDate = toDate(evt.end);
@@ -290,18 +321,18 @@ export default function Events() {
                                   })()}
                                 </span>
                               </p>
-                              {evt.allDay && <p className="text-indigo-500 italic text-xs font-semibold">All Day Event</p>}
+                              {evt.allDay && <p className="text-white italic text-xs font-semibold">All Day Event</p>}
                             </div>
 
                             {/* Task Progress */}
                             {evt.tasks?.length > 0 && (
                               <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs font-medium text-gray-600">
+                                <div className="flex items-center justify-between text-xs font-medium text-white">
                                   <div className="flex items-center gap-2">
                                     <CheckCircle2 size={14} className="text-green-500" />
                                     {doneCount} / {totalCount} tasks complete
                                   </div>
-                                  <span className="text-xs text-gray-500">{Math.round((doneCount / totalCount) * 100)}%</span>
+                                  <span className="text-xs text-white">{Math.round((doneCount / totalCount) * 100)}%</span>
                                 </div>
                                 <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                   <motion.div

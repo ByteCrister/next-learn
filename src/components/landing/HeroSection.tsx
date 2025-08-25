@@ -91,11 +91,10 @@ export default function HeroSection() {
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                {user ? `Let's Study` : 'Get Started Free'}
+                {user ? `Let's Study` : 'Get Started'}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
-
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button

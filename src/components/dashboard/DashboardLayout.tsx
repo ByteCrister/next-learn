@@ -13,6 +13,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
 
   const layoutRoutes = ["/dashboard", "/subjects", "/routines", "/exams", "/events", "/users"];
@@ -24,6 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // Detect screen size on mount & resize
   useEffect(() => {
+    setIsMounted(true);
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -38,8 +40,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
-  if (!isLayoutPage) {
+  // Don't render layout-specific content until mounted to avoid hydration mismatch
+  if (!isLayoutPage || !isMounted) {
     return <>{children}</>;
   }
 
