@@ -2,20 +2,19 @@ import { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { compare } from "bcryptjs";
-import { User } from "@/models/User";
+import { User as DBUser } from "@/models/User";
 import ConnectDB from "@/config/ConnectDB";
 import { Types } from "mongoose";
-
 import type { JWT as DefaultJWT } from "next-auth/jwt";
 
 interface MyJWT extends DefaultJWT {
-    id?: string;
+    id: string;
     remember?: boolean;
+    exp?: number;
 }
 
-const ONE_DAY = 60 * 60 * 24;
-const ONE_MONTH = 60 * 60 * 24 * 30;
-
+const ONE_DAY = 60 * 60 * 24; // 1 day in seconds
+const ONE_MONTH = ONE_DAY * 30; // 30 days in seconds
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -24,6 +23,7 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
+                remember: { label: "Remember", type: "checkbox" },
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) {
@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 await ConnectDB();
-                const user = await User.findOne({ email: credentials.email });
+                const user = await DBUser.findOne({ email: credentials.email });
                 if (!user) throw new Error("Invalid email or password");
 
                 if (!user.passwordHash) {
@@ -44,16 +44,10 @@ export const authOptions: NextAuthOptions = {
                     credentials.password,
                     user.passwordHash
                 );
-                if (!isPasswordCorrect) {
-                    throw new Error("Invalid email or password");
-                }
+                if (!isPasswordCorrect) throw new Error("Invalid email or password");
 
-                return {
-                    id: (user._id as Types.ObjectId).toString(),
-                    name: user.name,
-                    email: user.email,
-                    image: user.image,
-                };
+                // Only return id
+                return { id: (user._id as Types.ObjectId).toString() };
             },
         }),
 
@@ -67,36 +61,39 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user, account }) {
             if (account?.provider === "google") {
                 await ConnectDB();
-                const existingUser = await User.findOne({ email: user.email });
-
-                if (!existingUser) {
-                    await User.create({
+                let dbUser = await DBUser.findOne({ email: user.email });
+                if (!dbUser) {
+                    dbUser = await DBUser.create({
                         name: user.name,
                         email: user.email,
                         image: user.image,
                         provider: account.provider,
                         providerAccountId: account.providerAccountId,
                         emailVerified: new Date(),
-                        role: 'member'
+                        role: "member",
                     });
                 }
+                user.id = (dbUser?._id as Types.ObjectId).toString();
             }
             return true;
         },
 
-        async jwt({ token }) {
-            await ConnectDB();
-
-            const dbUser = await User.findOne({ email: token.email }).select("_id");
-            if (dbUser) {
-                token.id = (dbUser._id as Types.ObjectId).toString();
+        async jwt({ token, user, trigger, session }) {
+            // First login
+            if (user) {
+                token.id = user.id;
+                token.remember = session?.remember ?? false;
             }
 
-            if (token.remember) {
-                token.exp = Math.floor(Date.now() / 1000) + ONE_MONTH;
-            } else {
-                token.exp = Math.floor(Date.now() / 1000) + ONE_DAY;
+            // Update remember flag if session updated
+            if (trigger === "update" && session?.remember !== undefined) {
+                token.remember = session.remember;
             }
+
+            // Set expiration based on remember
+            token.exp =
+                Math.floor(Date.now() / 1000) +
+                (token.remember ? ONE_MONTH : ONE_DAY);
 
             return token;
         },
@@ -105,16 +102,36 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id ?? "";
             }
-            session.remember = typeof token.remember === "boolean" ? token.remember : false;
+            session.remember = token.remember ?? false;
+
+            // Set expires string for client-side
+            if (token.exp) {
+                session.expires = new Date(token.exp * 1000).toISOString();
+            }
+
             return session;
         },
-
     },
 
     session: {
         strategy: "jwt",
-        maxAge: 60 * 60 * 24, // 1 day
-        updateAge: 60 * 60, // 1 hour
+        maxAge: ONE_MONTH, // fallback maxAge
+        updateAge: 60 * 60, // refresh every hour
+    },
+
+    cookies: {
+        sessionToken: {
+            name:
+                process.env.NODE_ENV === "production"
+                    ? "__Secure-next-auth.session-token"
+                    : "next-auth.session-token",
+            options: {
+                httpOnly: true,
+                sameSite: "lax",
+                path: "/",
+                secure: process.env.NODE_ENV === "production",
+            },
+        },
     },
 
     pages: {

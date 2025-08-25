@@ -181,7 +181,8 @@ export default function SignUpPage() {
                 transition={{ duration: 0.4 }}
                 className="w-full max-w-md"
             >
-                <Card className="bg-white dark:bg-gray-800 shadow-lg border border-indigo-200 dark:border-gray-700 rounded-2xl">
+                <Card 
+                className="bg-white dark:bg-gray-800 shadow-lg border border-indigo-200 dark:border-gray-700 rounded-2xl">
                     <CardHeader className="text-center space-y-1 pb-3">
                         <div className="flex items-center justify-center gap-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                             <SiNextdotjs size={28} /> NextLearn
