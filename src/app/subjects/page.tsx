@@ -1,9 +1,9 @@
-import Subjects from "@/components/subjects/Subjects";
 
-const SubjectsPage = () => {
-    return (
-        <Subjects />
-    )
+
+const page = () => {
+  return (
+    <div>page</div>
+  )
 }
 
-export default SubjectsPage;
+export default page

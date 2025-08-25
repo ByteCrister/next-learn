@@ -1,8 +1,7 @@
-import ExamDetailClient from "@/components/exams/ExamDetailClient"
 
 const page = () => {
   return (
-    <ExamDetailClient />
+    <div>Exam Page by ID</div>
   )
 }
 

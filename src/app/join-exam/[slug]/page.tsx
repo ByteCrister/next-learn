@@ -1,16 +1,10 @@
-// app/join-exam/[slug]/page.tsx
 
-import JoinExamPage from "@/components/join-exam/JoinExamPage";
 
-interface Props {
-  params: { slug: string };
-}
 
-export default async function page({ params }: Props) {
-  // await params before using
-  const resolvedParams = await params;
-
+const page = () => {
   return (
-    <JoinExamPage params={resolvedParams} />
-  );
+    <div>page</div>
+  )
 }
+
+export default page
