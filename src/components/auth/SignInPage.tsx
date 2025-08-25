@@ -29,7 +29,7 @@ import {
   signInValidationSchema,
 } from "@/utils/auth/SignInValidation";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "700"] })
-const errorMessages: Record<string, string> = {
+export const errorMessages: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
   OAuthSignin: "Error in OAuth sign in.",
   default: "Something went wrong. Please try again.",
@@ -54,10 +54,11 @@ export default function SignInPage() {
     formikHelpers.setSubmitting(true);
 
     const res = await signIn("credentials", {
-      redirect: false,
       email: values.email,
       password: values.password,
       remember: values.remember,
+      callbackUrl: "/dashboard",
+      redirect: false,
     });
 
     formikHelpers.setSubmitting(false);
@@ -67,16 +68,19 @@ export default function SignInPage() {
       toast.warning(msg);
     } else {
       toast.success("Welcome back!");
-      window.location.href = '/dashboard';
+      window.location.href = res?.url ?? "/dashboard";
     }
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const res = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
+    const res = await signIn("google", { redirect: false, callbackUrl: "/dashboard", });
     if (res?.error) {
       toast.error(`Sign-in failed: ${res.error}`);
-      setIsGoogleLoading(false);
+    }
+    setIsGoogleLoading(false);
+    if (res?.ok) {
+      window.location.href = "/dashboard";
     }
   };
 

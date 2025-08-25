@@ -3,9 +3,10 @@
 import { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "lucide-react";
-import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { useRouter } from "next/navigation";
+import routeDashboard from "@/utils/helpers/routeDashboard";
 
 // Variants
 const containerVariants: Variants = {
@@ -26,7 +27,17 @@ const fadeInUp: Variants = {
 };
 
 const CTASection: FC = () => {
+  const router = useRouter();
   const { user } = useDashboardStore();
+
+  const handleClick = () => {
+    if (user) {
+      routeDashboard();
+    } else {
+      router.push('/signup'); 
+    }
+  };
+
   return (
     <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-600">
       <div className="container mx-auto px-4">
@@ -59,14 +70,12 @@ const CTASection: FC = () => {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                asChild
+                onClick={handleClick}
                 size="lg"
                 className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <Link href={user ? '/dashboard' : '/signup'}>
                   {user ? 'Make your life more easier' : 'Sign Up Free'}
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
               </Button>
             </motion.div>
           </motion.div>

@@ -1,54 +1,44 @@
-// src/store/useDashboardStore.ts
-
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-
-import { getDashboard, getUserData, updateUserDetails } from "@/utils/api/api.dashboard";
-import { UpdateUserInput, UserProfile } from "@/types/types.dashboard";
+import { getDashboard, updateUserDetails } from "@/utils/api/api.dashboard";
+import { getUserData } from "@/utils/api/api.user";
 import { toast } from "react-toastify";
-import { VEvent } from "@/types/types.events";
+import { UpdateUserInput, UserProfile } from "@/types/types.dashboard";
+import { VEventOverview } from "@/types/types.events";
 
+type CountField = "subjectsCount" | "examCount" | "routineCount";
 
-//
-// ————————————————————————————————————————————————————
-// Types
-type CountFiled = 'subjectsCount' | 'examCount' | 'routineCount'
-
-// ————————————————————————————————————————————————————
-// Matches DashboardData from your API client
-
-// Store state + actions
 interface DashboardState {
-    // data
     subjectsCount: number;
     examCount: number;
     routineCount: number;
-    upcomingEvents: VEvent[];
+    upcomingEvents: VEventOverview[];
     user: UserProfile | null;
 
     form: UpdateUserInput;
     setFormField: (field: keyof DashboardState["form"], value: string) => void;
-    updateCounts: (countFiled: CountFiled, option: '+' | '-') => void;
-    // ui
-    loading: boolean;
-    userUpdateLoading: boolean
+    updateCounts: (field: CountField, option: "+" | "-") => void;
 
-    // actions
+    // UI
+    loadingDashboard: boolean;
+    loadingUserUpdate: boolean;
+    fetchedDashboard: boolean;
+    isUserFetching: boolean;
+
+    // Actions
     fetchDashboard: () => Promise<void>;
-    updateUser: () => Promise<void>;
     fetchUser: () => Promise<void>;
+    updateUser: () => Promise<void>;
+    updateUserImage: (image: string) => void;
+
+    updateEventInDashboard: (id: string, updatedEvent: Partial<VEventOverview>) => void;
+    deleteEventFromDashboard: (id: string) => void;
 }
 
-//
-// ————————————————————————————————————————————————————
-// Create Store
-// ————————————————————————————————————————————————————
 export const useDashboardStore = create<DashboardState>()(
     devtools((set, get) => ({
-        // initial state
         subjectsCount: 0,
         examCount: 0,
-        roadmapsCount: 0,
         routineCount: 0,
         upcomingEvents: [],
         user: null,
@@ -60,78 +50,44 @@ export const useDashboardStore = create<DashboardState>()(
             newPassword: "",
         },
 
-        loading: false,
-        userUpdateLoading: false,
+        loadingDashboard: false,
+        loadingUserUpdate: false,
+        fetchedDashboard: false,
 
-        // fetch counts, events, user profile
         fetchDashboard: async () => {
-            set({ loading: true });
+            if (get().loadingDashboard || get().fetchedDashboard) return; // Only fetch once per session
+            set({ loadingDashboard: true });
             try {
                 const data = await getDashboard();
                 if ("message" in data) {
                     toast.error(data.message);
                 } else {
-                    console.log(data.upcomingEvents);
                     set({
                         subjectsCount: data.subjectsCount,
                         examCount: data.examCount,
                         routineCount: data.routineCount,
-                        upcomingEvents: data.upcomingEvents
+                        upcomingEvents: data.upcomingEvents,
+                        fetchedDashboard: true,
                     });
                 }
             } catch (err) {
-                toast.error((err as Error).message);
+                toast.error((err as Error).message || "Failed to fetch dashboard");
             } finally {
-                set({ loading: false });
+                set({ loadingDashboard: false });
             }
-        },
-
-        // update a single form field
-        setFormField: (field, value) => {
-            set((state) => ({
-                form: { ...state.form, [field]: value },
-            }));
-        },
-
-        // update profile fields
-        updateUser: async () => {
-            set({ userUpdateLoading: true });
-            const { form } = get();
-            const result = await updateUserDetails(form);
-
-            try {
-                if ("message" in result) {
-                    toast.error(result.message);
-                } else {
-                    set((state) => ({
-                        user: result,
-                        form: {
-                            ...state.form,
-                            currentPassword: "",
-                            newPassword: "",
-                        }
-                    }));
-                }
-            } catch (err) {
-                toast.error((err as Error).message);
-            } finally {
-                set({ userUpdateLoading: false });
-            }
-
         },
 
         fetchUser: async () => {
-            set({ loading: true });
+            set({ isUserFetching: true });
             try {
                 const data = await getUserData();
                 if ("message" in data) {
-                    console.log(data.message);
-                    // toast.error(data.message);
+                    console.warn(data.message);
                 } else {
                     set({
                         user: data,
                         form: {
-                            name: data.name,
+                            name: data.name ?? "",
                             image: data.image ?? "",
                             currentPassword: "",
                             newPassword: "",
@@ -139,17 +95,64 @@ export const useDashboardStore = create<DashboardState>()(
                     });
                 }
             } catch (err) {
-                console.log((err as Error)?.message??`can't fetch the user!`);
+                console.log((err as Error)?.message ?? "Can't fetch the user");
             } finally {
-                set({ loading: false });
+                set({ isUserFetching: false });
             }
         },
 
-        updateCounts: (countFiled, option) => {
-            const newCount = option === '+' ? 1 : -1;
+        updateUser: async () => {
+            set({ loadingUserUpdate: true });
+            try {
+                const result = await updateUserDetails(get().form);
+                if ("message" in result) {
+                    toast.error(result.message);
+                } else {
+                    set({
+                        user: result,
+                        form: { ...get().form, currentPassword: "", newPassword: "" },
+                    });
+                    toast.success("Profile updated successfully");
+                }
+            } catch (err) {
+                toast.error((err as Error).message || "Failed to update user");
+            } finally {
+                set({ loadingUserUpdate: false });
+            }
+        },
+
+        updateUserImage: (image) =>
             set((state) => ({
-                [countFiled]: state[countFiled as CountFiled] + newCount,
-            }))
-        }
+                user: state.user ? { ...state.user, image } : null,
+            })),
+
+        setFormField: (field, value) => {
+            set((state) => ({
+                form: { ...state.form, [field]: value },
+            }));
+        },
+
+        updateCounts: (field, option) => {
+            set((state) => {
+                const change = option === "+" ? 1 : -1;
+                const newValue = Math.max(0, state[field] + change); // prevent negative
+                return { [field]: newValue };
+            });
+        },
+
+        
+        updateEventInDashboard: (id, updatedEvent) => {
+            set((state) => ({
+                upcomingEvents: state.upcomingEvents.map((evt) =>
+                    evt._id === id ? { ...evt, ...updatedEvent } : evt
+                ),
+            }));
+        },
+
+        deleteEventFromDashboard: (id) => {
+            set((state) => ({
+                upcomingEvents: state.upcomingEvents.filter((evt) => evt._id !== id),
+            }));
+        },
     }))
 );

@@ -36,6 +36,8 @@ import {
 import { SiNextdotjs } from "react-icons/si";
 import { Inter } from "next/font/google";
 import { AxiosError } from "axios";
+import { signIn } from "next-auth/react";
+import { errorMessages } from "./SignInPage";
 
 export default function SignUpPage() {
     const [step, setStep] = useState<"form" | "otp" | "success">("form");
@@ -133,6 +135,20 @@ export default function SignUpPage() {
                 email,
                 password: formik.values.password,
             });
+            const res = await signIn("credentials", {
+                email: email,
+                password: formik.values.password,
+                remember: true,
+                callbackUrl: "/dashboard",
+                redirect: false,
+            });
+            if (res?.error) {
+                const msg = res.error ?? errorMessages[res.error] ?? errorMessages.default;
+                toast.warning(msg);
+            } else {
+                toast.success("Welcome back!");
+                window.location.href = '/dashboard';
+            }
             setStep("success");
         } catch (err) {
             console.log("Failed to verify the OTP: ", err);
@@ -428,19 +444,6 @@ export default function SignUpPage() {
                                     )}
                                 </p>
                             </>
-                        )}
-
-                        {/* Success Section */}
-                        {step === "success" && (
-                            <div className="flex flex-col items-center gap-5">
-                                <CheckCircle2 className="text-green-600" size={48} />
-                                <p className="text-green-600 font-semibold text-lg">Account created successfully!</p>
-                                <Link href="/signin">
-                                    <Button className="rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-semibold flex items-center gap-2 shadow-md">
-                                        <LogIn size={18} /> Go to Sign In
-                                    </Button>
-                                </Link>
-                            </div>
                         )}
                     </CardContent>
                 </Card>

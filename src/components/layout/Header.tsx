@@ -7,6 +7,8 @@ import { FaNeos } from "react-icons/fa"; // N Icon from react-icons
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import routeDashboard from "@/utils/helpers/routeDashboard";
+import { useRouter } from "next/navigation";
 
 // Framer Motion Variants
 const menuVariants = {
@@ -23,6 +25,7 @@ export default function Header() {
   const { user } = useDashboardStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -40,6 +43,14 @@ export default function Header() {
       <header className="bg-white/80 dark:bg-black/80 backdrop-blur-sm sticky top-0 z-50 w-full h-16 border-b border-gray-200 dark:border-gray-700" />
     );
   }
+
+  const handleClick = () => {
+    if (user) {
+      routeDashboard();
+    } else {
+      router.push('/signin');
+    }
+  };
 
   return (
     <header className="bg-white/70 dark:bg-black/60 backdrop-blur-md sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -87,7 +98,7 @@ export default function Header() {
           {/* CTA + Mobile Menu Toggle */}
           <div className="flex items-center gap-3">
             <Link href={user ? '/dashboard' : '/signin'} className="hidden sm:inline-flex">
-              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
+              <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
                 {user ? 'Dashboard' : 'Sign In'} <Sparkles className="ml-2 w-4 h-4 opacity-80" />
               </Button>
             </Link>
@@ -134,7 +145,7 @@ export default function Header() {
               ))}
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
                 <Link href={user ? "/dashboard" : "/signin"}>
-                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-black text-white shadow-md hover:shadow-lg transition-all duration-300">
+                  <Button className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300">
                     Get Started <Sparkles className="ml-2 w-4 h-4 opacity-80" />
                   </Button>
                 </Link>

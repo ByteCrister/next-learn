@@ -12,6 +12,7 @@ import { DashboardData } from "@/types/types.dashboard";
 import { Subject } from "@/models/Subject";
 import { Routine } from "@/models/Routine";
 import ExamModel from "@/models/ExamModel";
+import { VEventOverview } from "@/types/types.events";
 
 function errorResponse(
     message: string = "Internal Server Error",
@@ -39,21 +40,14 @@ export async function GET() {
                     .sort({ start: 1 })
                     .limit(5)
                     .select('_id title start description durationMinutes allDay')
-                    .lean<{
-                        _id: Types.ObjectId;
-                        title: string;
-                        start: Date;
-                        description: string;
-                        durationMinutes: number;
-                        allDay: boolean;
-                    }[]>(),
+                    .lean<VEventOverview[]>(),
             ]);
 
         // map ObjectId → string
         const upcomingEvents = eventsDocs.map((evt) => ({
-            _id: evt._id.toString(),
+            _id: evt._id?.toString(),
             title: evt.title,
-            start: evt.start.toISOString(),
+            start: evt.start,
             description: evt.description,
             durationMinutes: evt.durationMinutes,
             allDay: evt.allDay,

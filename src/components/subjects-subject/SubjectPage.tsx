@@ -10,7 +10,6 @@ import TipTapEditor from "@/components/Editor/TipTapEditor";
 import { Pencil, ArrowLeft } from "lucide-react";
 
 import { SubjectInput } from "@/types/types.subjects";
-import { updateRoadmapContent } from "@/utils/api/api.roadmap";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import EditSubjectForm from "./EditSubjectForm";
 import SubjectCounts from "./SubjectBadges";
@@ -32,6 +31,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
         removeSubject,
         createRoadmap,
         editRoadmap,
+        updateRoadmapContent,
         deleteRoadmap,
         loadingSubCrud,
     } = useSubjectStore();

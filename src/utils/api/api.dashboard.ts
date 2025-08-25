@@ -3,10 +3,12 @@ import { DashboardData, UpdateUserInput, UserProfile } from "@/types/types.dashb
 import api from "./api.client";
 import extractErrorData from "../helpers/extractErrorData";
 
+const MAIN_ROOT_URL = '/dashboard'
+
 export async function getDashboard():
     Promise<DashboardData | { message: string }> {
     try {
-        const { data } = await api.get<DashboardData>("/dashboard");
+        const { data } = await api.get<DashboardData>(MAIN_ROOT_URL);
         return data;
     } catch (err) {
         console.error("getDashboard error:", err);
@@ -19,22 +21,12 @@ export async function updateUserDetails(
 ): Promise<UserProfile | { message: string }> {
     try {
         const { data } = await api.patch<UserProfile>(
-            "/dashboard",
+            MAIN_ROOT_URL,
             input
         );
         return data;
     } catch (err) {
         console.error("updateUserDetails error:", err);
-        return extractErrorData(err);
-    }
-}
-
-export async function getUserData(): Promise<UserProfile | { message: string }> {
-    try {
-        const { data } = await api.get<UserProfile>("/user");
-        return data;
-    } catch (err) {
-        console.error("getUserData error:", err);
         return extractErrorData(err);
     }
 }

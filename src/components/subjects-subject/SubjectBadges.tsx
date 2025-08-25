@@ -86,7 +86,13 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
         );
     }
     return (
-        <div className={clsx('grid gap-6 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]', inter.variable, 'font-sans')}>
+        <div
+            className={clsx(
+                'grid gap-6 grid-cols-1 md:grid-cols-[repeat(2,minmax(220px,1fr))]',
+                inter.variable,
+                'font-sans'
+            )}
+        >
             {Object.entries(subjectCounts).map(([key, count], idx) => {
                 const {
                     lightBg,

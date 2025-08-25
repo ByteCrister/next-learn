@@ -1,17 +1,18 @@
-import { VEvent } from "./types.events";
+import { VEventOverview } from "./types.events";
 
 export type UserProfile = {
     _id: string;
     name: string;
     email: string;
     image?: string;
+    role?: "member" | "admin"
 };
 
 export interface DashboardData {
     subjectsCount: number;
     routineCount: number;
     examCount: number;
-    upcomingEvents: VEvent[];
+    upcomingEvents: VEventOverview[];
 }
 
 export interface UpdateUserInput {

@@ -2,19 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Clock, PenLine } from 'lucide-react';
+import { Home, BookOpen, Clock, PenLine, CalendarDays, Users } from 'lucide-react';
 import LogoutButton from '../auth/LogoutButton';
+import { useDashboardStore } from '@/store/useDashboardStore';
 
 
 const links = [
     { href: '/dashboard', label: 'Overview', icon: Home },
     { href: '/subjects', label: 'Subjects', icon: BookOpen },
     { href: '/routines', label: 'Routines', icon: Clock },
+    { href: '/events', label: 'Events', icon: CalendarDays },
     { href: '/exams', label: 'Exams', icon: PenLine },
 ];
 
 const Sidebar = () => {
     const pathname = usePathname();
+    const { user } = useDashboardStore()
+
+    if (user?.role === 'admin') {
+        links.splice(4, 0, { href: '/users', label: 'Users', icon: Users });
+    }
 
     return (
         <nav className="flex flex-col h-full w-64 z-50 bg-gradient-to-b from-slate-900/90 to-slate-800/90 backdrop-blur-lg border-r border-white/10 shadow-xl">

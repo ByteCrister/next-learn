@@ -99,6 +99,11 @@ export default function Subjects() {
         <h1 className="text-4xl font-bold">Subjects</h1>
       </header>
 
+      {/* Total Section Heading */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-5 tracking-wide">       
+         Total
+      </h2>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         <StatCard

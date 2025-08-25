@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
-  const layoutRoutes = ["/dashboard", "/subjects", "/routines", "/exams"];
+  const layoutRoutes = ["/dashboard", "/subjects", "/routines", "/exams", "/events", "/users"];
 
   const isLayoutPage = layoutRoutes.some(
     (route) => pathname === route || pathname.startsWith(route + "/")

@@ -45,6 +45,7 @@ interface SubjectStore {
 
     createRoadmap: (subjectId: string, input: { title: string; description: string }) => Promise<void>;
     editRoadmap: (updates: { title: string; description: string, roadmapId: string }) => Promise<void>;
+    updateRoadmapContent: (roadmapId: string, roadmapContent: string) => Promise<void>; 
     deleteRoadmap: (roadmapId: string) => Promise<string | undefined>;
 }
 

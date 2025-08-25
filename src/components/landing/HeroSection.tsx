@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import Link from "next/link";
 import { motion, Variants } from "framer-motion";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { useRouter } from "next/navigation";
+import routeDashboard from "@/utils/helpers/routeDashboard";
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -20,11 +21,20 @@ const fadeUp: Variants = {
 };
 
 export default function HeroSection() {
+  const router = useRouter();
   const { user } = useDashboardStore();
   const scrollToFeatures = () => {
     const featuresSection = document.getElementById("features");
     if (featuresSection) {
       featuresSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const handleClick = () => {
+    if (user) {
+      routeDashboard();
+    } else {
+      router.push('/signin');
     }
   };
 
@@ -77,16 +87,15 @@ export default function HeroSection() {
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
-                asChild
+                onClick={handleClick}
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <Link href={user ? '/dashboard' : '/signin'}>
-                  {user ? `Let's Study` : 'Get Started Free'}
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                {user ? `Let's Study` : 'Get Started Free'}
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </motion.div>
+
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
