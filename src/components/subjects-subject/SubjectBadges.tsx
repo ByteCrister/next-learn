@@ -99,8 +99,6 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
                     darkBg,
                     iconBgLight,
                     iconBgDark,
-                    borderColorLight,
-                    borderColorDark,
                     focusRing,
                 } = badgeColors[idx % badgeColors.length];
 
@@ -125,25 +123,29 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
                             variants={containerVariants}
                             initial="hidden"
                             animate="visible"
-                            whileHover="hover"
+                            whileHover={{
+                                scale: 1.03,
+                                y: -4,
+                                boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
+                            }}
                             className={clsx(
-                                `relative flex flex-col justify-between p-6 rounded-xl
-       bg-gradient-to-br ${lightBg} dark:${darkBg}
-       border-l-4 ${borderColorLight} dark:${borderColorDark}
-       shadow-lg dark:shadow-black/40
-       min-h-[160px]
-       text-gray-900 dark:text-gray-100
-       transition-shadow cursor-pointer
-       hover:shadow-2xl
-       focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${focusRing}`
+                                `relative flex flex-col justify-between p-6 rounded-2xl overflow-hidden
+     bg-gradient-to-br ${lightBg} dark:${darkBg}
+     border border-white/20 dark:border-white/10
+     shadow-md hover:shadow-xl
+     min-h-[170px]
+     text-gray-900 dark:text-gray-100
+     transition-all duration-300 ease-out
+     focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${focusRing}`
                             )}
-                            aria-label={`Go to ${label}`}
-                            tabIndex={0} // Make it keyboard focusable
                         >
+                            {/* Subtle overlay for better text contrast */}
+                            <div className="absolute inset-0 bg-white/20 dark:bg-black/20 backdrop-blur-sm rounded-2xl pointer-events-none" />
+
                             {/* Icon */}
                             <div
                                 className={clsx(
-                                    'inline-flex items-center justify-center w-10 h-10 mb-4 rounded-full',
+                                    'relative z-10 inline-flex items-center justify-center w-12 h-12 mb-4 rounded-xl shadow-inner',
                                     iconBgLight,
                                     `dark:${iconBgDark}`
                                 )}
@@ -152,7 +154,7 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
                             </div>
 
                             {/* Label */}
-                            <div className="text-[0.85rem] font-medium tracking-wide text-slate-700 dark:text-slate-200 mb-2">
+                            <div className="relative z-10 text-sm font-semibold tracking-wide text-slate-800 dark:text-slate-200 mb-1">
                                 {label}
                             </div>
 
@@ -161,15 +163,17 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
                                 initial={{ opacity: 0, y: 6 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2, duration: 0.5 }}
+                                className="relative z-10"
                             >
                                 <CountUp
                                     end={count as number}
                                     duration={1.5}
                                     separator=","
-                                    className="text-3xl font-bold leading-none text-slate-950 dark:text-slate-100"
+                                    className="text-4xl font-extrabold leading-none text-slate-950 dark:text-white drop-shadow-sm"
                                 />
                             </motion.div>
                         </motion.div>
+
                     </Link>
 
                 );

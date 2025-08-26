@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, Field } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -82,7 +82,17 @@ export default function ExamQAction() {
                     {/** Exam Title */}
                     <motion.div variants={fieldVariants}>
                         <Label className="flex items-center gap-2">
-                            <Tag size={18} className="text-indigo-500" /> Exam Title
+                            {errors.title && touched.title ? (
+                                <>
+                                    <FileText size={18} className="text-red-500" />
+                                    <span className="text-red-500">{errors.title}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Tag size={18} className="text-indigo-500" />
+                                    Exam Title
+                                </>
+                            )}
                         </Label>
                         <Field
                             name="title"
@@ -93,19 +103,22 @@ export default function ExamQAction() {
                 ${errors.title && touched.title ? 'border-red-500' : 'border-gray-300'}
               `}
                         />
-                        <ErrorMessage
-                            name="title"
-                            component="p"
-                            className="mt-1 text-red-500 text-sm flex items-center"
-                        >
-                            {msg => <><FileText size={14} className="mr-1" />{msg}</>}
-                        </ErrorMessage>
                     </motion.div>
 
                     {/** Description */}
                     <motion.div variants={fieldVariants}>
                         <Label className="flex items-center gap-2">
-                            <FileText size={18} className="text-indigo-500" /> Description
+                            {errors.description && touched.description ? (
+                                <>
+                                    <FileText size={18} className="text-red-500" />
+                                    <span className="text-red-500">{errors.description}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FileText size={18} className="text-indigo-500" />
+                                    Description
+                                </>
+                            )}
                         </Label>
                         <Field
                             as="textarea"
@@ -120,19 +133,22 @@ export default function ExamQAction() {
                                     : 'border-gray-300'}
               `}
                         />
-                        <ErrorMessage
-                            name="description"
-                            component="p"
-                            className="mt-1 text-red-500 text-sm flex items-center"
-                        >
-                            {msg => <><FileText size={14} className="mr-1" />{msg}</>}
-                        </ErrorMessage>
                     </motion.div>
 
                     {/** Subject Code */}
                     <motion.div variants={fieldVariants}>
                         <Label className="flex items-center gap-2">
-                            <Hash size={18} className="text-indigo-500" /> Subject Code
+                            {errors.subjectCode && touched.subjectCode ? (
+                                <>
+                                    <Hash size={18} className="text-red-500" />
+                                    <span className="text-red-500">{errors.subjectCode}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Hash size={18} className="text-indigo-500" />
+                                    Subject Code
+                                </>
+                            )}
                         </Label>
                         <Field
                             name="subjectCode"
@@ -145,13 +161,6 @@ export default function ExamQAction() {
                                     : 'border-gray-300'}
               `}
                         />
-                        <ErrorMessage
-                            name="subjectCode"
-                            component="p"
-                            className="mt-1 text-red-500 text-sm flex items-center"
-                        >
-                            {msg => <><Hash size={14} className="mr-1" />{msg}</>}
-                        </ErrorMessage>
                     </motion.div>
 
                     {/** Exam Code */}
@@ -165,13 +174,6 @@ export default function ExamQAction() {
                             readOnly
                             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
                         />
-                        <ErrorMessage
-                            name="examCode"
-                            component="p"
-                            className="mt-1 text-red-500 text-sm flex items-center"
-                        >
-                            {msg => <><Hash size={14} className="mr-1" />{msg}</>}
-                        </ErrorMessage>
                     </motion.div>
 
                     {/** Submit Button */}

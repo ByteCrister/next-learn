@@ -1,25 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 
 import { useSubjectStore } from "@/store/useSubjectsStore";
 
 import { Button } from "@/components/ui/button";
-import TipTapEditor from "@/components/Editor/TipTapEditor";
-import { Pencil, ArrowLeft } from "lucide-react";
+import { Pencil, Eye, Map } from "lucide-react";
 
 import { SubjectInput } from "@/types/types.subjects";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import EditSubjectForm from "./EditSubjectForm";
 import SubjectCounts from "./SubjectBadges";
-import RoadmapInfoCard from "./RoadmapInfoCard";
 import SubjectPageLoading from "./SubjectPageLoading";
-import HtmlContent from "@/components/global/HtmlContent";
 import { ShareSubjectButton } from "./ShareSubjectButton";
 import { useDashboardStore } from "@/store/useDashboardStore";
-
-const fadeIn = { hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } };
+import RoadmapInfoDialog from "./RoadmapInfoCard";
+import RoadmapContentBlock from "./RoadmapContentBlock";
+import SubjectViewDialog from "./SubjectViewDialog";
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
@@ -46,12 +43,15 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const [roadmapTitle, setRoadmapTitle] = useState("");
     const [roadmapDescription, setRoadmapDescription] = useState("");
     const [roadmapContent, setRoadmapContent] = useState<string>("");
-    const [viewMode, setViewMode] = useState(true);
+    const [viewRoadmapMode, setViewRoadmapMode] = useState(false);
+
+    const [openRoadmap, setOpenRoadmap] = useState(false);
+    const [openView, setOpenView] = useState(false);
 
     useEffect(() => {
         fetchSubjectById(subjectId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [subjectId]);
+    }, []);
 
     useEffect(() => {
         if (selectedSubject) {
@@ -71,8 +71,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
             { label: 'Subjects', href: '/subjects' },
             { label: `${selectedSubject?.title ?? '-'}`, href: `/subjects/${selectedSubject?._id}` },
         ]);
-
-    }, [selectedSubject, selectedRoadmap, setBreadcrumbs]);
+    }, [selectedRoadmap, selectedSubject, setBreadcrumbs]);
 
     if (loadingSelectedSubject) return <SubjectPageLoading />
 
@@ -86,7 +85,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
 
     const handleSubjectUpdate = () =>
         editSubject(selectedSubject._id, subjectForm);
-    
+
     const handleDeleteSubject = async () => {
         const isRemoved = await removeSubject(selectedSubject._id)
         if (isRemoved) updateCounts('subjectsCount', '-')
@@ -115,32 +114,84 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     }
 
     return (
-        <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-white space-y-10 rounded-2xl">
-            {/* Top right share button */}
-            <ShareSubjectButton subjectId={subjectId} />
+        <>
+            <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-white space-y-10 rounded-2xl">
+                {/* --- Top Right Action Buttons --- */}
+                <nav aria-label="Subject actions" className="mb-4 sm:mb-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => setOpenView(true)}
+                            aria-label="View"
+                            className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                        >
+                            <Eye className="h-4 w-4" />
+                            <span>View</span>
+                        </Button>
 
-            {/* Subject Form */}
-            <EditSubjectForm
-                subjectForm={subjectForm}
-                setSubjectForm={setSubjectForm}
-                onUpdate={handleSubjectUpdate}
-                onDelete={handleDeleteSubject}
-                loading={loadingSubCrud}
-            />
+                        <Button
+                            variant="outline"
+                            onClick={() => setOpenRoadmap(true)}
+                            aria-label="Open roadmap"
+                            className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                        >
+                            <Map className="h-4 w-4" />
+                            <span>Roadmap</span>
+                        </Button>
 
-            {/* Counts */}
-            <SubjectCounts
-                subjectId={subjectId}
-                subjectCounts={selectedSubject?.selectedSubjectCounts || null}
-                loading={loadingSelectedSubject}
-            />
+                        {selectedRoadmap?._id && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setViewRoadmapMode(prev => !prev)}
+                                aria-label="Edit roadmap"
+                                className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                            >
+                                <Pencil className="h-4 w-4" />
+                                <span>Edit Roadmap</span>
+                            </Button>
+                        )}
 
-            {/* Roadmap Info */}
-            <RoadmapInfoCard
+                        {/* If ShareSubjectButton doesn't accept className, wrap it */}
+                        <div className="w-full sm:w-auto">
+                            <ShareSubjectButton subjectId={subjectId} />
+                        </div>
+                    </div>
+                </nav>
+
+
+                {(selectedRoadmap?._id && viewRoadmapMode) && (
+                    <RoadmapContentBlock
+                        roadmapContent={roadmapContent}
+                        setRoadmapContent={setRoadmapContent}
+                        handleSaveContent={handleSaveContent}
+                    />
+                )}
+
+                {/* Subject Form */}
+                <EditSubjectForm
+                    subjectForm={subjectForm}
+                    setSubjectForm={setSubjectForm}
+                    onUpdate={handleSubjectUpdate}
+                    onDelete={handleDeleteSubject}
+                    loading={loadingSubCrud}
+                />
+
+                {/* Counts */}
+                <SubjectCounts
+                    subjectId={subjectId}
+                    subjectCounts={selectedSubject?.selectedSubjectCounts || null}
+                    loading={loadingSelectedSubject}
+                />
+            </div>
+
+            {/* Dialog with form */}
+            <RoadmapInfoDialog
+                open={openRoadmap}
+                onOpenChange={setOpenRoadmap}
                 roadmapTitle={roadmapTitle}
-                setRoadmapTitle={(v: string) => setRoadmapTitle(v)}
+                setRoadmapTitle={setRoadmapTitle}
                 roadmapDescription={roadmapDescription}
-                setRoadmapDescription={(v: string) => setRoadmapDescription(v)}
+                setRoadmapDescription={setRoadmapDescription}
                 handleRoadmapSave={handleRoadmapSave}
                 loading={loadingSubCrud}
                 showDelete={!!selectedRoadmap}
@@ -148,53 +199,11 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                 loadingDelete={loadingSubCrud}
             />
 
-            {/* Roadmap Content */}
-            {selectedRoadmap?._id && (
-                <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-                    <h2 className="text-2xl font-bold text-center text-indigo-700 mb-4">
-                        Roadmap Content
-                    </h2>
-
-                    {viewMode ? (
-                        <div className="relative">
-                            <HtmlContent html={roadmapContent} />
-
-                            {/* Edit Icon Button */}
-                            <Button
-                                size="icon"
-                                onClick={() => setViewMode(false)}
-                                className="absolute top-4 right-4 bg-indigo-500 hover:bg-indigo-600 p-2 rounded-full"
-                                title="Edit content"
-                            >
-                                <Pencil className="w-5 h-5 text-white" />
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="relative">
-                            {/* Back button for editor */}
-                            <Button
-                                size="icon"
-                                variant="outline"
-                                onClick={() => setViewMode(true)}
-                                className="absolute top-4 right-4 mb-3 flex items-center justify-center p-2 rounded-full"
-                                title="Back to view"
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-
-                            <TipTapEditor
-                                content={roadmapContent}
-                                onChange={setRoadmapContent}
-                                handleSave={async () => {
-                                    await handleSaveContent();
-                                    setViewMode(true);
-                                }}
-                            />
-                        </div>
-                    )}
-                </motion.div>
-            )}
-        </div>
+            <SubjectViewDialog
+                open={openView}
+                onOpenChange={(s: boolean) => setOpenView(s)}
+            />
+        </>
     );
 };
 

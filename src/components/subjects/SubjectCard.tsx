@@ -1,19 +1,33 @@
-import { FC, } from "react";
+"use client";
+
+import { FC } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { HiOutlineArrowNarrowRight } from "react-icons/hi";
+import { CalendarDays, BookOpen } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import { Subject } from "@/types/types.subjects";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
 
 interface SubjectCardProps {
-    subject: Subject;
-    index: number;
+  subject: Subject;
+  index: number;
 }
-const BG_COLOR_PAIRS = [
-  { bg: "bg-indigo-100", text: "text-indigo-600" },
-  { bg: "bg-emerald-100", text: "text-emerald-600" },
-  { bg: "bg-blue-100", text: "text-blue-600" },
-  { bg: "bg-purple-100", text: "text-purple-600" },
-];
 
 const COLOR_GRADIENTS = [
   ["from-indigo-500", "to-pink-500"],
@@ -23,42 +37,82 @@ const COLOR_GRADIENTS = [
 ];
 
 export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
-  const { bg, text } = BG_COLOR_PAIRS[index % BG_COLOR_PAIRS.length];
   const [fromColor, toColor] = COLOR_GRADIENTS[index % COLOR_GRADIENTS.length];
 
   return (
-    <motion.article
-      className={`rounded-2xl bg-gradient-to-br ${fromColor} ${toColor} p-[2px] shadow-md cursor-pointer`}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      className="transition-transform"
     >
-      <Link
-        href={`/subjects/${subject._id}`}
-        className="block h-full rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-lg relative"
-      >
-        {/* Title */}
-        <h3 className={`text-2xl font-extrabold mb-2 bg-clip-text bg-gradient-to-r ${fromColor} ${toColor}`}>
-          {subject.title}
-        </h3>
+      <Link href={`/subjects/${subject._id}`}>
+        {/* Gradient Border Wrapper */}
+        <div
+          className={cn(
+            "relative rounded-2xl p-[2px] bg-gradient-to-br",
+            fromColor,
+            toColor,
+            "shadow-lg hover:shadow-xl transition-all duration-300"
+          )}
+        >
+          <Card
+            className={cn(
+              "relative rounded-2xl border-0 bg-white backdrop-blur-sm"
+            )}
+          >
+            <CardHeader>
+              <CardTitle
+                className={cn(
+                  "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r",
+                  fromColor,
+                  toColor,
+                  poppins.className
+                )}
+              >
+                {subject.title}
+              </CardTitle>
 
-        {/* Code Badge */}
-        {subject.code && (
-          <span className={`${bg} ${text} px-2 py-0.5 rounded-md text-xs font-semibold mb-4 select-none`}>
-            {subject.code}
-          </span>
-        )}
+              {subject.code && (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "mt-2 font-medium text-white shadow-md",
+                    "bg-gradient-to-r",
+                    fromColor,
+                    toColor
+                  )}
+                >
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  {subject.code}
+                </Badge>
+              )}
+            </CardHeader>
 
-        {/* Description */}
-        {subject.description && (
-          <p className="text-gray-700 dark:text-gray-300 line-clamp-3 mb-6 leading-relaxed">
-            {subject.description}
-          </p>
-        )}
+            {subject.description && (
+              <CardContent>
+                <CardDescription className="text-gray-700 line-clamp-3 leading-relaxed">
+                  {subject.description}
+                </CardDescription>
+              </CardContent>
+            )}
 
-        {/* Footer */}
-        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-          <time>{new Date(subject.createdAt).toLocaleDateString()}</time>
-          <HiOutlineArrowNarrowRight className="w-6 h-6 text-gray-900 dark:text-gray-100 opacity-75" />
+            <Separator className="my-4" />
+
+            <CardFooter className="flex items-center justify-between text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <CalendarDays className="w-4 h-4" />
+                {new Date(subject.createdAt).toLocaleDateString()}
+              </div>
+              <HiOutlineArrowNarrowRight className="w-6 h-6 opacity-75" />
+            </CardFooter>
+          </Card>
         </div>
       </Link>
-    </motion.article>
+    </motion.div>
   );
 };

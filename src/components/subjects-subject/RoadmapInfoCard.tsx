@@ -2,13 +2,6 @@
 
 import React, { useEffect } from "react";
 import { motion, Variants } from "framer-motion";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardFooter,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -20,23 +13,23 @@ import {
 } from "lucide-react";
 
 import {
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-} from "@/components/ui/popover";
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PopoverClose } from "@radix-ui/react-popover";
 
 const fadeIn: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.5, ease: "easeOut" },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
 
 const roadmapSchema = z.object({
@@ -47,7 +40,9 @@ const roadmapSchema = z.object({
 });
 type RoadmapForm = z.infer<typeof roadmapSchema>;
 
-interface RoadmapInfoCardProps {
+interface RoadmapInfoDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
     roadmapTitle: string;
     setRoadmapTitle: (v: string) => void;
     roadmapDescription: string;
@@ -59,7 +54,9 @@ interface RoadmapInfoCardProps {
     loadingDelete?: boolean;
 }
 
-export default function RoadmapInfoCard({
+export default function RoadmapInfoDialog({
+    open,
+    onOpenChange,
     roadmapTitle,
     setRoadmapTitle,
     roadmapDescription,
@@ -69,7 +66,7 @@ export default function RoadmapInfoCard({
     showDelete = false,
     onDeleteRoadmap,
     loadingDelete = false,
-}: RoadmapInfoCardProps) {
+}: RoadmapInfoDialogProps) {
     const {
         register,
         handleSubmit,
@@ -78,9 +75,10 @@ export default function RoadmapInfoCard({
     } = useForm<RoadmapForm>({
         resolver: zodResolver(roadmapSchema),
         defaultValues: { roadmapTitle, roadmapDescription },
+        mode: "onTouched", // 🔥 validate on blur/touch
     });
 
-    // Keep form in sync when parent props change
+    // Sync parent props with form
     useEffect(() => {
         reset({ roadmapTitle, roadmapDescription });
     }, [roadmapTitle, roadmapDescription, reset]);
@@ -89,63 +87,60 @@ export default function RoadmapInfoCard({
         setRoadmapTitle(data.roadmapTitle);
         setRoadmapDescription(data.roadmapDescription);
         handleRoadmapSave();
+        onOpenChange(false);
     };
 
     return (
-        <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            className="max-w-lg mx-auto"
-        >
-            <form onSubmit={handleSubmit(onSubmit)}>
-                <Card className="bg-white/20 backdrop-blur-lg ring-1 ring-white/30 shadow rounded-2xl overflow-hidden">
-                    <CardHeader className="px-8 pt-6 text-center">
-                        <CardTitle className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
-                            Roadmap Info
-                        </CardTitle>
-                    </CardHeader>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">
+                        Roadmap Info
+                    </DialogTitle>
+                </DialogHeader>
 
-                    <CardContent className="px-8 space-y-6">
-                        {/* Title Field */}
+                <motion.form
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeIn}
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="flex flex-col max-h-[80vh]"
+                >
+                    <div className="flex-1 space-y-6 overflow-y-auto pr-1">
+                        {/* Title */}
                         <div>
                             <label
                                 htmlFor="roadmap-title"
-                                className="flex items-center text-sm font-medium text-gray-700 mb-2"
+                                className={`flex items-center text-sm font-medium mb-2 transition-colors ${errors.roadmapTitle ? "text-red-500" : "text-gray-700"}`}
                             >
-                                <MapIcon className="mr-2 h-5 w-5 text-purple-400" strokeWidth={1.5} />
-                                Title
+                                <MapIcon
+                                    className={`mr-2 h-5 w-5 ${errors.roadmapTitle ? "text-red-400" : "text-purple-400"}`}
+                                    strokeWidth={1.5}
+                                />
+                                {errors.roadmapTitle ? errors.roadmapTitle.message : "Title"}
                             </label>
                             <Input
                                 id="roadmap-title"
                                 placeholder="Enter roadmap title"
                                 {...register("roadmapTitle")}
                                 onChange={(e) => setRoadmapTitle(e.target.value)}
-                                className={`
-                  w-full
-                  bg-white/60 backdrop-blur-sm
-                  border-2 border-transparent
-                  focus:border-purple-500
-                  rounded-md
-                  transition
-                  ${errors.roadmapTitle ? "border-red-400" : ""}
-                `}
+                                className={`bg-white/60 backdrop-blur-sm border-2 rounded-md transition ${errors.roadmapTitle ? "border-red-400" : "border-transparent"} focus:border-purple-500`}
                             />
-                            {errors.roadmapTitle && (
-                                <p className="mt-1 text-sm text-red-500">{errors.roadmapTitle.message}</p>
-                            )}
                         </div>
 
-                        <UiSeparator className="my-4" />
+                        <UiSeparator />
 
-                        {/* Description Field */}
+                        {/* Description */}
                         <div>
                             <label
                                 htmlFor="roadmap-description"
-                                className="flex items-center text-sm font-medium text-gray-700 mb-2"
+                                className={`flex items-center text-sm font-medium mb-2 transition-colors ${errors.roadmapDescription ? "text-red-500" : "text-gray-700"}`}
                             >
-                                <DescriptionIcon className="mr-2 h-5 w-5 text-purple-400" strokeWidth={1.5} />
-                                Description
+                                <DescriptionIcon
+                                    className={`mr-2 h-5 w-5 ${errors.roadmapDescription ? "text-red-400" : "text-purple-400"}`}
+                                    strokeWidth={1.5}
+                                />
+                                {errors.roadmapDescription ? errors.roadmapDescription.message : "Description"}
                             </label>
                             <Textarea
                                 id="roadmap-description"
@@ -153,78 +148,68 @@ export default function RoadmapInfoCard({
                                 placeholder="Write a detailed roadmap description"
                                 {...register("roadmapDescription")}
                                 onChange={(e) => setRoadmapDescription(e.target.value)}
-                                className={`
-                  w-full
-                  bg-white/60 backdrop-blur-sm
-                  border-2 border-transparent
-                  focus:border-purple-500
-                  rounded-md
-                  transition
-                  resize-none
-                  ${errors.roadmapDescription ? "border-red-400" : ""}
-                `}
+                                className={`bg-white/60 backdrop-blur-sm border-2 rounded-md transition resize-none ${errors.roadmapDescription ? "border-red-400" : "border-transparent"} focus:border-purple-500`}
                             />
-                            {errors.roadmapDescription && (
-                                <p className="mt-1 text-sm text-red-500">
-                                    {errors.roadmapDescription.message}
-                                </p>
-                            )}
                         </div>
-                    </CardContent>
+                    </div>
 
-                    <UiSeparator />
+                    {/* Add spacing ONLY above footer */}
+                    <div className="mt-6"></div>
 
-                    <CardFooter className="px-8 pb-6 flex flex-col gap-3">
-                        <Button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition text-white"
-                        >
-                            {loading ? "Saving…" : "Save Info"}
-                        </Button>
+                    {/* Footer */}
+                    <DialogFooter className="w-full">
+                        <div className="flex w-full flex-col gap-3">
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                            >
+                                {loading ? "Saving…" : "Save Info"}
+                            </Button>
 
-                        {showDelete && onDeleteRoadmap && (
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        disabled={loadingDelete}
-                                        className="w-full flex items-center justify-center gap-2"
-                                    >
-                                        <TrashIcon className="h-4 w-4" />{" "}
-                                        {loadingDelete ? "Deleting…" : "Delete Roadmap"}
-                                    </Button>
-                                </PopoverTrigger>
-
-                                <PopoverContent align="end" className="w-72 p-4">
-                                    <h4 className="text-sm font-semibold text-red-600 select-none">
-                                        Confirm Deletion
-                                    </h4>
-                                    <p className="mt-1 text-sm text-gray-700">
-                                        This action cannot be undone. Are you sure you want to delete
-                                        this roadmap?
-                                    </p>
-                                    <div className="mt-4 flex justify-end space-x-2">
-                                        <PopoverClose asChild>
-                                            <Button variant="outline" size="sm">
-                                                Cancel
-                                            </Button>
-                                        </PopoverClose>
+                            {showDelete && onDeleteRoadmap && (
+                                <Popover>
+                                    <PopoverTrigger asChild>
                                         <Button
                                             variant="destructive"
-                                            size="sm"
-                                            onClick={onDeleteRoadmap}
                                             disabled={loadingDelete}
+                                            className="w-full flex items-center justify-center gap-2"
                                         >
+                                            <TrashIcon className="h-4 w-4" />
                                             {loadingDelete ? "Deleting…" : "Delete"}
                                         </Button>
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                        )}
-                    </CardFooter>
-                </Card>
-            </form>
-        </motion.div>
+                                    </PopoverTrigger>
+                                    <PopoverContent align="end" className="w-72 p-4">
+                                        <h4 className="text-sm font-semibold text-red-600 select-none">
+                                            Confirm Deletion
+                                        </h4>
+                                        <p className="mt-1 text-sm text-gray-700">
+                                            This action cannot be undone. Are you sure you want to delete this roadmap?
+                                        </p>
+                                        <div className="mt-4 flex justify-end space-x-2">
+                                            <PopoverClose asChild>
+                                                <Button variant="outline" size="sm">
+                                                    Cancel
+                                                </Button>
+                                            </PopoverClose>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={onDeleteRoadmap}
+                                                disabled={loadingDelete}
+                                            >
+                                                {loadingDelete ? "Deleting…" : "Delete"}
+                                            </Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        </div>
+                    </DialogFooter>
+                </motion.form>
+
+            </DialogContent>
+        </Dialog>
     );
+
 }

@@ -16,7 +16,7 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const { id } =await params;
+    const { id } = await params;
     const userId = await getUserIdFromSession();
     if (!userId) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -49,11 +49,12 @@ export async function GET(
                 chapters: (roadmapDoc.chapters ?? []).map((chapter) => ({
                     _id: chapter._id?.toString(),
                     title: chapter.title,
+                    content: chapter.content
                 })),
             }
             : null;
 
-            const chapters = roadmapDoc ? (roadmapDoc.chapters ?? []).length : 0;
+        const chapters = roadmapDoc ? (roadmapDoc.chapters ?? []).length : 0;
 
         // Build typed Subject
         const subject: SubjectTypes = {
@@ -86,6 +87,7 @@ export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    const { id } = await params;
     const userId = await getUserIdFromSession();
 
     try {
@@ -93,7 +95,7 @@ export async function PATCH(
         await ConnectDB();
 
         const subject = await Subject.findOneAndUpdate(
-            { _id: params.id, userId },
+            { _id: id, userId },
             updates,
             { new: true, runValidators: true }
         );
@@ -113,13 +115,14 @@ export async function PATCH(
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
     const userId = await getUserIdFromSession();
+    const { id } = await params;
 
     try {
         await ConnectDB();
 
         // Delete only if the subject belongs to this user
         const deleted = await Subject.findOneAndDelete({
-            _id: params.id,
+            _id: id,
             userId,
         });
         if (!deleted) {
@@ -128,9 +131,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
         // Cascade deletes
         await Promise.all([
-            StudyMaterial.deleteMany({ subjectId: params.id }),
-            CourseRoadmap.deleteMany({ subjectId: params.id }),
-            ClassNote.deleteMany({ subjectId: params.id }),
+            StudyMaterial.deleteMany({ subjectId: id }),
+            CourseRoadmap.deleteMany({ subjectId: id }),
+            ClassNote.deleteMany({ subjectId: id }),
         ]);
 
         return NextResponse.json(

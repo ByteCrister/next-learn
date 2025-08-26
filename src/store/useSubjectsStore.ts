@@ -18,6 +18,7 @@ type countFiledTypes = 'notes' | 'externalLinks' | 'studyMaterials';
 
 interface SubjectStore {
     subjects: Subject[];
+    subjectCache: Record<string, { subject: Subject; roadmap: VCourseRoadmap | null }>;
 
     selectedSubject: Subject | null;
     selectedRoadmap: VCourseRoadmap | null;
@@ -45,7 +46,7 @@ interface SubjectStore {
 
     createRoadmap: (subjectId: string, input: { title: string; description: string }) => Promise<void>;
     editRoadmap: (updates: { title: string; description: string, roadmapId: string }) => Promise<void>;
-    updateRoadmapContent: (roadmapId: string, roadmapContent: string) => Promise<void>; 
+    updateRoadmapContent: (roadmapId: string, roadmapContent: string) => Promise<void>;
     deleteRoadmap: (roadmapId: string) => Promise<string | undefined>;
 }
 
@@ -54,6 +55,8 @@ export const useSubjectStore = create<SubjectStore>()(
         subjects: [],
         subjectCounts: { notes: 0, externalLinks: 0, studyMaterials: 0, chapters: 0 },
         selectedSubject: null,
+        selectedRoadmap: null,
+        subjectCache: {},
 
         loadingSubjects: false,
         loadingNotes: false,
@@ -127,6 +130,7 @@ export const useSubjectStore = create<SubjectStore>()(
                     ),
                     loadingSubCrud: false,
                 }));
+                toast.success('Subject updated successfully.')
             } catch (err) {
                 set({ loadingSubCrud: false });
                 toast.error((err as Error).message);
@@ -155,9 +159,13 @@ export const useSubjectStore = create<SubjectStore>()(
         },
 
         fetchSubjectById: async (id) => {
-            const cache = get().selectedSubject?._id?.toString() === id.toString();
+            const cache = get().subjectCache[id];
             if (cache) {
-                set({ loadingSelectedSubject: false });
+                set({
+                    selectedSubject: cache.subject,
+                    selectedRoadmap: cache.roadmap,
+                    loadingSelectedSubject: false,
+                });
                 return;
             }
 
@@ -170,11 +178,17 @@ export const useSubjectStore = create<SubjectStore>()(
                     set({ loadingSelectedSubject: false });
                     return;
                 }
-                set({
+
+                // Update cache
+                set((state) => ({
                     selectedSubject: data.subject,
                     selectedRoadmap: data.roadmap,
+                    subjectCache: {
+                        ...state.subjectCache,
+                        [id]: { subject: data.subject, roadmap: data.roadmap },
+                    },
                     loadingSelectedSubject: false,
-                });
+                }));
             } catch (err) {
                 toast.error((err as Error).message);
                 set({ loadingSelectedSubject: false });

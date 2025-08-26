@@ -40,8 +40,10 @@ export default function SubjectQAction() {
     const { updateCounts } = useDashboardStore();
     const router = useRouter();
 
-    const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<SubjectFormValues>({
+    const { register, handleSubmit, reset, formState: { errors, isSubmitting, touchedFields } } = useForm<SubjectFormValues>({
         defaultValues: { title: "", code: "", description: "" },
+        mode: "onTouched",
+        reValidateMode: "onChange"
     });
 
     const onSubmit: SubmitHandler<SubjectFormValues> = async (data) => {
@@ -65,7 +67,17 @@ export default function SubjectQAction() {
             {/* Title */}
             <motion.div variants={fieldVariants} className="space-y-2">
                 <Label htmlFor="title" className="flex items-center gap-2">
-                    <AiOutlineEdit className="w-5 h-5 text-indigo-500" /> Title
+                    {errors.title && touchedFields.title ? (
+                        <>
+                            <AiOutlineExclamationCircle className="w-5 h-5 text-red-500" />
+                            <span className="text-red-500">{errors.title.message}</span>
+                        </>
+                    ) : (
+                        <>
+                            <AiOutlineEdit className="w-5 h-5 text-indigo-500" />
+                            Title
+                        </>
+                    )}
                 </Label>
                 <div className="relative">
                     <Input
@@ -80,18 +92,23 @@ export default function SubjectQAction() {
                     />
                     <AiOutlineEdit className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
-                {errors.title && (
-                    <p className="flex items-center text-red-500 text-sm mt-1">
-                        <AiOutlineExclamationCircle className="w-4 h-4 mr-1" />
-                        {errors.title.message}
-                    </p>
-                )}
             </motion.div>
+
 
             {/* Code */}
             <motion.div variants={fieldVariants} className="space-y-2 mt-4">
                 <Label htmlFor="code" className="flex items-center gap-2">
-                    <AiOutlineNumber className="w-5 h-5 text-indigo-500" />Subject Code
+                    {errors.code && touchedFields.code ? (
+                        <>
+                            <AiOutlineExclamationCircle className="w-5 h-5 text-red-500" />
+                            <span className="text-red-500">{errors.code.message}</span>
+                        </>
+                    ) : (
+                        <>
+                            <AiOutlineNumber className="w-5 h-5 text-indigo-500" />
+                            Subject Code
+                        </>
+                    )}
                 </Label>
                 <div className="relative">
                     <Input
@@ -106,18 +123,22 @@ export default function SubjectQAction() {
                     />
                     <AiOutlineNumber className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
-                {errors.code && (
-                    <p className="flex items-center text-red-500 text-sm mt-1">
-                        <AiOutlineExclamationCircle className="w-4 h-4 mr-1" />
-                        {errors.code.message}
-                    </p>
-                )}
             </motion.div>
 
             {/* Description */}
             <motion.div variants={fieldVariants} className="space-y-2 mt-4">
                 <Label htmlFor="description" className="flex items-center gap-2">
-                    <AiOutlineInfoCircle className="w-5 h-5 text-indigo-500" /> Description
+                    {errors.description && touchedFields.description ? (
+                        <>
+                            <AiOutlineExclamationCircle className="w-5 h-5 text-red-500" />
+                            <span className="text-red-500">{errors.description.message}</span>
+                        </>
+                    ) : (
+                        <>
+                            <AiOutlineInfoCircle className="w-5 h-5 text-indigo-500" />
+                            Description
+                        </>
+                    )}
                 </Label>
                 <Textarea
                     id="description"
@@ -127,12 +148,6 @@ export default function SubjectQAction() {
                         maxLength: { value: 300, message: "Max 300 characters" },
                     })}
                 />
-                {errors.description && (
-                    <p className="flex items-center text-red-500 text-sm mt-1">
-                        <AiOutlineExclamationCircle className="w-4 h-4 mr-1" />
-                        {errors.description.message}
-                    </p>
-                )}
             </motion.div>
 
             {/* Submit Button */}

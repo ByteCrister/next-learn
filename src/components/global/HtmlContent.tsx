@@ -13,7 +13,6 @@ const HtmlContent: React.FC<HtmlContentProps> = ({ html, className }) => {
         <div
             className={clsx(
                 // Base card style
-                "prose prose-indigo max-w-none p-8 rounded-2xl shadow-lg border border-gray-100 bg-gradient-to-br from-white to-indigo-50",
                 "dark:from-gray-900 dark:to-gray-800 dark:border-gray-700 dark:prose-invert",
 
                 // Headings
