@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -14,14 +13,14 @@ import { useUsersStore } from "@/store/useUsersStore";
 import { IntervalUnit } from "@/types/types.users";
 
 export function FiltersBar() {
-    const { range, interval, query, setRange, setInterval, setQuery, fetchAggregates, fetchUsers } = useUsersStore();
+    const { range, interval, setRange, setInterval, fetchAggregates } = useUsersStore();
     const [open, setOpen] = useState(false);
 
     const startDate = useMemo(() => new Date(range.start), [range.start]);
     const endDate = useMemo(() => new Date(range.end), [range.end]);
 
     const apply = async () => {
-        await Promise.all([fetchAggregates(), fetchUsers(1)]);
+        await fetchAggregates(); // only for stats
     };
 
     return (
@@ -32,22 +31,9 @@ export function FiltersBar() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
         >
-            <div className="flex flex-col md:flex-row gap-4 md:items-center">
-                {/* Search + Filters */}
-                <div className="flex-1 flex flex-wrap gap-3">
-                    {/* Search */}
-                    <div className="w-full md:max-w-sm relative">
-                        <Input
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search users by name or email"
-                            className="pl-10 bg-white/60 dark:bg-white/5 border-white/20 
-                                       focus-visible:ring-2 focus-visible:ring-fuchsia-400/50 
-                                       placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                        />
-                        <HiAdjustments className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                    </div>
-
+            <div className="flex flex-col md:flex-row md:items-center gap-4 w-full">
+                {/* Filters group */}
+                <div className="flex flex-col sm:flex-row flex-1 gap-3 w-full">
                     {/* Interval */}
                     <Select value={interval} onValueChange={(v: IntervalUnit) => setInterval(v)}>
                         <SelectTrigger className="w-[150px] bg-white/60 dark:bg-white/5 border-white/20 
@@ -80,11 +66,13 @@ export function FiltersBar() {
                                     mode="single"
                                     selected={startDate}
                                     onSelect={(d) => d && setRange({ start: d.toISOString(), end: range.end })}
+                                    disabled={(date) => date > new Date()} // disable future dates
                                 />
                                 <Calendar
                                     mode="single"
                                     selected={endDate}
                                     onSelect={(d) => d && setRange({ start: range.start, end: d.toISOString() })}
+                                    disabled={(date) => date > new Date()} // disable future dates
                                 />
                             </div>
                         </PopoverContent>
@@ -92,7 +80,7 @@ export function FiltersBar() {
                 </div>
 
                 {/* Apply Button */}
-                <div className="flex gap-2 md:justify-end">
+                <div className="flex md:justify-end w-full sm:w-auto">
                     <Button
                         onClick={apply}
                         className={clsx(

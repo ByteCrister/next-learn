@@ -11,7 +11,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    HiDotsHorizontal,
     HiEye,
     HiBan,
     HiUser,
@@ -20,6 +19,7 @@ import {
     HiCalendar,
     HiShieldExclamation
 } from "react-icons/hi";
+import { debounce } from "lodash";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -30,10 +30,21 @@ import { UserStatsDialog } from "./UserStatsDialog";
 import { RestrictUserDialog } from "./RestrictUserDialog";
 
 export function UsersTable() {
-    const { users, listState, pagination } = useUsersStore();
+    const { users, listState, pagination, query, setQuery, searchUsers } = useUsersStore();
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [restrictId, setRestrictId] = useState<string | null>(null);
     const [restrictIndex, setRestrictIndex] = useState<number | null>(null);
+
+    // Create a debounced version of search
+    const debouncedSearch = debounce(async () => {
+        await searchUsers(true);
+    }, 500); // 500ms delay
+
+    // Handle input change
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuery(e.target.value.trim());
+        debouncedSearch();
+    };
 
     if (listState.loading) return <UsersTableSkeleton />;
 
@@ -43,6 +54,16 @@ export function UsersTable() {
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl border border-gray-200 bg-white shadow-lg overflow-hidden"
         >
+            {/* Search Input */}
+            <div className="p-4">
+                <input
+                    type="text"
+                    value={query}
+                    onChange={handleSearchChange}
+                    placeholder="Search users by name or email"
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+            </div>
             <div className="relative overflow-x-auto">
                 <Table className="min-w-full text-sm">
                     <TableHeader className="bg-gray-50">
@@ -141,13 +162,6 @@ export function UsersTable() {
                                                 className="hover:bg-rose-100 text-rose-500 transition-colors"
                                             >
                                                 <HiBan className="h-5 w-5" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="hover:bg-gray-100 text-gray-500 transition-colors"
-                                            >
-                                                <HiDotsHorizontal className="h-5 w-5" />
                                             </Button>
                                         </div>
                                     </TableCell>

@@ -50,6 +50,8 @@ interface UsersStore {
     aggregatesState: FetchState;
     perUserState: Record<string, FetchState>;
 
+    searching: boolean;
+
     // actions
     setRange: (range: DateRange) => void;
     setInterval: (interval: IntervalUnit) => void;
@@ -68,6 +70,8 @@ interface UsersStore {
         userId: string;
         restrictionIndex: number;
     }) => Promise<void>;
+
+    searchUsers: (u?: boolean) => Promise<void>;
 }
 
 export const useUsersStore = create<UsersStore>()(
@@ -94,6 +98,8 @@ export const useUsersStore = create<UsersStore>()(
                 listState: { loading: false, error: null },
                 aggregatesState: { loading: false, error: null },
                 perUserState: {},
+
+                searching: false,
 
                 setRange: (range) => set({ range }),
                 setInterval: (interval) => set({ interval }),
@@ -223,6 +229,49 @@ export const useUsersStore = create<UsersStore>()(
                     });
                     toast.success("Restriction removed");
                 },
+
+                searchUsers: async (useCache = true) => {
+                    const { users, query, limit, pagination } = get();
+                    set({ searching: true });
+
+                    // If useCache and query exists in current users, skip API call
+                    if (useCache && query) {
+                        const found = users.filter(
+                            (u) =>
+                                u.name.toLowerCase().includes(query.toLowerCase()) ||
+                                u.email.toLowerCase().includes(query.toLowerCase())
+                        );
+                        if (found.length > 0) {
+                            set({ users: found, pagination: { ...pagination, page: 1 }, searching: false });
+                            return; // Already in the current list
+                        }
+                    }
+
+                    try {
+                        const res = await getAllUsers({
+                            page: 1,
+                            limit,
+                            search: query || undefined,
+                        });
+
+                        if ("message" in res) {
+                            toast.error(res.message);
+                            set({ searching: false });
+                            return;
+                        }
+
+                        set({
+                            users: res.users,
+                            pagination: res.pagination,
+                            searching: false,
+                        });
+                    } catch (err) {
+                        const message = err instanceof Error ? err.message : "Something went wrong";
+                        toast.error(message);
+                        set({ searching: false });
+                    }
+                }
+
             }),
             { name: "admin-users-store" }
         )
