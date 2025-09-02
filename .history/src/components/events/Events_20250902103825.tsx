@@ -313,8 +313,8 @@ export default function Events() {
                             {/* Description */}
                             <p className="line-clamp-4 text-white leading-relaxed text-base">
                               {evt.description
-                                ? (evt.description.length > 20
-                                  ? `${evt.description.substring(0, 20)}...`
+                                ? (evt.description.length > 80
+                                  ? `${evt.description.substring(0, 80)}...`
                                   : evt.description)
                                 : 'No description provided.'}
                             </p>

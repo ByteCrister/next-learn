@@ -35,7 +35,11 @@ const schema = Yup.object().shape({
     .min(5, 'Title must be at least 5 characters')
     .required('Title is required'),
   start: Yup.date()
-    .required('Start date is required'),
+    .required('Start date is required')
+    .test('is-future', 'Event must be in the future', (value) => {
+      if (!value) return false;
+      return value.getTime() > Date.now();
+    }),
   durationMinutes: Yup.number()
     .min(1, 'Duration must be at least 1 minute')
     .required('Duration is required'),
@@ -78,8 +82,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
   };
 
   async function handleSubmit(values: VEvent) {
-    // Only validate future date for new events, not for editing existing events
-    if (!isEdit && new Date(values.start).getTime() <= Date.now()) {
+    if (new Date(values.start).getTime() <= Date.now()) {
       alert('Please select a date/time in the future.');
       return;
     }
@@ -533,7 +536,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                                     <Field
                                       type="checkbox"
                                       name={`tasks.${index}.isComplete`}
-                                      disabled={mode === 'view' || !(isEdit && new Date(values.start).getTime() <= Date.now())}
+                                      disabled={mode === 'view'}
                                       className="w-4 h-4 text-green-500 bg-neutral-100 border-neutral-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-neutral-800 focus:ring-2 dark:bg-neutral-700 dark:border-neutral-600"
                                     />
                                     <span className={`transition-colors ${

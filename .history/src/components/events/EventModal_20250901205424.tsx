@@ -17,7 +17,7 @@ import { format, addMinutes } from 'date-fns';
 import { useEventsStore } from '@/store/useEventsStore';
 import { VEvent, VTask } from '@/types/types.events';
 import { Label } from '@/components/ui/label';
-import { Calendar, Clock, Edit, FileText, Plus, RotateCcw, Save, Tag, Trash, CheckCircle, Circle, AlertCircle, MapPin, Users, Bell, Eye, X } from 'lucide-react';
+import { Calendar, Clock, Edit, FileText, Plus, RotateCcw, Save, Tag, Trash, CheckCircle, Circle, AlertCircle, MapPin, Users, Bell, Eye } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast } from 'react-toastify';
 import { DeleteEventAlert } from './DeleteEventAlert';
@@ -35,7 +35,11 @@ const schema = Yup.object().shape({
     .min(5, 'Title must be at least 5 characters')
     .required('Title is required'),
   start: Yup.date()
-    .required('Start date is required'),
+    .required('Start date is required')
+    .test('is-future', 'Event must be in the future', (value) => {
+      if (!value) return false;
+      return value.getTime() > Date.now();
+    }),
   durationMinutes: Yup.number()
     .min(1, 'Duration must be at least 1 minute')
     .required('Duration is required'),
@@ -78,8 +82,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
   };
 
   async function handleSubmit(values: VEvent) {
-    // Only validate future date for new events, not for editing existing events
-    if (!isEdit && new Date(values.start).getTime() <= Date.now()) {
+    if (new Date(values.start).getTime() <= Date.now()) {
       alert('Please select a date/time in the future.');
       return;
     }
@@ -135,7 +138,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
             {/* Enhanced Header */}
             <div className="relative w-full py-6 px-6 rounded-t-2xl overflow-hidden">
               {/* Background with gradient and pattern */}
-              <div className={`absolute inset-0 ${gradients.header}`}></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--reset-color)] via-[var(--reset-color-dark)] to-[var(--reset-hover)]"></div>
 
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
@@ -178,31 +181,17 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                   </div>
                 </div>
 
-                {/* Right side: Status indicator and Close button */}
-                <div className="flex items-center gap-3">
-                  {/* Status indicator */}
-                  {isEdit && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-                        <div className={`w-2 h-2 rounded-full ${
-                          mode === 'view' ? 'bg-green-400' : 'bg-pink-400'
-                        }`}></div>
-                        <span className="text-white text-xs font-medium">
-                          {mode === 'view' ? 'Read Only' : 'Editable'}
-                        </span>
-                      </div>
-                  )}
-
-                  {/* Enhanced Close Button */}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => onClose(false)}
-                    aria-label="Close dialog"
-                    className="p-2 bg-transparent rounded-xl hover:bg-white/30 transition-all duration-200 group"
-                  >
-                    <X size={18} className="text-white group-hover:text-red-500 transition-colors duration-200" />
-                  </motion.button> 
-                </div>
+                {/* Status indicator */}
+                {isEdit && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
+                      <div className={`w-2 h-2 rounded-full ${
+                        mode === 'view' ? 'bg-green-400' : 'bg-[var(--reset-color)]'
+                      }`}></div>
+                      <span className="text-white text-xs font-medium">
+                        {mode === 'view' ? 'Read Only' : 'Editable'}
+                      </span>
+                    </div>
+                )}
               </div>
             </div>
 
@@ -593,19 +582,18 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                     {/* Actions */}
                     {mode === 'edit' && (
                       <div className="flex justify-end gap-4 pt-6 border-t border-gray-100 dark:border-neutral-800">
-                    {/* Cancel */}
-                    <Button
-                      variant="outline"
-                      onClick={() => onClose(false)}
-                      aria-label="Close dialog"
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900
-                            text-gray-700 dark:text-gray-300 font-medium shadow-sm hover:shadow-md
-                            hover:from-gray-200 hover:to-gray-300 dark:hover:from-neutral-700 dark:hover:to-neutral-800
-                            active:scale-95 transition-all duration-200"
-                    >
-                      <RotateCcw size={16} />
-                      Cancel
-                    </Button>
+                        {/* Cancel */}
+                        <Button
+                          variant="outline"
+                          onClick={() => onClose(false)}
+                          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900
+                 text-gray-700 dark:text-gray-300 font-medium shadow-sm hover:shadow-md
+                 hover:from-gray-200 hover:to-gray-300 dark:hover:from-neutral-700 dark:hover:to-neutral-800
+                 active:scale-95 transition-all duration-200"
+                        >
+                          <RotateCcw size={16} />
+                          Cancel
+                        </Button>
 
                         {/* Delete */}
                         {isEdit && (
@@ -662,15 +650,6 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
         title="Confirm Delete Event"
         description="Are you sure you want to delete this event? This action cannot be undone."
       />
-      
-      <style jsx global>{`
-        /* Hide the default Chadcn UI Dialog close button */
-        .hide-dialog-close-button button[aria-label="Close"],
-        .hide-dialog-close-button [data-radix-dialog-close],
-        .hide-dialog-close-button button[data-radix-dialog-close],
-        
-      `}</style>
-
     </>
   );
 }

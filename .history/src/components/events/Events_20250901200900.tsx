@@ -49,44 +49,29 @@ function getValueByKey(event: VEvent, key: SortKey) {
 }
 
 const statusColors: Record<VEvent['eventStatus'], string> = {
-  upcoming: "bg-blue-600 text-white",
-  inProgress: "bg-amber-500 text-black",
-  expired: "bg-red-600 text-white",
-  completed: "bg-green-600 text-white"
+  upcoming: "bg-blue-500 text-white",
+  inProgress: "bg-amber-400 text-black",
+  expired: "bg-red-500 text-white",
+  completed: "bg-green-500 text-white"
 };
 
 // Helper function to get status color with fallback
 const getStatusColor = (status: VEvent['eventStatus']): string => {
-  return statusColors[status] || 'bg-gray-200 text-gray-800';
+  return statusColors[status] || 'bg-gray-100 text-gray-800';
 };
 
 // Card background colors based on status
 const cardStatusColors: Record<VEvent['eventStatus'], string> = {
-  upcoming: "bg-gradient-to-br from-purple-300 to-indigo-600 text-white",
-  inProgress: "bg-gradient-to-br from-orange-300 to-yellow-400 text-black",
-  expired: "bg-gradient-to-br from-slate-300 to-gray-600 text-white",
-  completed: "bg-gradient-to-br from-teal-300 to-sky-600 text-white"
+  upcoming: "bg-purple-400 text-white",
+  inProgress: "bg-orange-400 text-black",
+  expired: "bg-slate-400 text-white",
+  completed: "bg-teal-400 text-white"
 };
 
 // Helper function to get card status color with fallback
 const getCardStatusColor = (status: VEvent['eventStatus']): string => {
   return cardStatusColors[status] || 'bg-gray-100 text-gray-800';
 };
-
-// Helper function to format date and time
-function formatDateTime(date: Date | undefined): string {
-  if (!date || isNaN(date.getTime())) return '—';
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  };
-  return date.toLocaleString('en-US', options);
-}
 
 export default function Events() {
   const { events, fetching, fetchEvents } = useEventsStore();
@@ -294,24 +279,23 @@ export default function Events() {
                         <div className={`px-0 py-0 rounded-3xl overflow-hidden border border-indigo-100 shadow-md transition-all duration-300 hover:shadow-indigo-hover ${getCardStatusColor(evt.eventStatus)}`}>
                           <CardHeader className="px-6 pt-6 pb-3 flex justify-between items-start">
                             <Badge
-                              className={`rounded-full px-3 py-0.5 text-[0.65rem] font-semibold tracking-wide shadow-sm flex items-center gap-1 uppercase ${getStatusColor(evt.eventStatus)}`}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wide shadow-sm ${getStatusColor(evt.eventStatus)} uppercase`}
                             >
-                              {evt.eventStatus === 'completed' && <CheckCircle2 size={12} />}
                               {evt.eventStatus}
                             </Badge>
                             {evt.tasks?.length > 0 && (
-                              <Badge className="rounded-full px-2 py-0.5 text-[0.65rem] font-medium bg-indigo-100 text-indigo-700 shadow-inner">
+                              <span className="text-xs font-medium bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full shadow-inner">
                                 {evt.tasks.length} Tasks
-                              </Badge>
+                              </span>
                             )}
                           </CardHeader>
 
                           <CardContent className="px-6 pb-6 space-y-5">
-                            <CardTitle className="text-xl font-extrabold text-white leading-tight">
-                              {evt.title.length > 15 ? `${evt.title.substring(0, 15)}...` : evt.title}
+                            <CardTitle className="text-lg font-bold text-gray-200">
+                              {evt.title.length > 20 ? `${evt.title.substring(0, 20)}...` : evt.title}
                             </CardTitle>
                             {/* Description */}
-                            <p className="line-clamp-4 text-white leading-relaxed text-base">
+                            <p className="line-clamp-3 text-gray-200 leading-relaxed text-sm">
                               {evt.description
                                 ? (evt.description.length > 20
                                   ? `${evt.description.substring(0, 20)}...`
@@ -320,7 +304,7 @@ export default function Events() {
                             </p>
 
                             {/* Hover Buttons */}
-                            <div className="absolute top-24 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                            <div className="absolute top-27 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                               <Button
                                 size="sm"
                                 variant="default"
@@ -328,9 +312,9 @@ export default function Events() {
                                   e.stopPropagation();
                                   openEventModal(evt, 'view');
                                 }}
-                                className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer px-3 py-1"
+                                className="flex items-center gap-1 bg-indigo-500 hover:bg-indigo-600 text-white cursor-pointer"
                               >
-                                <Eye size={14} />
+                                <Eye size={16} />
                                 View
                               </Button>
                               <Button
@@ -340,66 +324,58 @@ export default function Events() {
                                   e.stopPropagation();
                                   openEventModal(evt, 'edit');
                                 }}
-                                className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white cursor-pointer px-3 py-1"
+                                className="flex items-center gap-1 bg-orange-500 hover:bg-orange-600 text-white cursor-pointer"
                               >
-                                <Edit size={14} />
+                                <Edit size={16} />
                                 Edit
                               </Button>
                             </div>
 
-                            <hr className="border-gray-200" />
+                            <hr className="border-gray-100" />
 
                             {/* Dates */}
-                            <div className="text-white text-sm space-y-2">
-                              <p className="flex items-center gap-2">
-                                <Clock size={16} className="inline" />
-                                <span className="font-semibold text-green-800">Start:</span>
-                                <span className="font-medium">
-                                  {formatDateTime(toDate(evt.start))}
-                                </span>
+                            <div className="text-gray-200 text-sm space-y-1">
+                              <p>
+                                <Clock size={14} className="inline mr-1" />
+                                <span className="font-medium text-gray-200">Start:</span>{' '}
+                                <span className="font-semibold text-gray-200">{toDate(evt.start)?.toLocaleString() || '—'}</span>
                               </p>
-                              <p className="flex items-center gap-2">
-                                <Clock size={16} className="inline" />
-                                <span className="font-semibold text-red-500">End:</span>
-                                <span className="font-medium">
+                              <p>
+                                <Clock size={14} className="inline mr-1" />
+                                <span className="font-medium text-gray-200">End:</span>{' '}
+                                <span className="font-semibold text-gray-200">
                                   {(() => {
                                     const startDate = toDate(evt.start);
                                     const endDate = toDate(evt.end);
-                                    if (endDate && !isNaN(endDate.getTime())) return formatDateTime(endDate);
+                                    if (endDate && !isNaN(endDate.getTime())) return endDate.toLocaleString();
                                     if (startDate && !isNaN(startDate.getTime()) && evt.durationMinutes) {
-                                      return formatDateTime(new Date(startDate.getTime() + evt.durationMinutes * 60000));
+                                      return new Date(startDate.getTime() + evt.durationMinutes * 60000).toLocaleString();
                                     }
                                     return '—';
                                   })()}
                                 </span>
                               </p>
-                              <Badge
-                                variant="secondary"
-                                className="uppercase text-xs font-semibold px-2 py-1 rounded-full bg-indigo-700 bg-opacity-50 text-cyan-900"
-                              >
-                                {evt.allDay ? 'All Day Event' : 'Session Event'}
-                              </Badge>
+                              {evt.allDay && <p className="text-gray-200 italic text-xs font-semibold">All Day Event</p>}
+                              {!evt.allDay && <p className="text-gray-200 italic text-xs font-semibold">Session Event</p>}
                             </div>
 
                             {/* Task Progress */}
                             {evt.tasks?.length > 0 && (
                               <div className="space-y-2">
-                                <div className="flex items-center justify-between text-xs font-semibold text-white">
+                                <div className="flex items-center justify-between text-xs font-medium text-gray-200">
                                   <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={16} className="text-green-700" />
+                                    <CheckCircle2 size={14} className="text-green-500" />
                                     {doneCount} / {totalCount} tasks complete
                                   </div>
-                                  <span className="text-sm font-bold text-white">{Math.round((doneCount / totalCount) * 100)}%</span>
+                                  <span className="text-xs text-gray-200">{Math.round((doneCount / totalCount) * 100)}%</span>
                                 </div>
-                                <div className="w-full bg-gray-300 h-2 rounded-full overflow-hidden">
+                                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                   <motion.div
                                     className="h-full bg-gradient-to-r from-green-400 to-green-600"
                                     style={{ width: `${(doneCount / totalCount) * 100}%` }}
                                     layout
                                     transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-                                  >
-                                    <span className="sr-only">{Math.round((doneCount / totalCount) * 100)}% complete</span>
-                                  </motion.div>
+                                  />
                                 </div>
                               </div>
                             )}

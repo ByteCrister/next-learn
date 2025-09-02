@@ -65,28 +65,13 @@ const cardStatusColors: Record<VEvent['eventStatus'], string> = {
   upcoming: "bg-gradient-to-br from-purple-300 to-indigo-600 text-white",
   inProgress: "bg-gradient-to-br from-orange-300 to-yellow-400 text-black",
   expired: "bg-gradient-to-br from-slate-300 to-gray-600 text-white",
-  completed: "bg-gradient-to-br from-teal-300 to-sky-600 text-white"
+  completed: "bg-gradient-to-br from-teal-300 to-green-600 text-white"
 };
 
 // Helper function to get card status color with fallback
 const getCardStatusColor = (status: VEvent['eventStatus']): string => {
   return cardStatusColors[status] || 'bg-gray-100 text-gray-800';
 };
-
-// Helper function to format date and time
-function formatDateTime(date: Date | undefined): string {
-  if (!date || isNaN(date.getTime())) return '—';
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  };
-  return date.toLocaleString('en-US', options);
-}
 
 export default function Events() {
   const { events, fetching, fetchEvents } = useEventsStore();
@@ -308,13 +293,13 @@ export default function Events() {
 
                           <CardContent className="px-6 pb-6 space-y-5">
                             <CardTitle className="text-xl font-extrabold text-white leading-tight">
-                              {evt.title.length > 15 ? `${evt.title.substring(0, 15)}...` : evt.title}
+                              {evt.title.length > 40 ? `${evt.title.substring(0, 40)}...` : evt.title}
                             </CardTitle>
                             {/* Description */}
                             <p className="line-clamp-4 text-white leading-relaxed text-base">
                               {evt.description
-                                ? (evt.description.length > 20
-                                  ? `${evt.description.substring(0, 20)}...`
+                                ? (evt.description.length > 80
+                                  ? `${evt.description.substring(0, 80)}...`
                                   : evt.description)
                                 : 'No description provided.'}
                             </p>
@@ -322,27 +307,27 @@ export default function Events() {
                             {/* Hover Buttons */}
                             <div className="absolute top-24 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
                               <Button
-                                size="sm"
+                                size="s"
                                 variant="default"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEventModal(evt, 'view');
                                 }}
-                                className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer px-3 py-1"
+                                className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
                               >
-                                <Eye size={14} />
+                                <Eye size={16} />
                                 View
                               </Button>
                               <Button
-                                size="sm"
+                                size="s"
                                 variant="default"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEventModal(evt, 'edit');
                                 }}
-                                className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white cursor-pointer px-3 py-1"
+                                className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
                               >
-                                <Edit size={14} />
+                                <Edit size={16} />
                                 Edit
                               </Button>
                             </div>
@@ -353,21 +338,21 @@ export default function Events() {
                             <div className="text-white text-sm space-y-2">
                               <p className="flex items-center gap-2">
                                 <Clock size={16} className="inline" />
-                                <span className="font-semibold text-green-800">Start:</span>
+                                <span className="font-semibold">Start:</span>
                                 <span className="font-medium">
-                                  {formatDateTime(toDate(evt.start))}
+                                  {toDate(evt.start)?.toLocaleString() || '—'}
                                 </span>
                               </p>
                               <p className="flex items-center gap-2">
                                 <Clock size={16} className="inline" />
-                                <span className="font-semibold text-red-500">End:</span>
+                                <span className="font-semibold">End:</span>
                                 <span className="font-medium">
                                   {(() => {
                                     const startDate = toDate(evt.start);
                                     const endDate = toDate(evt.end);
-                                    if (endDate && !isNaN(endDate.getTime())) return formatDateTime(endDate);
+                                    if (endDate && !isNaN(endDate.getTime())) return endDate.toLocaleString();
                                     if (startDate && !isNaN(startDate.getTime()) && evt.durationMinutes) {
-                                      return formatDateTime(new Date(startDate.getTime() + evt.durationMinutes * 60000));
+                                      return new Date(startDate.getTime() + evt.durationMinutes * 60000).toLocaleString();
                                     }
                                     return '—';
                                   })()}
@@ -375,7 +360,7 @@ export default function Events() {
                               </p>
                               <Badge
                                 variant="secondary"
-                                className="uppercase text-xs font-semibold px-2 py-1 rounded-full bg-indigo-700 bg-opacity-50 text-cyan-900"
+                                className="uppercase text-xs font-semibold px-2 py-1 rounded-full bg-indigo-700 bg-opacity-50"
                               >
                                 {evt.allDay ? 'All Day Event' : 'Session Event'}
                               </Badge>
@@ -386,12 +371,12 @@ export default function Events() {
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-xs font-semibold text-white">
                                   <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={16} className="text-green-700" />
+                                    <CheckCircle2 size={16} className="text-green-400" />
                                     {doneCount} / {totalCount} tasks complete
                                   </div>
                                   <span className="text-sm font-bold text-white">{Math.round((doneCount / totalCount) * 100)}%</span>
                                 </div>
-                                <div className="w-full bg-gray-300 h-2 rounded-full overflow-hidden">
+                                <div className="w-full bg-gray-300 h-3 rounded-full overflow-hidden">
                                   <motion.div
                                     className="h-full bg-gradient-to-r from-green-400 to-green-600"
                                     style={{ width: `${(doneCount / totalCount) * 100}%` }}

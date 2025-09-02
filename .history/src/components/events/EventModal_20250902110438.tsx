@@ -35,7 +35,11 @@ const schema = Yup.object().shape({
     .min(5, 'Title must be at least 5 characters')
     .required('Title is required'),
   start: Yup.date()
-    .required('Start date is required'),
+    .required('Start date is required')
+    .test('is-future', 'Event must be in the future', (value) => {
+      if (!value) return false;
+      return value.getTime() > Date.now();
+    }),
   durationMinutes: Yup.number()
     .min(1, 'Duration must be at least 1 minute')
     .required('Duration is required'),

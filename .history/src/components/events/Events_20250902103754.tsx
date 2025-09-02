@@ -308,13 +308,13 @@ export default function Events() {
 
                           <CardContent className="px-6 pb-6 space-y-5">
                             <CardTitle className="text-xl font-extrabold text-white leading-tight">
-                              {evt.title.length > 15 ? `${evt.title.substring(0, 15)}...` : evt.title}
+                              {evt.title.length > 20 ? `${evt.title.substring(0, 40)}...` : evt.title}
                             </CardTitle>
                             {/* Description */}
                             <p className="line-clamp-4 text-white leading-relaxed text-base">
                               {evt.description
-                                ? (evt.description.length > 20
-                                  ? `${evt.description.substring(0, 20)}...`
+                                ? (evt.description.length > 80
+                                  ? `${evt.description.substring(0, 80)}...`
                                   : evt.description)
                                 : 'No description provided.'}
                             </p>

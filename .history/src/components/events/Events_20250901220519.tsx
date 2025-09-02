@@ -52,7 +52,7 @@ const statusColors: Record<VEvent['eventStatus'], string> = {
   upcoming: "bg-blue-600 text-white",
   inProgress: "bg-amber-500 text-black",
   expired: "bg-red-600 text-white",
-  completed: "bg-green-600 text-white"
+  completed: "bg-purple-600 text-white"
 };
 
 // Helper function to get status color with fallback
@@ -65,7 +65,7 @@ const cardStatusColors: Record<VEvent['eventStatus'], string> = {
   upcoming: "bg-gradient-to-br from-purple-300 to-indigo-600 text-white",
   inProgress: "bg-gradient-to-br from-orange-300 to-yellow-400 text-black",
   expired: "bg-gradient-to-br from-slate-300 to-gray-600 text-white",
-  completed: "bg-gradient-to-br from-teal-300 to-sky-600 text-white"
+  completed: "bg-gradient-to-br from-teal-300 to-green-600 text-white"
 };
 
 // Helper function to get card status color with fallback
@@ -308,13 +308,13 @@ export default function Events() {
 
                           <CardContent className="px-6 pb-6 space-y-5">
                             <CardTitle className="text-xl font-extrabold text-white leading-tight">
-                              {evt.title.length > 15 ? `${evt.title.substring(0, 15)}...` : evt.title}
+                              {evt.title.length > 40 ? `${evt.title.substring(0, 40)}...` : evt.title}
                             </CardTitle>
                             {/* Description */}
                             <p className="line-clamp-4 text-white leading-relaxed text-base">
                               {evt.description
-                                ? (evt.description.length > 20
-                                  ? `${evt.description.substring(0, 20)}...`
+                                ? (evt.description.length > 80
+                                  ? `${evt.description.substring(0, 80)}...`
                                   : evt.description)
                                 : 'No description provided.'}
                             </p>

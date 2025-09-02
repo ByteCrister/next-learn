@@ -65,7 +65,7 @@ const cardStatusColors: Record<VEvent['eventStatus'], string> = {
   upcoming: "bg-gradient-to-br from-purple-300 to-indigo-600 text-white",
   inProgress: "bg-gradient-to-br from-orange-300 to-yellow-400 text-black",
   expired: "bg-gradient-to-br from-slate-300 to-gray-600 text-white",
-  completed: "bg-gradient-to-br from-teal-300 to-sky-600 text-white"
+  completed: "bg-gradient-to-br from-teal-300 to-green-600 text-white"
 };
 
 // Helper function to get card status color with fallback
@@ -308,13 +308,13 @@ export default function Events() {
 
                           <CardContent className="px-6 pb-6 space-y-5">
                             <CardTitle className="text-xl font-extrabold text-white leading-tight">
-                              {evt.title.length > 15 ? `${evt.title.substring(0, 15)}...` : evt.title}
+                              {evt.title.length > 40 ? `${evt.title.substring(0, 40)}...` : evt.title}
                             </CardTitle>
                             {/* Description */}
                             <p className="line-clamp-4 text-white leading-relaxed text-base">
                               {evt.description
-                                ? (evt.description.length > 20
-                                  ? `${evt.description.substring(0, 20)}...`
+                                ? (evt.description.length > 80
+                                  ? `${evt.description.substring(0, 80)}...`
                                   : evt.description)
                                 : 'No description provided.'}
                             </p>
@@ -353,21 +353,21 @@ export default function Events() {
                             <div className="text-white text-sm space-y-2">
                               <p className="flex items-center gap-2">
                                 <Clock size={16} className="inline" />
-                                <span className="font-semibold text-green-800">Start:</span>
+                                <span className="font-semibold">Start:</span>
                                 <span className="font-medium">
-                                  {formatDateTime(toDate(evt.start))}
+                                  {toDate(evt.start)?.toLocaleString() || '—'}
                                 </span>
                               </p>
                               <p className="flex items-center gap-2">
                                 <Clock size={16} className="inline" />
-                                <span className="font-semibold text-red-500">End:</span>
+                                <span className="font-semibold">End:</span>
                                 <span className="font-medium">
                                   {(() => {
                                     const startDate = toDate(evt.start);
                                     const endDate = toDate(evt.end);
-                                    if (endDate && !isNaN(endDate.getTime())) return formatDateTime(endDate);
+                                    if (endDate && !isNaN(endDate.getTime())) return endDate.toLocaleString();
                                     if (startDate && !isNaN(startDate.getTime()) && evt.durationMinutes) {
-                                      return formatDateTime(new Date(startDate.getTime() + evt.durationMinutes * 60000));
+                                      return new Date(startDate.getTime() + evt.durationMinutes * 60000).toLocaleString();
                                     }
                                     return '—';
                                   })()}
@@ -375,7 +375,7 @@ export default function Events() {
                               </p>
                               <Badge
                                 variant="secondary"
-                                className="uppercase text-xs font-semibold px-2 py-1 rounded-full bg-indigo-700 bg-opacity-50 text-cyan-900"
+                                className="uppercase text-xs font-semibold px-2 py-1 rounded-full bg-indigo-700 bg-opacity-50 text-cyan-200"
                               >
                                 {evt.allDay ? 'All Day Event' : 'Session Event'}
                               </Badge>
@@ -386,7 +386,7 @@ export default function Events() {
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-xs font-semibold text-white">
                                   <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={16} className="text-green-700" />
+                                    <CheckCircle2 size={16} className="text-green-400" />
                                     {doneCount} / {totalCount} tasks complete
                                   </div>
                                   <span className="text-sm font-bold text-white">{Math.round((doneCount / totalCount) * 100)}%</span>

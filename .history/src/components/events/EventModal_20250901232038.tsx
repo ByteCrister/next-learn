@@ -35,7 +35,11 @@ const schema = Yup.object().shape({
     .min(5, 'Title must be at least 5 characters')
     .required('Title is required'),
   start: Yup.date()
-    .required('Start date is required'),
+    .required('Start date is required')
+    .test('is-future', 'Event must be in the future', (value) => {
+      if (!value) return false;
+      return value.getTime() > Date.now();
+    }),
   durationMinutes: Yup.number()
     .min(1, 'Duration must be at least 1 minute')
     .required('Duration is required'),
@@ -43,16 +47,18 @@ const schema = Yup.object().shape({
   description: Yup.string()
     .max(500, 'Description cannot exceed 500 characters')
     .nullable(),
-  tasks: Yup.array().of(
-    Yup.object().shape({
-      title: Yup.string()
-        .required('Task title is required')
-        .min(1, 'Task title cannot be empty'),
-      description: Yup.string()
-        .nullable(),
-      isComplete: Yup.boolean()
-    })
-  )
+  tasks: Yup.array()
+    .min(1, 'An event must have at least one task')
+    .of(
+      Yup.object().shape({
+        title: Yup.string()
+          .required('Task title is required')
+          .min(1, 'Task title cannot be empty'),
+        description: Yup.string()
+          .nullable(),
+        isComplete: Yup.boolean()
+      })
+    )
 });
 
 export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: Props) {
@@ -60,6 +66,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
   const { createEventAction, updateEventAction, deleteEventAction, loading } = useEventsStore();
   const { updateEventInDashboard, deleteEventFromDashboard } = useDashboardStore();
   const [isConfirmOpen, setIsConfirmOpen] = React.useState(false);
+  const [backendError, setBackendError] = React.useState<string | null>(null);
 
   const defaults: VEvent = {
     _id: initial?._id,
@@ -78,8 +85,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
   };
 
   async function handleSubmit(values: VEvent) {
-    // Only validate future date for new events, not for editing existing events
-    if (!isEdit && new Date(values.start).getTime() <= Date.now()) {
+    if (new Date(values.start).getTime() <= Date.now()) {
       alert('Please select a date/time in the future.');
       return;
     }
@@ -192,7 +198,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                       </div>
                   )}
 
-                  {/* Enhanced Close Button */}
+                  {/* Enhanced Close Button 
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -201,7 +207,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                     className="p-2 bg-transparent rounded-xl hover:bg-white/30 transition-all duration-200 group"
                   >
                     <X size={18} className="text-white group-hover:text-red-500 transition-colors duration-200" />
-                  </motion.button> 
+                  </motion.button> */}
                 </div>
               </div>
             </div>
@@ -533,7 +539,7 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
                                     <Field
                                       type="checkbox"
                                       name={`tasks.${index}.isComplete`}
-                                      disabled={mode === 'view' || !(isEdit && new Date(values.start).getTime() <= Date.now())}
+                                      disabled={mode === 'view'}
                                       className="w-4 h-4 text-green-500 bg-neutral-100 border-neutral-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-neutral-800 focus:ring-2 dark:bg-neutral-700 dark:border-neutral-600"
                                     />
                                     <span className={`transition-colors ${
@@ -663,14 +669,6 @@ export default function EventModal({ initial, isOpen, onClose, mode = 'edit' }: 
         description="Are you sure you want to delete this event? This action cannot be undone."
       />
       
-      <style jsx global>{`
-        /* Hide the default Chadcn UI Dialog close button */
-        .hide-dialog-close-button button[aria-label="Close"],
-        .hide-dialog-close-button [data-radix-dialog-close],
-        .hide-dialog-close-button button[data-radix-dialog-close],
-        
-      `}</style>
-
     </>
   );
 }
