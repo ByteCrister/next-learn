@@ -1,6 +1,6 @@
 // src/utils/api/api.subjects.ts
 
-import { Subject, SubjectCounts, SubjectInput } from "@/types/types.subjects";
+import { Subject, SubjectCounts, SubjectInput, SubjectUpdateRes } from "@/types/types.subjects";
 import extractErrorData from "../helpers/extractErrorData";
 import api from "./api.client";
 import { VCourseRoadmap } from "@/types/types.roadmap";
@@ -85,10 +85,9 @@ export async function fetchSubjectById(
 export async function updateSubject(
     id: string,
     updates: Partial<SubjectInput>
-): Promise<Subject | { message: string }> {
+): Promise<SubjectUpdateRes | { message: string }> {
     try {
-        const { data } = await api.patch<Subject>(`${BASE_URL}/${id}`, updates);
-        console.log(`Updated subject ${id}`, updates);
+        const { data } = await api.patch<SubjectUpdateRes>(`${BASE_URL}/${id}`, updates);
         return data;
     } catch (err) {
         console.error("updateSubject error:", err);

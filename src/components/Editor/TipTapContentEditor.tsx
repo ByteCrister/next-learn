@@ -4,12 +4,11 @@ import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
-import ImageResize from 'tiptap-extension-resize-image';
-import DragHandle from '@tiptap/extension-drag-handle'
+import ImageResize from "tiptap-extension-resize-image";
+import DragHandle from "@tiptap/extension-drag-handle";
 import { useEffect, useState } from "react";
-import { Extension } from '@tiptap/core'
+import { Extension } from "@tiptap/core";
 import { keymap } from "prosemirror-keymap";
 import { sinkListItem, liftListItem } from "prosemirror-schema-list";
 
@@ -32,19 +31,22 @@ import {
 import "../../styles/editor.css";
 import { compressImageToBase64 } from "@/lib/compress-image";
 import ImageSizeAlert from "../alerts/ImageSizeAlert";
+import { CustomImage } from "./CustomImage";
+import TipTapContentEditorSkeleton from "./TipTapContentEditorSkeleton";
 
 const ListKeymapExtension = Extension.create({
-  name: 'listKeymap',
-
+  name: "listKeymap",
   addProseMirrorPlugins() {
     return [
       keymap({
-        Tab: (state, dispatch) => sinkListItem(state.schema.nodes.listItem)(state, dispatch),
-        'Shift-Tab': (state, dispatch) => liftListItem(state.schema.nodes.listItem)(state, dispatch),
+        Tab: (state, dispatch) =>
+          sinkListItem(state.schema.nodes.listItem)(state, dispatch),
+        "Shift-Tab": (state, dispatch) =>
+          liftListItem(state.schema.nodes.listItem)(state, dispatch),
       }),
-    ]
+    ];
   },
-})
+});
 
 interface TipTapEditorProps {
   content?: string;
@@ -71,12 +73,12 @@ export default function TipTapContentEditor({
       ListKeymapExtension,
       Underline,
       Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
-      Image,
+      CustomImage,
       ImageResize,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       DragHandle,
     ],
-    content: content || "<p></p>",
+    content: content,
     editable,
     immediatelyRender: false,
     onUpdate({ editor }) {
@@ -84,7 +86,6 @@ export default function TipTapContentEditor({
     },
   });
 
-  // if parent updates content (e.g., load), update editor
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
@@ -112,16 +113,28 @@ export default function TipTapContentEditor({
     input.click();
   };
 
-  if (!editor) return <div>Loading editor...</div>;
+  if (!editor) return <TipTapContentEditorSkeleton />;
 
-  function ToolbarButton({ icon, onClick, active, label }: { icon: React.ReactNode; onClick: () => void; active?: boolean; label: string }) {
+  function ToolbarButton({
+    icon,
+    onClick,
+    active,
+    label,
+  }: {
+    icon: React.ReactNode;
+    onClick: () => void;
+    active?: boolean;
+    label: string;
+  }) {
     return (
       <button
         type="button"
         onClick={onClick}
         aria-label={label}
         title={label}
-        className={`p-2 rounded-md transition-colors duration-150 ${active ? "bg-blue-600 text-white" : "hover:bg-gray-200 dark:hover:bg-gray-700"
+        className={`p-3 rounded-lg transition-all duration-150 flex items-center justify-center ${active
+            ? "bg-indigo-600 text-white shadow-md scale-105"
+            : "hover:bg-gray-200 dark:hover:bg-gray-700"
           }`}
       >
         {icon}
@@ -132,49 +145,82 @@ export default function TipTapContentEditor({
   return (
     <>
       <div className={className}>
-        <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 mb-3 flex flex-wrap gap-2 p-2 rounded-md shadow-sm">
-          <ToolbarButton label="Bold" icon={<FaBold />} active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} />
-          <ToolbarButton label="Italic" icon={<FaItalic />} active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} />
-          <ToolbarButton label="Underline" icon={<FaUnderline />} active={editor.isActive("underline")} onClick={() => editor.chain().focus().toggleUnderline().run()} />
-          <ToolbarButton label="Strikethrough" icon={<FaStrikethrough />} active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} />
-          <ToolbarButton label="Heading 1" icon={<FaHeading />} active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
-          <ToolbarButton label="Heading 2" icon={<FaHeading />} active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-          <ToolbarButton label="Bullet List" icon={<FaListUl />} active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} />
-          <ToolbarButton label="Ordered List" icon={<FaListOl />} active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
-          <ToolbarButton label="Align Left" icon={<FaAlignLeft />} active={editor.isActive({ textAlign: "left" })} onClick={() => editor.chain().focus().setTextAlign("left").run()} />
-          <ToolbarButton label="Align Center" icon={<FaAlignCenter />} active={editor.isActive({ textAlign: "center" })} onClick={() => editor.chain().focus().setTextAlign("center").run()} />
-          <ToolbarButton label="Align Right" icon={<FaAlignRight />} active={editor.isActive({ textAlign: "right" })} onClick={() => editor.chain().focus().setTextAlign("right").run()} />
+        {/* Responsive Toolbar */}
+        <div className="sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700 mb-3 p-2 rounded-xl shadow-sm overflow-x-auto flex gap-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600">
           <ToolbarButton
-            label="Heading 3"
-            icon={<FaHeading />}
-            active={editor.isActive("heading", { level: 3 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            label="Bold"
+            icon={<FaBold />}
+            active={editor.isActive("bold")}
+            onClick={() => editor.chain().focus().toggleBold().run()}
           />
           <ToolbarButton
-            label="Heading 4"
-            icon={<FaHeading />}
-            active={editor.isActive("heading", { level: 4 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+            label="Italic"
+            icon={<FaItalic />}
+            active={editor.isActive("italic")}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
           />
           <ToolbarButton
-            label="Heading 5"
-            icon={<FaHeading />}
-            active={editor.isActive("heading", { level: 5 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 5 }).run()}
+            label="Underline"
+            icon={<FaUnderline />}
+            active={editor.isActive("underline")}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
           />
           <ToolbarButton
-            label="Heading 6"
-            icon={<FaHeading />}
-            active={editor.isActive("heading", { level: 6 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 6 }).run()}
+            label="Strikethrough"
+            icon={<FaStrikethrough />}
+            active={editor.isActive("strike")}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
           />
-
-          <ToolbarButton label="Reset Alignment" icon={<FaUndo />} onClick={() => editor.chain().focus().unsetTextAlign().run()} />
+          <ToolbarButton
+            label="Heading 1"
+            icon={<FaHeading />}
+            active={editor.isActive("heading", { level: 1 })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          />
+          <ToolbarButton
+            label="Bullet List"
+            icon={<FaListUl />}
+            active={editor.isActive("bulletList")}
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+          />
+          <ToolbarButton
+            label="Ordered List"
+            icon={<FaListOl />}
+            active={editor.isActive("orderedList")}
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          />
+          <ToolbarButton
+            label="Align Left"
+            icon={<FaAlignLeft />}
+            active={editor.isActive({ textAlign: "left" })}
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          />
+          <ToolbarButton
+            label="Align Center"
+            icon={<FaAlignCenter />}
+            active={editor.isActive({ textAlign: "center" })}
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          />
+          <ToolbarButton
+            label="Align Right"
+            icon={<FaAlignRight />}
+            active={editor.isActive({ textAlign: "right" })}
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          />
+          <ToolbarButton
+            label="Reset Alignment"
+            icon={<FaUndo />}
+            onClick={() => editor.chain().focus().unsetTextAlign().run()}
+          />
           <ToolbarButton label="Insert Image" icon={<FaImage />} onClick={addImage} />
           <LinkButton editor={editor} />
         </div>
 
-        <EditorContent editor={editor} className="ProseMirror min-h-[220px] max-w-full" />
+        {/* Editor Content */}
+        <EditorContent
+          editor={editor}
+          className="ProseMirror min-h-[250px] max-w-full rounded-md focus:outline-none"
+        />
       </div>
       <ImageSizeAlert isOpen={showImageAlert} setIsOpen={setShowImageAlert} />
     </>
@@ -222,7 +268,12 @@ function LinkButton({ editor }: { editor: Editor | null }) {
             onKeyDown={(e) => e.key === "Enter" && setLink()}
             autoFocus
           />
-          <button onClick={setLink} className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition">Set</button>
+          <button
+            onClick={setLink}
+            className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+          >
+            Set
+          </button>
           <button
             onClick={() => {
               unsetLink();

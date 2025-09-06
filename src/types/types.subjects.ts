@@ -1,3 +1,5 @@
+// types/types.subjects.ts
+
 export interface SubjectInput {
     title: string;
     code: string;
@@ -14,6 +16,8 @@ export interface Subject {
     updatedAt: string;
     selectedSubjectCounts?: SubjectCounts;
 }
+
+export type SubjectUpdateRes = Omit<Subject, "selectedSubjectCounts">;
 
 export interface SubjectCounts {
     notes: number;

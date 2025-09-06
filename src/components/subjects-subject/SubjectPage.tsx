@@ -1,209 +1,382 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { useSubjectStore } from "@/store/useSubjectsStore";
-
-import { Button } from "@/components/ui/button";
-import { Pencil, Eye, Map } from "lucide-react";
-
-import { SubjectInput } from "@/types/types.subjects";
+import {
+    FaBook,
+    FaLink,
+    FaStickyNote,
+    FaListUl,
+    FaEdit,
+    FaTrash,
+    FaSave,
+    FaPenFancy,
+    FaCode,
+    FaAlignLeft,
+} from "react-icons/fa";
+import RoadmapViewer from "@/components/subjects-subject/RoadmapViewer";
+import CountBadge from "@/components/subjects-subject/CountBadge";
+import { Subject } from "@/types/types.subjects";
+import { motion, AnimatePresence } from "framer-motion";
+import "../../styles/roadmap-viewer.css";
+import TipTapEditor from "../Editor/TipTapEditor";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
-import EditSubjectForm from "./EditSubjectForm";
-import SubjectCounts from "./SubjectBadges";
-import SubjectPageLoading from "./SubjectPageLoading";
-import { ShareSubjectButton } from "./ShareSubjectButton";
-import { useDashboardStore } from "@/store/useDashboardStore";
-import RoadmapInfoDialog from "./RoadmapInfoCard";
-import RoadmapContentBlock from "./RoadmapContentBlock";
-import SubjectViewDialog from "./SubjectViewDialog";
+import SubjectPageSkeleton from "./SubjectPageSkeleton";
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
-        fetchSubjectById,
         selectedSubject,
         selectedRoadmap,
-        loadingSelectedSubject,
+        fetchSubjectById,
         editSubject,
         removeSubject,
-        createRoadmap,
-        editRoadmap,
         updateRoadmapContent,
-        deleteRoadmap,
-        loadingSubCrud,
+        loadingSelectedSubject,
     } = useSubjectStore();
-    const { updateCounts } = useDashboardStore();
+
+    const [editMode, setEditMode] = useState(false);
+    const [formData, setFormData] = useState<Partial<Subject>>({});
+    const [roadmapContent, setRoadmapContent] = useState("");
+    const [viewMode, setViewMode] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { setBreadcrumbs } = useBreadcrumbStore();
-
-    const [subjectForm, setSubjectForm] = useState<SubjectInput>({
-        title: "",
-        code: "",
-        description: "",
-    });
-    const [roadmapTitle, setRoadmapTitle] = useState("");
-    const [roadmapDescription, setRoadmapDescription] = useState("");
-    const [roadmapContent, setRoadmapContent] = useState<string>("");
-    const [viewRoadmapMode, setViewRoadmapMode] = useState(false);
-
-    const [openRoadmap, setOpenRoadmap] = useState(false);
-    const [openView, setOpenView] = useState(false);
 
     useEffect(() => {
         fetchSubjectById(subjectId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [subjectId, fetchSubjectById]);
 
     useEffect(() => {
         if (selectedSubject) {
-            setSubjectForm({
+            setFormData({
                 title: selectedSubject.title,
                 code: selectedSubject.code,
-                description: selectedSubject.description || "",
+                description: selectedSubject.description,
             });
         }
         if (selectedRoadmap) {
-            setRoadmapTitle(selectedRoadmap.title || "");
-            setRoadmapDescription(selectedRoadmap.description || "");
-            setRoadmapContent(selectedRoadmap.roadmap || "");
+            setRoadmapContent(selectedRoadmap.roadmap);
         }
         setBreadcrumbs([
-            { label: 'Home', href: '/' },
-            { label: 'Subjects', href: '/subjects' },
-            { label: `${selectedSubject?.title ?? '-'}`, href: `/subjects/${selectedSubject?._id}` },
+            { label: "Home", href: "/" },
+            { label: "Subjects", href: "/subjects" },
+            {
+                label: `${selectedSubject?.title ?? "-"}`,
+                href: `/subjects/${selectedSubject?._id}`,
+            },
         ]);
-    }, [selectedRoadmap, selectedSubject, setBreadcrumbs]);
+    }, [selectedSubject, selectedRoadmap, setBreadcrumbs]);
 
-    if (loadingSelectedSubject) return <SubjectPageLoading />
+    const handleSaveSubject = async () => {
+        // Check if there are changes
+        const hasChanges =
+            formData.title !== selectedSubject?.title ||
+            formData.code !== selectedSubject?.code ||
+            formData.description !== selectedSubject?.description;
 
-    if (!selectedSubject) {
+        if (!hasChanges) {
+            // No update, just exit edit mode
+            setEditMode(false);
+            return;
+        }
+
+        // Only call API if something changed
+        await editSubject(subjectId, formData);
+        setEditMode(false);
+    };
+
+
+    const handleDeleteSubject = async () => {
+        await removeSubject(subjectId);
+        setShowDeleteModal(false);
+    };
+
+    const handleSaveContent = async () => {
+        if (!selectedRoadmap?._id) return;
+        await updateRoadmapContent(selectedRoadmap._id, roadmapContent);
+    };
+
+    if (loadingSelectedSubject) {
         return (
-            <div className="flex justify-center items-center h-screen text-gray-500">
-                No subject found.
-            </div>
+            <SubjectPageSkeleton />
         );
     }
 
-    const handleSubjectUpdate = () =>
-        editSubject(selectedSubject._id, subjectForm);
-
-    const handleDeleteSubject = async () => {
-        const isRemoved = await removeSubject(selectedSubject._id)
-        if (isRemoved) updateCounts('subjectsCount', '-')
-    };
-
-    const handleRoadmapSave = async () => {
-        if (selectedRoadmap?._id) {
-            await editRoadmap({
-                roadmapId: selectedRoadmap._id,
-                title: roadmapTitle,
-                description: roadmapDescription,
-            });
-        } else {
-            await createRoadmap(selectedSubject._id, {
-                title: roadmapTitle || "Roadmap title",
-                description: roadmapDescription || "Provide roadmap description",
-            });
-        }
-    };
-
-    const handleSaveContent = () =>
-        updateRoadmapContent(selectedRoadmap?._id ?? "", roadmapContent);
-
-    const handleDeleteRoadmap = async () => {
-        await deleteRoadmap(selectedRoadmap?._id ?? '');
+    if (!selectedSubject) {
+        return (
+            <p className="text-center mt-10 text-red-500 font-semibold">
+                Subject not found.
+            </p>
+        );
     }
 
     return (
-        <>
-            <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-white space-y-10 rounded-2xl">
-                {/* --- Top Right Action Buttons --- */}
-                <nav aria-label="Subject actions" className="mb-4 sm:mb-6">
-                    <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={() => setOpenView(true)}
-                            aria-label="View"
-                            className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+        <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="max-w-6xl mx-auto px-6 py-10 font-sans"
+        >
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+                <AnimatePresence mode="wait">
+                    {editMode ? (
+                        <motion.input
+                            key="edit-title"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="text-2xl sm:text-3xl font-bold border-b-2 border-indigo-300 focus:outline-none px-2 py-1 bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent w-full caret-black"
+                            value={formData.title || ""}
+                            onChange={(e) =>
+                                setFormData({ ...formData, title: e.target.value })
+                            }
+                        />
+                    ) : (
+                        <motion.h1
+                            key="view-title"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="text-2xl sm:text-3xl font-extrabold text-gray-900 flex items-center gap-2 w-full"
                         >
-                            <Eye className="h-4 w-4" />
-                            <span>View</span>
-                        </Button>
+                            <FaBook className="text-indigo-500" /> {selectedSubject.title}
+                        </motion.h1>
+                    )}
+                </AnimatePresence>
 
-                        <Button
-                            variant="outline"
-                            onClick={() => setOpenRoadmap(true)}
-                            aria-label="Open roadmap"
-                            className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
-                        >
-                            <Map className="h-4 w-4" />
-                            <span>Roadmap</span>
-                        </Button>
+                {/* Header Buttons */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-4 sm:mt-0">
+                    <motion.a
+                        href={`/subjects/${subjectId}/read`} // replace with your read page route
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 rounded-lg 
+                   bg-gradient-to-r from-green-500 to-teal-600 text-white shadow hover:shadow-lg 
+                   transition-all text-sm md:text-base font-semibold"
+                    >
+                        <FaBook /> Read
+                    </motion.a>
 
-                        {selectedRoadmap?._id && (
-                            <Button
-                                variant="outline"
-                                onClick={() => setViewRoadmapMode(prev => !prev)}
-                                aria-label="Edit roadmap"
-                                className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
-                            >
-                                <Pencil className="h-4 w-4" />
-                                <span>Edit Roadmap</span>
-                            </Button>
-                        )}
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={async () => {
+                            setEditMode(!editMode);
+                            if (editMode) {
+                                await handleSaveSubject();
+                            }
+                        }}
+                        className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 rounded-lg 
+                   bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow hover:shadow-lg 
+                   transition-all text-sm md:text-base font-semibold"
+                    >
+                        {editMode ? <FaSave /> : <FaEdit />}
+                        {editMode ? "Save" : "Edit"}
+                    </motion.button>
 
-                        {/* If ShareSubjectButton doesn't accept className, wrap it */}
-                        <div className="w-full sm:w-auto">
-                            <ShareSubjectButton subjectId={subjectId} />
-                        </div>
-                    </div>
-                </nav>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowDeleteModal(true)}
+                        className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 rounded-lg 
+                   bg-gradient-to-r from-red-500 to-pink-600 text-white shadow hover:shadow-lg 
+                   transition-all text-sm md:text-base font-semibold"
+                    >
+                        <FaTrash /> Delete
+                    </motion.button>
+                </div>
 
-
-                {(selectedRoadmap?._id && viewRoadmapMode) && (
-                    <RoadmapContentBlock
-                        roadmapContent={roadmapContent}
-                        setRoadmapContent={setRoadmapContent}
-                        handleSaveContent={handleSaveContent}
-                    />
-                )}
-
-                {/* Subject Form */}
-                <EditSubjectForm
-                    subjectForm={subjectForm}
-                    setSubjectForm={setSubjectForm}
-                    onUpdate={handleSubjectUpdate}
-                    onDelete={handleDeleteSubject}
-                    loading={loadingSubCrud}
-                />
-
-                {/* Counts */}
-                <SubjectCounts
-                    subjectId={subjectId}
-                    subjectCounts={selectedSubject?.selectedSubjectCounts || null}
-                    loading={loadingSelectedSubject}
-                />
             </div>
 
-            {/* Dialog with form */}
-            <RoadmapInfoDialog
-                open={openRoadmap}
-                onOpenChange={setOpenRoadmap}
-                roadmapTitle={roadmapTitle}
-                setRoadmapTitle={setRoadmapTitle}
-                roadmapDescription={roadmapDescription}
-                setRoadmapDescription={setRoadmapDescription}
-                handleRoadmapSave={handleRoadmapSave}
-                loading={loadingSubCrud}
-                showDelete={!!selectedRoadmap}
-                onDeleteRoadmap={handleDeleteRoadmap}
-                loadingDelete={loadingSubCrud}
-            />
+            {/* Subject Code & Description */}
+            <div className="mb-6 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                <AnimatePresence mode="wait">
+                    {editMode ? (
+                        <motion.div
+                            key="edit-section"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="space-y-4"
+                        >
+                            <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+                                <FaCode className="text-indigo-400" />
+                                <input
+                                    className="flex-1 focus:outline-none px-2 py-1 text-gray-800"
+                                    value={formData.code || ""}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, code: e.target.value })
+                                    }
+                                    placeholder="Subject Code"
+                                />
+                            </div>
 
-            <SubjectViewDialog
-                open={openView}
-                onOpenChange={(s: boolean) => setOpenView(s)}
-            />
-        </>
+                            <div className="flex items-start gap-2">
+                                <FaAlignLeft className="text-indigo-400 mt-2" />
+                                <textarea
+                                    className="flex-1 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-300"
+                                    rows={3}
+                                    value={formData.description || ""}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    placeholder="Description..."
+                                />
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="view-section"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                        >
+                            <p className="text-gray-500 font-mono">{selectedSubject.code}</p>
+                            <p className="mt-2 text-gray-700 leading-relaxed">
+                                {selectedSubject.description}
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Counts */}
+            <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                        opacity: 1,
+                        transition: { staggerChildren: 0.15 },
+                    },
+                }}
+            >
+                <CountBadge
+                    subjectId={subjectId}
+                    icon={<FaStickyNote size={20} />}
+                    label="Notes"
+                    count={selectedSubject.selectedSubjectCounts?.notes || 0}
+                />
+                <CountBadge
+                    subjectId={subjectId}
+                    icon={<FaLink size={20} />}
+                    label="External Links"
+                    count={selectedSubject.selectedSubjectCounts?.externalLinks || 0}
+                />
+                <CountBadge
+                    subjectId={subjectId}
+                    icon={<FaBook size={20} />}
+                    label="Study Materials"
+                    count={selectedSubject.selectedSubjectCounts?.studyMaterials || 0}
+                />
+                <CountBadge
+                    subjectId={subjectId}
+                    icon={<FaListUl size={20} />}
+                    label="Chapters"
+                    count={selectedSubject.selectedSubjectCounts?.chapters || 0}
+                />
+            </motion.div>
+
+            {/* Roadmap */}
+            <div className="mt-10">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-semibold flex items-center gap-2 text-gray-900">
+                        <FaPenFancy className="text-indigo-500" /> Roadmap
+                    </h2>
+
+                    {/* Edit Roadmap Button */}
+                    {viewMode && (
+                        <button
+                            onClick={() => setViewMode(false)}
+                            className="px-4 py-2 flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg shadow hover:shadow-lg transition-all text-sm md:text-base font-semibold"
+                        >
+                            <FaEdit /> Edit Roadmap
+                        </button>
+                    )}
+                </div>
+
+                <AnimatePresence mode="wait">
+                    {viewMode ? (
+                        <motion.div
+                            key="viewer"
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <RoadmapViewer htmlContent={roadmapContent} />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="editor"
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <TipTapEditor
+                                content={roadmapContent}
+                                onChange={setRoadmapContent}
+                                handleSave={async () => {
+                                    await handleSaveContent();
+                                    setViewMode(true);
+                                }}
+                                handleCancel={() => setViewMode(true)} // toggle back to view mode
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Confirm Delete Modal */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full text-center"
+                        >
+                            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                                Confirm Delete
+                            </h3>
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete{" "}
+                                <span className="font-bold text-red-500">
+                                    {selectedSubject.title}
+                                </span>
+                                ? This action cannot be undone.
+                            </p>
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleDeleteSubject}
+                                    className="px-4 py-2 flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-500 to-pink-600 text-white hover:shadow-lg transition-all"
+                                >
+                                    <FaTrash /> Delete
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 

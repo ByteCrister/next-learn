@@ -1,47 +1,78 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import TipTapContentEditor from "./TipTapContentEditor";
+import { FaSave, FaUndo, FaTimes } from "react-icons/fa";
 
 interface EditorProps {
-  content: string; // initial intro content
+  content: string;
   onChange: (html: string) => void;
   handleSave: (introContent: string) => void;
+  handleCancel: () => void; // new prop for cancel button
 }
 
 const TipTapEditor = ({
-  content = "<p></p>",
+  content,
   onChange,
   handleSave,
+  handleCancel,
 }: EditorProps) => {
-  return (
-    <main className="max-w-4xl mx-auto p-8 space-y-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg transition-colors duration-300">
+  // Keep track of the original content
+  const [originalContent, setOriginalContent] = useState(content);
 
-      {/* Intro Section */}
-      <section>
-        <label
-          htmlFor="intro-content"
-          className="block mb-3 text-lg font-semibold text-gray-700 dark:text-gray-300"
+  // Update original content if the prop changes
+  useEffect(() => {
+    setOriginalContent(content);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = () => {
+    onChange(originalContent);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto my-12">
+      {/* Header */}
+      <header className="flex items-end justify-end mb-6 gap-3">
+        {/* Reset Button */}
+        <Button
+          onClick={handleReset}
+          className="inline-flex items-center gap-2 bg-gray-500 hover:bg-gray-600 active:bg-gray-700 focus:ring-4 focus:ring-gray-300 text-white font-medium px-5 py-2 rounded-lg shadow-md transition"
         >
-          Editor
-        </label>
+          <FaUndo className="text-white" />
+          Reset
+        </Button>
+
+        {/* Cancel Button */}
+        <Button
+          onClick={handleCancel}
+          className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 focus:ring-4 focus:ring-red-300 text-white font-medium px-5 py-2 rounded-lg shadow-md transition"
+        >
+          <FaTimes className="text-white" />
+          Cancel
+        </Button>
+
+        {/* Save Button */}
+        <Button
+          onClick={() => handleSave(content)}
+          className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 text-white font-medium px-5 py-2 rounded-lg shadow-md transition"
+        >
+          <FaSave className="text-white" />
+          Save Changes
+        </Button>
+      </header>
+
+      {/* Editor Container */}
+      <div className="prose prose-indigo dark:prose-invert max-w-none border border-gray-200 dark:border-gray-700 rounded-lg p-6 focus-within:ring-2 focus-within:ring-indigo-500 transition-shadow duration-200 shadow-sm hover:shadow-lg">
         <TipTapContentEditor
           content={content}
           onChange={onChange}
-          className="prose prose-lg prose-blue max-w-full border border-gray-300 dark:border-gray-700 rounded-lg p-5 min-h-[250px] shadow-sm dark:prose-invert transition-colors duration-300"
+          className="min-h-[320px]"
         />
-      </section>
-
-      {/* Save Button */}
-      <Button
-        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold px-6 py-3 rounded-md shadow-md transition duration-200"
-        onClick={() => handleSave(content)}
-      >
-        Save
-      </Button>
-    </main>
+      </div>
+    </div>
   );
-}
+};
 
 export default TipTapEditor;

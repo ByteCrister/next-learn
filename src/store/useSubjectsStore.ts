@@ -119,6 +119,7 @@ export const useSubjectStore = create<SubjectStore>()(
             set({ loadingSubCrud: true });
             try {
                 const data = await updateSubject(id, updates);
+                console.log(data);
                 if ("message" in data) {
                     set({ loadingSubCrud: false });
                     toast.error(data.message);
@@ -126,8 +127,9 @@ export const useSubjectStore = create<SubjectStore>()(
                 }
                 set((state) => ({
                     subjects: state.subjects.map((sub) =>
-                        sub._id === id ? data : sub
+                        sub._id.toString() === id ? data : sub
                     ),
+                    selectedSubject: { ...data },
                     loadingSubCrud: false,
                 }));
                 toast.success('Subject updated successfully.')
