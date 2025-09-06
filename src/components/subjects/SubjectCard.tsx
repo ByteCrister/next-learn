@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { HiOutlineArrowNarrowRight } from "react-icons/hi";
@@ -38,6 +38,7 @@ const COLOR_GRADIENTS = [
 
 export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
   const [fromColor, toColor] = COLOR_GRADIENTS[index % COLOR_GRADIENTS.length];
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   return (
     <motion.div
@@ -51,7 +52,6 @@ export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
       className="transition-transform"
     >
       <Link href={`/subjects/${subject._id}`}>
-        {/* Gradient Border Wrapper */}
         <div
           className={cn(
             "relative rounded-2xl p-[2px] bg-gradient-to-br",
@@ -60,29 +60,24 @@ export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
             "shadow-lg hover:shadow-xl transition-all duration-300"
           )}
         >
-          <Card
-            className={cn(
-              "relative rounded-2xl border-0 bg-white backdrop-blur-sm"
-            )}
-          >
+          <Card className="relative rounded-2xl border-0 bg-white backdrop-blur-sm h-[320px] flex flex-col justify-between">
             <CardHeader>
               <CardTitle
                 className={cn(
-                  "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r",
-                  fromColor,
-                  toColor,
+                  "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r truncate",
                   poppins.className
                 )}
+                title={subject.title} // shows full title on hover
               >
                 {subject.title}
               </CardTitle>
 
+              {/* Badge for subject code */}
               {subject.code && (
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "mt-2 font-medium text-white shadow-md",
-                    "bg-gradient-to-r",
+                    "mt-2 font-medium text-white shadow-md bg-gradient-to-r",
                     fromColor,
                     toColor
                   )}
@@ -93,10 +88,24 @@ export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
               )}
             </CardHeader>
 
+            {/* Description with "more" toggle */}
             {subject.description && (
-              <CardContent>
-                <CardDescription className="text-gray-700 line-clamp-3 leading-relaxed">
-                  {subject.description}
+              <CardContent className="flex-1">
+                <CardDescription className="text-gray-700 leading-relaxed">
+                  {showFullDescription ? subject.description : (
+                    <span className="line-clamp-3">{subject.description}</span>
+                  )}
+                  {subject.description.length > 100 && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault(); // prevents link click
+                        setShowFullDescription(!showFullDescription);
+                      }}
+                      className="ml-1 text-blue-500 hover:underline text-sm"
+                    >
+                      {showFullDescription ? "less" : "more"}
+                    </button>
+                  )}
                 </CardDescription>
               </CardContent>
             )}

@@ -1,7 +1,10 @@
+import RoutinePage from '@/components/routine/RoutinePage'
+import { inter } from '@/utils/helpers/fonts'
 
-const RoutinePage = () => {
+export default function Routine() {
     return (
-        <div>Routine page</div>
+        <main className={`${inter.variable} font-sans`}>
+            <RoutinePage />
+        </main>
     )
 }
-export default RoutinePage;

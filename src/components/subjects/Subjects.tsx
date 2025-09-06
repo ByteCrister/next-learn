@@ -100,8 +100,8 @@ export default function Subjects() {
       </header>
 
       {/* Total Section Heading */}
-      <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-5 tracking-wide">       
-         Total
+      <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-5 tracking-wide">
+        Total
       </h2>
 
       {/* Stats Cards */}

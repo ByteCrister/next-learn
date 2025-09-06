@@ -21,6 +21,7 @@ const PUBLIC_ROUTES = [
 const PUBLIC_APIS = [
     /^\/api\/view\/subject$/,    // GET /api/view/subject
     /^\/api\/view\/note$/,       // GET /api/view/note
+    /^\/api\/view-routine$/,       // GET /api/view-routine
     // /^\/api\/make-admin$/,       // POST /api/make-admin
 ];
 

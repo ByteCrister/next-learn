@@ -10,9 +10,9 @@ import { User } from "@/models/User";
 import { Event } from "@/models/Event";
 import { DashboardData } from "@/types/types.dashboard";
 import { Subject } from "@/models/Subject";
-import { Routine } from "@/models/Routine";
 import ExamModel from "@/models/ExamModel";
 import { VEventOverview } from "@/types/types.events";
+import Routine from "@/models/Routine";
 
 function errorResponse(
     message: string = "Internal Server Error",
