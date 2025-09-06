@@ -14,6 +14,7 @@ import BodySkeleton from "./BodySkeleton";
 import ErrorBody from "./ErrorBody";
 import ContentTabs from "./ContentTabs";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
+import { decodeId } from "@/utils/helpers/IdConversion";
 
 // ---------- Types ----------
 type ViewData = { subject: SubjectDTO; roadmap: CourseRoadmapDTO | null };
@@ -32,7 +33,7 @@ export default function ViewSubjectPage() {
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const { slug } = useParams(); // slug will be "68977baa-0edaacbf-608660b5"
-  const subjectId = typeof slug === "string" ? slug.replace(/-/g, "") : "";
+  const subjectId = decodeId(slug as string);
 
   const load = React.useCallback(async () => {
     setLoading(true);

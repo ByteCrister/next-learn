@@ -22,6 +22,7 @@ import "../../styles/roadmap-viewer.css";
 import TipTapEditor from "../Editor/TipTapEditor";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import SubjectPageSkeleton from "./SubjectPageSkeleton";
+import ShareButton from "./ShareButton";
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
@@ -184,8 +185,9 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                     >
                         <FaTrash /> Delete
                     </motion.button>
+                    {/* Share Button */}
+                    <ShareButton SubjectId={subjectId} />
                 </div>
-
             </div>
 
             {/* Subject Code & Description */}
