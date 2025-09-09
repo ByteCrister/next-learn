@@ -1,8 +1,8 @@
-import ViewShareSubject from "@/components/view-share-subject/ViewShareSubject"
+import React from 'react'
 
 const page = () => {
   return (
-    <ViewShareSubject />
+    <div>subject</div>
   )
 }
 

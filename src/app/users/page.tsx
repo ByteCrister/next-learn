@@ -1,8 +1,8 @@
-import UsersPage from "@/components/users/UsersPage"
+import React from 'react'
 
 const page = () => {
   return (
-    <UsersPage />
+    <div>users</div>
   )
 }
 
