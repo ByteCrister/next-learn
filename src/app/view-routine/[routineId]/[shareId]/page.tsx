@@ -7,13 +7,18 @@ interface PageProps {
         shareId: string;
     };
 }
+
 const page = async ({ params }: PageProps) => {
+    // Destructure params
     const { routineId, shareId } = await params;
-    const decodedRoutineId = decodeId(routineId)
-    const decodedShareId = decodeId(shareId)
+
+    // Decode URL encoding first (turn %7C back into |)  and then decode the obfuscation format
+    const decodedRoutineId = decodeId(decodeURIComponent(routineId));
+    const decodedShareId = decodeId(decodeURIComponent(shareId));
+
     return (
         <ViewRoutine params={{ routineId: decodedRoutineId, shareId: decodedShareId }} />
-    )
-}
+    );
+};
 
-export default page
+export default page;

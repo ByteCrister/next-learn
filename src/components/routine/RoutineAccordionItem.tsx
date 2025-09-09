@@ -32,18 +32,22 @@ export default function RoutineAccordionItem({
     const [copied, setCopied] = useState(false)
 
     const handleShare = async () => {
-        try {
-            const encodedRoutineId = encodeId(routine.id)
-            const encodedShareId = encodeId(routine.shareId)
-            const url = `${window.location.origin}/view-routine/${encodedRoutineId}/${encodedShareId}`
-            console.log(routine);
-            await navigator.clipboard.writeText(url)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000) // reset after 2s
-        } catch (err) {
-            console.error('Failed to copy link:', err)
+        if (!routine?.id || !routine?.shareId) {
+            console.error('Routine data not ready');
+            return;
         }
-    }
+        try {
+            const encodedRoutineId = encodeId(routine.id);
+            const encodedShareId = encodeId(routine.shareId);
+            const url = `${window.location.origin}/view-routine/${encodedRoutineId}/${encodedShareId}`;
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+        }
+    };
+
 
     return (
         <AccordionItem value={routine.id} className="px-2">
