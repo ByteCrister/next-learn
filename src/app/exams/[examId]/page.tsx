@@ -1,8 +1,8 @@
-import ExamDetailClient from "@/components/exams/ExamDetailClient"
+import React from 'react'
 
 const page = () => {
   return (
-    <ExamDetailClient />
+    <div>exam by id</div>
   )
 }
 

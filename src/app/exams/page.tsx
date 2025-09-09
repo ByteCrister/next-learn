@@ -1,8 +1,8 @@
-import ExamsClient from "@/components/exams/ExamsClient"
+import React from 'react'
 
 const page = () => {
   return (
-    <ExamsClient />
+    <div>exams</div>
   )
 }
 
