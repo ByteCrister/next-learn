@@ -18,6 +18,7 @@ export interface SlotDto {
 
 /** Collection of slots for one weekday */
 export interface DayRoutineDto {
+    _id: boolean;
     /** 0 = Sunday … 6 = Saturday */
     dayOfWeek: number;
 

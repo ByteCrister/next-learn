@@ -176,9 +176,32 @@ export async function PUT(req: NextRequest) {
         if (payload.description && typeof payload.description !== 'string') {
             return NextResponse.json({ message: 'Description must be a string' }, { status: 400 })
         }
-        if (payload.days && (!Array.isArray(payload.days) || payload.days.some(day => typeof day !== 'string'))) {
-            return NextResponse.json({ message: 'Days must be an array of strings' }, { status: 400 })
+        if (payload.days) {
+            if (!Array.isArray(payload.days)) {
+                return NextResponse.json({ message: 'Days must be an array' }, { status: 400 })
+            }
+
+            for (const [i, day] of payload.days.entries()) {
+                if (
+                    typeof day.dayOfWeek !== 'number' ||
+                    day.dayOfWeek < 0 ||
+                    day.dayOfWeek > 6
+                ) {
+                    return NextResponse.json(
+                        { message: `days[${i}].dayOfWeek must be an integer between 0 and 6` },
+                        { status: 400 }
+                    )
+                }
+
+                if (!Array.isArray(day.slots)) {
+                    return NextResponse.json(
+                        { message: `days[${i}].slots must be an array` },
+                        { status: 400 }
+                    )
+                }
+            }
         }
+
 
         await ConnectDB()
         const updated = await Routine.findOneAndUpdate(
