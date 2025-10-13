@@ -14,7 +14,7 @@ const Breadcrumbs = () => {
     /^\/$/,                 // Home
     /^\/signin/,
     /^\/signup/,
-    /^\/reset/,
+    /^\/reset-password/,
     /^\/features/,
     /^\/how-to-use/,
     /^\/about/,

@@ -264,7 +264,7 @@ export default function SignInPage() {
               <p className="text-gray-500 dark:text-gray-400">
                 Forgot Password?{" "}
                 <Link
-                  href="/reset"
+                  href="/reset-password"
                   className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
                   Reset

@@ -1,8 +1,8 @@
-import ExamsClient from "@/components/exams/ExamsClient"
+import ExamsPage from "@/components/exams/ExamsPage"
 
 const page = () => {
   return (
-    <ExamsClient />
+    <ExamsPage />
   )
 }
 

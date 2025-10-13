@@ -79,7 +79,7 @@ export default function JoinExamPage({ params }: { params: { slug: string } }) {
     }, [params.slug]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        setForm({ ...form, [e.target.name]: e.target.value.trim() });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {

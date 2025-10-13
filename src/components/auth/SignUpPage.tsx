@@ -348,7 +348,7 @@ export default function SignUpPage() {
 
                                     {/* Forgot Password */}
                                     <Link
-                                        href="/reset"
+                                        href="/reset-password"
                                         className="group relative inline-flex items-center font-medium
                text-[color:var(--reset-color)] dark:text-[color:var(--reset-color-dark)]
                transition-colors duration-200 ease-out
