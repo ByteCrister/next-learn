@@ -1,8 +1,8 @@
-import ExamDetailClient from "@/components/exams/ExamDetailClient"
+import ExamDetails from "@/components/exams/ExamDetails"
 
 const page = () => {
   return (
-    <ExamDetailClient />
+    <ExamDetails />
   )
 }
 

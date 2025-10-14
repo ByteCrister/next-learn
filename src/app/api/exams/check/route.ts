@@ -2,8 +2,8 @@
 import mongoose from "mongoose";
 import ExamModel, { IExamValidationRule } from "@/models/ExamModel";
 import ConnectDB from "@/config/ConnectDB";
-import { cryptoHash } from "@/utils/helpers/cryptoHash";
 import { NextRequest, NextResponse } from "next/server";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 
 export async function GET(req: NextRequest) {
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
 
         // 5. Hash the title before sending back
         const examObj = exam.toObject();
-        examObj.examCode = cryptoHash(exam.examCode);
+        examObj.examCode = encodeId(exam.examCode);
 
         return NextResponse.json(
             { exam: examObj },

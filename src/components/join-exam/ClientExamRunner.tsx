@@ -18,6 +18,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useRouter } from "next/navigation";
 import SubmitAlert from "./SubmitAlert";
+import ResultCopyDialog from "./ResultCopyDialog";
+import { encodeId } from "@/utils/helpers/IdConversion";
 // --- email validation helper ---
 function validateEmail(value: string) {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,6 +49,9 @@ export default function ClientExamRunner(props: Props) {
     const [submitting, setSubmitting] = useState(false);
     const [email, setEmail] = useState("");
     const [emailError, setEmailError] = useState("");
+
+    const [showResultDialog, setShowResultDialog] = useState(false);
+    const [resultShareLink, setResultShareLink] = useState("");
 
     // Timer ticks every 1s
     const [now, setNow] = useState(() => Date.now());
@@ -204,7 +209,7 @@ export default function ClientExamRunner(props: Props) {
             const newAnswer: AnswerDTO = {
                 questionIndex,
                 selectedChoiceIndex: choiceIndex,
-                isCorrect, // ✅ store correctness here
+                isCorrect, // store correctness here
             };
 
             if (idx >= 0) {
@@ -231,6 +236,7 @@ export default function ClientExamRunner(props: Props) {
             participantEmail: result?.participantEmail || "",
             status: "in-progress",
             startedAt,
+            endedAt: "",
             answers,
         };
         setResult(newResult);
@@ -249,17 +255,28 @@ export default function ClientExamRunner(props: Props) {
             toast.error("Enter a valid email to start");
             return;
         }
+        // make sure all questions are answered
+        const unanswered = answers.filter((a) => a.selectedChoiceIndex === -1);
+        if (unanswered.length > 0) {
+            toast.error(`Please answer all questions before submitting.`);
+            return;
+        }
         setSubmitting(true);
         try {
-            const toSend = {
+            const toSend: SubmitResult = {
                 _id: examId,
-                participantId: participantId,
-                startedAt: result.startedAt,
-                answers: answers,
+                participantId,
                 participantEmail: email,
+                startedAt: result.startedAt,
+                endedAt: new Date().toISOString(),
+                answers,
                 status:
                     statusOverride ||
-                    (timing?.isTimed && timing?.inLateWindow ? "late" : timing?.isTimed && timing?.isExpired ? "expired" : "submitted"),
+                    (timing?.isTimed && timing?.inLateWindow
+                        ? "late"
+                        : timing?.isTimed && timing?.isExpired
+                            ? "expired"
+                            : "submitted"),
             };
 
             const res = await submitExamAnswers(toSend);
@@ -268,7 +285,9 @@ export default function ClientExamRunner(props: Props) {
             } else if (res.success) {
                 setResult((r) => (r ? { ...r, status: toSend.status, answers: toSend.answers } : r));
                 toast.success("Submitted successfully");
-                router.push('/');
+
+                setResultShareLink(`${window.location.origin}/view-result/${email}/${encodeId(createdBy)}/${encodeId(examId)}/${encodeId(participantId)}/${examCode}`); // ! examCode is already encoded
+                setShowResultDialog(true);
             } else {
                 toast.error("Unexpected submission response");
             }
@@ -492,6 +511,15 @@ export default function ClientExamRunner(props: Props) {
                     </span>.
                 </CardContent>
             </Card>)}
+            <ResultCopyDialog
+                open={showResultDialog}
+                onClose={() => {
+                    setShowResultDialog(false);
+                    router.push("/");
+                }}
+                resultShareLink={resultShareLink}
+            />
+
         </div>
     );
 }

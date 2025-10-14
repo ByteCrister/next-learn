@@ -15,7 +15,7 @@ import { ResultStatusBadge } from "./ResultStatusBadge";
 import { EditExamDialog } from "./EditExamDialog";
 import { AddQuestionDialog } from "./AddQuestionDialog";
 import { ConfirmDeleteDialog } from "./ConfirmDeleteDialog";
-import { ExamDetailSkeleton } from "./ExamDetailSkeleton";
+import { ExamDetailSkeleton } from "./ExamDetailsSkeleton";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import { UpdateQuestionDialog } from "./UpdateQuestionDialog";
 import { ShareButton } from "./ShareButton";
@@ -29,7 +29,7 @@ interface MetaRowProps {
   children: React.ReactNode;
 }
 
-export default function ExamDetailClient() {
+export default function ExamDetails() {
   const { examId } = useParams<{ examId: string }>();
   const router = useRouter();
   const { examsById, resultsByExamId, fetchExamById, fetching } = useExamStore();
@@ -43,7 +43,6 @@ export default function ExamDetailClient() {
       const cached = examsById[examId];
       if (!cached) {
         await fetchExamById(examId);
-        console.log(resultsByExamId);
       }
     };
     loadExam();

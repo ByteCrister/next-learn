@@ -46,7 +46,10 @@ export const schema = z.object({
             value: z.string().min(1, "Content is required"),
         })
     ).min(1, "At least one content is required"),
-    choices: z.array(z.object({ text: z.string().min(1, "Choice text required") })).min(2, "At least 2 choices"),
+    choices: z
+        .array(z.object({ text: z.string().min(1, "Choice text required") }))
+        .min(2, "At least 2 choices")
+        .max(4, "No more than 4 choices allowed"),
     correctIndex: z.coerce.number().min(0),
 });
 
@@ -186,9 +189,18 @@ export function AddQuestionDialog({ exam, asChild }: { exam: ExamDTO; asChild?: 
                                 </div>
                             ))}
                         </div>
-                        <Button type="button" variant="outline" size="sm" onClick={() => appendChoice({ text: "" })}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => appendChoice({ text: "" })}
+                            disabled={choiceFields.length >= 4}
+                        >
                             + Add choice
                         </Button>
+                        {choiceFields.length >= 4 && (
+                            <p className="text-xs text-red-500">Maximum 4 choices allowed.</p>
+                        )}
                     </div>
 
                     <DialogFooter className="mt-2">
