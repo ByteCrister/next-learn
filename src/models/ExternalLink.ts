@@ -30,9 +30,10 @@ export interface IExternalLink extends Document {
     description?: string;
     category: LinkCategory;
     addedAt: Date;
+    isNew: boolean;
 }
 
-const externalLinkSchema = new Schema<IExternalLink>(
+const externalLinkSchema = new Schema(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
@@ -65,6 +66,7 @@ const externalLinkSchema = new Schema<IExternalLink>(
             default: "Other",
         },
         addedAt: { type: Date, default: () => new Date() },
+        isNew: { type: Boolean, default: true },
     },
     { timestamps: false }
 );

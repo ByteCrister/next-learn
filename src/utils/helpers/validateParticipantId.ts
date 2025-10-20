@@ -1,4 +1,6 @@
-export function validateParticipantId(participantId: string, validationRule: unknown): boolean {
+import { ValidationRule } from '../../types/types.exam';
+
+export function validateParticipantId(participantId: string, validationRule: ValidationRule): boolean {
   // Basic example for validationRule; expand as needed
   if (validationRule.startsWith && !validationRule.startsWith.some((prefix: string) => participantId.startsWith(prefix))) {
     return false;

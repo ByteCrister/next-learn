@@ -8,6 +8,7 @@ import {
     User as UserIcon,
     ClipboardList as TaskIcon,
     ListOrdered as ChaptersIcon,
+    ExternalLink as ExternalLinkIcon,
 } from 'lucide-react';
 import { SubjectCounts as SubjectCountsTypes } from '@/types/types.subjects';
 import clsx from 'clsx';
@@ -105,7 +106,7 @@ export default function SubjectBadges({ subjectId, subjectCounts, loading }: Pro
                 const Icon =
                     {
                         notes: SubjectIcon,
-                        externalLinks: TaskIcon,
+                        externalLinks: ExternalLinkIcon,
                         studyMaterials: UserIcon,
                         chapters: ChaptersIcon,
                     }[key as keyof SubjectCountsTypes] || SubjectIcon;

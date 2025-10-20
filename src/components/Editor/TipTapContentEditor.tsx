@@ -6,8 +6,10 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
+import Placeholder from "@tiptap/extension-placeholder";
 import ImageResize from 'tiptap-extension-resize-image';
 import DragHandle from '@tiptap/extension-drag-handle'
+import { Node } from '@tiptap/core'
 import { useEffect, useState } from "react";
 import { Extension } from '@tiptap/core'
 import { keymap } from "prosemirror-keymap";
@@ -27,11 +29,21 @@ import {
   FaLink,
   FaImage,
   FaUndo,
+  FaFilePdf,
 } from "react-icons/fa";
 
 import "../../styles/editor.css";
 import { compressImageToBase64 } from "@/lib/compress-image";
 import ImageSizeAlert from "../alerts/ImageSizeAlert";
+
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
 
 const ListKeymapExtension = Extension.create({
   name: 'listKeymap',
@@ -46,11 +58,40 @@ const ListKeymapExtension = Extension.create({
   },
 })
 
+const PDF = Node.create({
+  name: 'pdf',
+
+  group: 'block',
+
+  atom: true,
+
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+      },
+    }
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'iframe[class="editor-pdf"]',
+      },
+    ]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['iframe', { src: HTMLAttributes.src, class: 'editor-pdf', width: '100%', height: '600px' }]
+  },
+})
+
 interface TipTapEditorProps {
   content?: string;
   onChange: (html: string) => void;
   editable?: boolean;
   className?: string;
+  placeholder?: string;
 }
 
 export default function TipTapContentEditor({
@@ -58,6 +99,7 @@ export default function TipTapContentEditor({
   onChange,
   editable = true,
   className,
+  placeholder,
 }: TipTapEditorProps) {
   const [showImageAlert, setShowImageAlert] = useState(false);
 
@@ -67,11 +109,22 @@ export default function TipTapContentEditor({
         heading: { levels: [1, 2, 3, 4, 5, 6] },
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
+        link: false, // Disable default link extension
+        underline: false, // Disable default underline extension
+        listKeymap: false, // Disable default listKeymap to avoid duplicate
+      }),
+      Placeholder.configure({
+        placeholder: placeholder || 'Write something...',
       }),
       ListKeymapExtension,
       Underline,
       Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
-      Image,
+      Image.configure({
+        HTMLAttributes: {
+          class: 'editor-image',
+        },
+      }),
+      PDF,
       ImageResize,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       DragHandle,
@@ -88,7 +141,8 @@ export default function TipTapContentEditor({
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
-    if (content && content !== current) {
+    // Only update if content is different and not empty
+    if (content && content !== current && content.trim() !== '<p></p>') {
       editor.commands.setContent(content);
     }
   }, [content, editor]);
@@ -111,6 +165,28 @@ export default function TipTapContentEditor({
     };
     input.click();
   };
+
+const addPdf = async () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/pdf";
+  input.onchange = async () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      setShowImageAlert(true);
+      return;
+    }
+
+    const base64 = await fileToBase64(file);
+    editor?.chain().focus().insertContent({
+      type: 'pdf',
+      attrs: { src: base64 }
+    }).run();
+  };
+  input.click();
+};
 
   if (!editor) return <div>Loading editor...</div>;
 
@@ -171,10 +247,11 @@ export default function TipTapContentEditor({
 
           <ToolbarButton label="Reset Alignment" icon={<FaUndo />} onClick={() => editor.chain().focus().unsetTextAlign().run()} />
           <ToolbarButton label="Insert Image" icon={<FaImage />} onClick={addImage} />
+          <ToolbarButton label="Insert PDF" icon={<FaFilePdf />} onClick={addPdf} />
           <LinkButton editor={editor} />
         </div>
 
-        <EditorContent editor={editor} className="ProseMirror min-h-[220px] max-w-full" />
+        <EditorContent editor={editor} className="ProseMirror min-h-[150px] max-w-full" />
       </div>
       <ImageSizeAlert isOpen={showImageAlert} setIsOpen={setShowImageAlert} />
     </>

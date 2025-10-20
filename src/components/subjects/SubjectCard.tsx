@@ -74,7 +74,7 @@ export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
                   poppins.className
                 )}
               >
-                {subject.title}
+                {subject.title.length > 14 ? subject.title.slice(0, 14) + "." : subject.title}
               </CardTitle>
 
               {subject.code && (

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Subject } from "@/models/Subject";
 import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
-import { ClassNote } from "@/models/ClassNote";
+import { SubjectNote } from "@/models/SubjectNote";
 import { ExternalLink } from "@/models/ExternalLink";
 import { StudyMaterial } from "@/models/StudyMaterial";
 
@@ -21,7 +21,7 @@ export async function GET() {
 
         // Get overall counts in parallel
         const [notesCount, externalLinksCount, studyMaterialsCount] = await Promise.all([
-            ClassNote.countDocuments({ userId }),
+            SubjectNote.countDocuments({ userId }),
             ExternalLink.countDocuments({ userId }),
             StudyMaterial.countDocuments({ userId }),
         ]);
@@ -29,7 +29,7 @@ export async function GET() {
         return NextResponse.json(
             {
                 subjects,
-                counts: {
+                subjectCounts: {
                     notes: notesCount,
                     externalLinks: externalLinksCount,
                     studyMaterials: studyMaterialsCount,

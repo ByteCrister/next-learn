@@ -20,6 +20,7 @@ export interface ValidationRule {
     startsWith?: string[];
     maxLength?: number;
     minLength?: number;
+    regex?: string;
 }
 
 /** A piece of question content (text or image) */

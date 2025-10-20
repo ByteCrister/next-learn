@@ -231,6 +231,7 @@ export default function ClientExamRunner(props: Props) {
             participantEmail: result?.participantEmail || "",
             status: "in-progress",
             startedAt,
+            endedAt: "",
             answers,
         };
         setResult(newResult);
@@ -251,10 +252,12 @@ export default function ClientExamRunner(props: Props) {
         }
         setSubmitting(true);
         try {
+            const endedAt = new Date().toISOString();
             const toSend = {
                 _id: examId,
                 participantId: participantId,
                 startedAt: result.startedAt,
+                endedAt,
                 answers: answers,
                 participantEmail: email,
                 status:
@@ -266,7 +269,7 @@ export default function ClientExamRunner(props: Props) {
             if (isApiError(res)) {
                 toast.error(res.message || "Submission failed");
             } else if (res.success) {
-                setResult((r) => (r ? { ...r, status: toSend.status, answers: toSend.answers } : r));
+                setResult((r) => (r ? { ...r, status: toSend.status, endedAt, answers: toSend.answers } : r));
                 toast.success("Submitted successfully");
                 router.push('/');
             } else {

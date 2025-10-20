@@ -5,7 +5,8 @@ import React, { useEffect, useState } from "react";
 import { useSubjectStore } from "@/store/useSubjectsStore";
 
 import { Button } from "@/components/ui/button";
-import { Pencil, Eye, Map } from "lucide-react";
+import { Pencil, Eye, Map, BookOpen, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 import { SubjectInput } from "@/types/types.subjects";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
@@ -16,7 +17,9 @@ import { ShareSubjectButton } from "./ShareSubjectButton";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import RoadmapInfoDialog from "./RoadmapInfoCard";
 import RoadmapContentBlock from "./RoadmapContentBlock";
+import ChapterList from "./ChapterList";
 import SubjectViewDialog from "./SubjectViewDialog";
+
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
@@ -140,6 +143,19 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                         </Button>
 
                         {selectedRoadmap?._id && (
+                            <Link href={`/subjects/${subjectId}/chapters`}>
+                                <Button
+                                    variant="outline"
+                                    aria-label="View chapters"
+                                    className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                                >
+                                    <BookOpen className="h-4 w-4" />
+                                    <span>Chapters</span>
+                                </Button>
+                            </Link>
+                        )}
+
+                        {selectedRoadmap?._id && (
                             <Button
                                 variant="outline"
                                 onClick={() => setViewRoadmapMode(prev => !prev)}
@@ -150,6 +166,28 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                                 <span>Edit Roadmap</span>
                             </Button>
                         )}
+
+                        <Link href={`/subjects/${subjectId}/study-materials`}>
+                            <Button
+                                variant="outline"
+                                aria-label="View study materials"
+                                className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                            >
+                                <BookOpen className="h-4 w-4" />
+                                <span>Study Materials</span>
+                            </Button>
+                        </Link>
+
+                        <Link href={`/subjects/${subjectId}/external-links`}>
+                            <Button
+                                variant="outline"
+                                aria-label="View external links"
+                                className="w-full sm:w-auto justify-center gap-1.5 sm:gap-2 whitespace-nowrap"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                                <span>External Links</span>
+                            </Button>
+                        </Link>
 
                         {/* If ShareSubjectButton doesn't accept className, wrap it */}
                         <div className="w-full sm:w-auto">
@@ -182,6 +220,9 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                     subjectCounts={selectedSubject?.selectedSubjectCounts || null}
                     loading={loadingSelectedSubject}
                 />
+
+
+
             </div>
 
             {/* Dialog with form */}
@@ -202,6 +243,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
             <SubjectViewDialog
                 open={openView}
                 onOpenChange={(s: boolean) => setOpenView(s)}
+                className="-mt-4"
             />
         </>
     );

@@ -280,17 +280,22 @@ export const useSubjectStore = create<SubjectStore>()(
 
         updateSelectedSubjectCounts: (countField: keyof SubjectCounts, op: "+" | "-") => {
             const delta = op === "+" ? 1 : -1;
-            set((state) => ({
-                selectedSubject: {
-                    ...state.selectedSubject!,
-                    selectedSubjectCounts: {
-                        ...state.selectedSubject!.selectedSubjectCounts!,
-                        [countField]:
-                            (state.selectedSubject!.selectedSubjectCounts![countField] || 0) +
-                            delta,
+            set((state) => {
+                if (!state.selectedSubject || !state.selectedSubject.selectedSubjectCounts) {
+                    return state;
+                }
+                return {
+                    selectedSubject: {
+                        ...state.selectedSubject,
+                        selectedSubjectCounts: {
+                            ...state.selectedSubject.selectedSubjectCounts,
+                            [countField]:
+                                (state.selectedSubject.selectedSubjectCounts[countField] || 0) +
+                                delta,
+                        },
                     },
-                },
-            }));
+                };
+            });
         },
     }))
 );

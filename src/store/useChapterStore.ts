@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { createChapter, updateChapter } from "@/utils/api/api.chapter";
+import { createChapter, updateChapter, fetchChapters, deleteChapter } from "@/utils/api/api.chapter";
 import { toast } from "react-toastify";
 import { TStudyMaterial } from "@/types/types.chapter";
 
@@ -11,6 +11,8 @@ interface Chapter {
     title: string;
     content: string;
     materials: TStudyMaterial[];
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 interface ChapterStore {
@@ -24,7 +26,7 @@ interface ChapterStore {
         roadmapId: string;
         chapterId: string;
         field: 'title' | 'content' | 'materials';
-        data: string | TStudyMaterial;
+        data: string | string[] | TStudyMaterial;
     }) => Promise<void>;
     deleteChapter: (roadmapId: string, chapterId: string) => Promise<void>;
 }
@@ -38,9 +40,13 @@ export const useChapterStore = create<ChapterStore>()(
         fetchChaptersByRoadmapId: async (roadmapId) => {
             set({ isFetching: true });
             try {
-                // implement fetch logic if needed, e.g.:
-                // const chapters = await fetchChaptersApi(roadmapId);
-                // set({ chapters, loading: false });
+                const data = await fetchChapters(roadmapId);
+                if ("message" in data) {
+                    toast.error(data.message);
+                    set({ isFetching: false });
+                    return;
+                }
+                set({ chapters: data, isFetching: false });
             } catch (err) {
                 toast.error((err as Error).message);
                 set({ isFetching: false });
@@ -88,20 +94,24 @@ export const useChapterStore = create<ChapterStore>()(
             }
         },
 
-        // ! not created yet
-        // deleteChapter: async (roadmapId, chapterId) => {
-        //     set({ loadingCrud: true });
-        //     try {
-        //         await deleteChapter(roadmapId, chapterId);
-        //         set((state) => ({
-        //             chapters: state.chapters.filter(ch => ch._id !== chapterId),
-        //             loadingCrud: false,
-        //         }));
-        //         toast.success("Chapter deleted");
-        //     } catch (err) {
-        //         toast.error((err as Error).message);
-        //         set({ loadingCrud: false });
-        //     }
-        // }
+        deleteChapter: async (roadmapId, chapterId) => {
+            set({ loadingCrud: true });
+            try {
+                const result = await deleteChapter(roadmapId, chapterId);
+                if ("message" in result && result.message !== "Chapter deleted successfully") {
+                    toast.error(result.message);
+                    set({ loadingCrud: false });
+                    return;
+                }
+                set((state) => ({
+                    chapters: state.chapters.filter(ch => ch._id !== chapterId),
+                    loadingCrud: false,
+                }));
+                toast.success("Chapter deleted");
+            } catch (err) {
+                toast.error((err as Error).message);
+                set({ loadingCrud: false });
+            }
+        }
     }))
 );
