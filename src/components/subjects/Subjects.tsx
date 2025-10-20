@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSubjectStore } from "@/store/useSubjectsStore";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SubjectCard } from "./SubjectCard";
@@ -14,14 +15,16 @@ import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import AddSubjectModal from "./AddSubjectModal";
 import { StatCard } from "./StatCard";
 import FullSubjectsSkeleton from "./SubjectsSkeleton";
+import { decodeId } from "@/utils/helpers/IdConversion";
 
-type SortOption = "alpha-asc" | "alpha-desc" | "newest" | "oldest";
+export type SortOption = "alpha-asc" | "alpha-desc" | "newest" | "oldest" | "none";
 
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
   { label: "A → Z", value: "alpha-asc" },
   { label: "Z → A", value: "alpha-desc" },
   { label: "Newest", value: "newest" },
   { label: "Oldest", value: "oldest" },
+  { label: "None", value: "none" },
 ];
 
 const ITEMS_PER_PAGE = 8;
@@ -32,13 +35,50 @@ export default function Subjects() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useSubjectsSearch(searchTerm, 300);
-  const [sortOption, setSortOption] = useState<SortOption>("alpha-asc");
+  const [sortOption, setSortOption] = useState<SortOption>("none");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const searchParams = useSearchParams();
+  const searchedParam = searchParams?.get("searched") ?? null;
+  const [searchedId, setSearchedId] = useState<string | null>(null);
+
   useEffect(() => {
-    fetchSubjects();
+    let mounted = true;
+    (async () => {
+      const resp = await fetchSubjects(searchedParam);
+      if (!mounted) return;
+
+      // If API returned matched metadata, use it (server already moved matched to front)
+      if (resp && typeof resp === "object" && "matched" in resp && resp.matched) {
+        setSearchedId(String(resp.matched.id));
+        // server put matched at index 0 so show page 1
+        setCurrentPage(1);
+        // optional prefetch of full subject details:
+        // fetchSubjectById(resp.matched.id);
+        return;
+      }
+
+      // If server didn't return matched but param exists, try decode fallback
+      if (searchedParam) {
+        try {
+          const raw = decodeId(String(searchedParam));
+          setSearchedId(raw);
+          // raw may not be in list; still show page 1 where we may have inserted it
+          setCurrentPage(1);
+        } catch {
+          setSearchedId(null);
+        }
+      } else {
+        setSearchedId(null);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+    // re-run when searchedParam changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchedParam]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -47,7 +87,6 @@ export default function Subjects() {
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
 
   const filteredSubjects = useMemo(() => {
     let list = subjects || [];
@@ -61,7 +100,13 @@ export default function Subjects() {
       );
     }
 
-    return [...list].sort((a, b) => {
+    // Preserve server/DB order when user chooses no client-side sort
+    if (sortOption === "none") {
+      return list.slice(); // shallow copy to trigger downstream updates
+    }
+
+    // Only sort when user explicitly requests
+    const sorted = [...list].sort((a, b) => {
       switch (sortOption) {
         case "alpha-desc":
           return b.title.localeCompare(a.title);
@@ -76,6 +121,7 @@ export default function Subjects() {
       }
     });
 
+    return sorted;
   }, [subjects, debouncedSearchTerm, sortOption]);
 
   const totalPages = Math.ceil(filteredSubjects.length / ITEMS_PER_PAGE);
@@ -164,6 +210,7 @@ export default function Subjects() {
                 key={subject._id}
                 subject={subject}
                 index={idx + (currentPage - 1) * ITEMS_PER_PAGE}
+                isSearched={searchedId !== null && String(subject._id) === searchedId}
               />
             ))}
           </AnimatePresence>

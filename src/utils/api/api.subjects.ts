@@ -9,19 +9,21 @@ const BASE_URL = "/subjects";
 
 /**
  * Fetches all subjects along with their aggregate counts.
+ * Fetches subjects and counts. If `searched` is provided it will be sent as ?searched=<value>
  *
  * @returns A promise that resolves to an object containing:
  *   - subjects: an array of Subject records
  *   - counts: total count metrics for those subjects
  *   Or, on error, an object with a `message` string.
  */
-export async function getAllSubjects(): Promise<
-    { subjects: Subject[]; counts: SubjectCounts } | { message: string }
+export async function getAllSubjects(
+    searched?: string | null
+): Promise<
+    { subjects: Subject[]; counts: SubjectCounts; matched?: { id: string; originalIndex: number } | null } | { message: string }
 > {
     try {
-        const { data } = await api.get<{ subjects: Subject[]; counts: SubjectCounts }>(
-            BASE_URL
-        );
+        const url = searched ? `${BASE_URL}?searched=${encodeURIComponent(searched)}` : BASE_URL;
+        const { data } = await api.get<{ subjects: Subject[]; counts: SubjectCounts; matched?: { id: string; originalIndex: number } | null }>(url);
         return data;
     } catch (err) {
         console.error("getAllSubjects error:", err);

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import Link from "next/link";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface CountBadgeProps {
   icon: React.ReactNode;
@@ -16,7 +17,7 @@ const CountBadge = ({ icon, label, count, subjectId }: CountBadgeProps) => {
   const slug = label.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <Link href={`/subjects/${subjectId}/${slug}`}>
+    <Link href={`/subjects/${encodeId(subjectId)}/${slug}`}>
       <motion.div
         whileHover={{ scale: 1.04, y: -2 }}
         className="flex items-center gap-5 bg-white/70 backdrop-blur-md shadow-lg px-6 py-5 rounded-2xl cursor-pointer border border-gray-100 hover:shadow-xl transition-all duration-300"

@@ -2,12 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Subject } from "@/models/Subject";
 import ConnectDB from "@/config/ConnectDB";
+import mongoose from "mongoose";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 import { ClassNote } from "@/models/ClassNote";
 import { ExternalLink } from "@/models/ExternalLink";
 import { StudyMaterial } from "@/models/StudyMaterial";
+import { decodeId } from "@/utils/helpers/IdConversion";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     const userId = await getUserIdFromSession();
     if (!userId) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -16,15 +18,50 @@ export async function GET() {
     try {
         await ConnectDB();
 
-        // Get all subjects
-        const subjects = await Subject.find({ userId }).sort({ createdAt: -1 });
+        const url = new URL(req.url);
+        const searchedToken = url.searchParams.get("searched") ?? null;
 
-        // Get overall counts in parallel
+        // get counts in parallel
         const [notesCount, externalLinksCount, studyMaterialsCount] = await Promise.all([
             ClassNote.countDocuments({ userId }),
             ExternalLink.countDocuments({ userId }),
             StudyMaterial.countDocuments({ userId }),
         ]);
+
+        // fetch entire list in canonical order (createdAt desc)
+        const subjects = await Subject.find({ userId }).sort({ createdAt: -1 }).lean();
+
+        let matched: { id: string; originalIndex: number } | null = null;
+
+        if (searchedToken) {
+            try {
+                const rawId = decodeId(decodeURIComponent(searchedToken));
+
+                // try to find the item in the already-loaded list
+                const idx = subjects.findIndex((s) => String(s._id) === rawId);
+
+                if (idx >= 0) {
+                    // move the found item to front regardless of original index
+                    const [item] = subjects.splice(idx, 1);
+                    subjects.unshift(item);
+                    matched = { id: String(item._id), originalIndex: idx };
+                } else {
+                    // fallback: direct DB lookup and place it first if exists
+                    const direct = await Subject.findOne({ _id: new mongoose.Types.ObjectId(rawId), userId }).lean();
+                    if (direct) {
+                        // remove any duplicate with same id (defensive)
+                        const filtered = subjects.filter((s) => String(s._id) !== String(direct._id));
+                        // place direct at front
+                        subjects.length = 0;
+                        subjects.push(direct, ...filtered);
+                        matched = { id: String(direct._id), originalIndex: -1 };
+                    }
+                }
+            } catch (err) {
+                // invalid token — ignore quietly
+                console.warn("Invalid searched token:", err);
+            }
+        }
 
         return NextResponse.json(
             {
@@ -34,15 +71,13 @@ export async function GET() {
                     externalLinks: externalLinksCount,
                     studyMaterials: studyMaterialsCount,
                 },
+                matched,
             },
             { status: 200 }
         );
     } catch (error) {
         console.error("GET /api/subjects error:", error);
-        return NextResponse.json(
-            { message: "Failed to fetch subjects" },
-            { status: 500 }
-        );
+        return NextResponse.json({ message: "Failed to fetch subjects" }, { status: 500 });
     }
 }
 

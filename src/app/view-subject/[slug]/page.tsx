@@ -1,4 +1,4 @@
-import ViewShareSubject from "@/components/view-share-subject/ViewShareSubject"
+import ViewShareSubject from "@/components/view-subject/ViewShareSubject"
 
 const page = () => {
   return (

@@ -1,8 +1,8 @@
 // SortSelect.tsx
 import { MdSort } from "react-icons/md";
 import { AiOutlineDown } from "react-icons/ai";
+import { SortOption } from "./Subjects";
 
-type SortOption = "alpha-asc" | "alpha-desc" | "newest" | "oldest";
 
 interface SortSelectProps {
   value: SortOption;

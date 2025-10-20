@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Subject } from "@/types/types.subjects";
 import { Poppins } from "next/font/google";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -27,6 +28,7 @@ const poppins = Poppins({
 interface SubjectCardProps {
   subject: Subject;
   index: number;
+  isSearched?: boolean;
 }
 
 const COLOR_GRADIENTS = [
@@ -36,90 +38,112 @@ const COLOR_GRADIENTS = [
   ["from-purple-500", "to-violet-500"],
 ];
 
-export const SubjectCard: FC<SubjectCardProps> = ({ subject, index }) => {
+export const SubjectCard: FC<SubjectCardProps> = ({ subject, index, isSearched = false }) => {
   const [fromColor, toColor] = COLOR_GRADIENTS[index % COLOR_GRADIENTS.length];
   const [showFullDescription, setShowFullDescription] = useState(false);
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      whileHover={{ scale: 1.02 }}
       className="transition-transform"
     >
-      <Link href={`/subjects/${subject._id}`}>
+      <Link href={`/subjects/${encodeId(subject._id)}`}>
         <div
           className={cn(
-            "relative rounded-2xl p-[2px] bg-gradient-to-br",
+            "relative rounded-2xl p-[2px] bg-gradient-to-br shadow-sm transition-all duration-300",
             fromColor,
             toColor,
-            "shadow-lg hover:shadow-xl transition-all duration-300"
+            "hover:shadow-lg"
           )}
         >
-          <Card className="relative rounded-2xl border-0 bg-white backdrop-blur-sm h-[320px] flex flex-col justify-between">
-            <CardHeader>
-              <CardTitle
-                className={cn(
-                  "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r truncate",
-                  poppins.className
-                )}
-                title={subject.title} // shows full title on hover
-              >
-                {subject.title}
-              </CardTitle>
-
-              {/* Badge for subject code */}
-              {subject.code && (
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "mt-2 font-medium text-white shadow-md bg-gradient-to-r",
-                    fromColor,
-                    toColor
-                  )}
-                >
-                  <BookOpen className="w-4 h-4 mr-1" />
-                  {subject.code}
-                </Badge>
+          <div
+            className={cn(
+              "relative rounded-2xl bg-white backdrop-blur-sm h-[320px] flex flex-col justify-between overflow-hidden",
+              // Selected visual adjustments:
+              isSearched
+                ? "shadow-[0_10px_30px_rgba(99,102,241,0.12)]"
+                : "shadow-none"
+            )}
+          >
+            {/* Left accent bar + optional pulsing dot */}
+            <div
+              className={cn(
+                "absolute left-0 top-0 bottom-0 w-1",
+                isSearched ? "bg-primary" : "bg-white/0"
               )}
-            </CardHeader>
-
-            {/* Description with "more" toggle */}
-            {subject.description && (
-              <CardContent className="flex-1">
-                <CardDescription className="text-gray-700 leading-relaxed">
-                  {showFullDescription ? subject.description : (
-                    <span className="line-clamp-3">{subject.description}</span>
-                  )}
-                  {subject.description.length > 100 && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault(); // prevents link click
-                        setShowFullDescription(!showFullDescription);
-                      }}
-                      className="ml-1 text-blue-500 hover:underline text-sm"
-                    >
-                      {showFullDescription ? "less" : "more"}
-                    </button>
-                  )}
-                </CardDescription>
-              </CardContent>
+              aria-hidden
+            />
+            {isSearched && (
+              <span className="absolute left-3 top-3 inline-flex items-center gap-2 bg-white/90 text-xs text-primary px-2 py-0.5 rounded-full shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <span className="font-medium">Selected</span>
+              </span>
             )}
 
-            <Separator className="my-4" />
+            <Card className="relative rounded-2xl border-0 bg-transparent h-full flex flex-col justify-between">
+              <CardHeader>
+                <CardTitle
+                  className={cn(
+                    "text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r truncate",
+                    poppins.className
+                  )}
+                  title={subject.title}
+                >
+                  {subject.title}
+                </CardTitle>
 
-            <CardFooter className="flex items-center justify-between text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <CalendarDays className="w-4 h-4" />
-                {new Date(subject.createdAt).toLocaleDateString()}
-              </div>
-              <HiOutlineArrowNarrowRight className="w-6 h-6 opacity-75" />
-            </CardFooter>
-          </Card>
+                {subject.code && (
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "mt-2 font-medium text-white shadow-md bg-gradient-to-r",
+                      fromColor,
+                      toColor
+                    )}
+                  >
+                    <BookOpen className="w-4 h-4 mr-1" />
+                    {subject.code}
+                  </Badge>
+                )}
+              </CardHeader>
+
+              {subject.description && (
+                <CardContent className="flex-1">
+                  <CardDescription className="text-gray-700 leading-relaxed">
+                    {showFullDescription ? subject.description : (
+                      <span className="line-clamp-3">{subject.description}</span>
+                    )}
+                    {subject.description.length > 100 && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowFullDescription(!showFullDescription);
+                        }}
+                        className="ml-1 text-primary hover:underline text-sm"
+                      >
+                        {showFullDescription ? "less" : "more"}
+                      </button>
+                    )}
+                  </CardDescription>
+                </CardContent>
+              )}
+
+              <Separator className="my-4" />
+
+              <CardFooter className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center gap-1">
+                  <CalendarDays className="w-4 h-4" />
+                  {new Date(subject.createdAt).toLocaleDateString()}
+                </div>
+                <HiOutlineArrowNarrowRight className="w-6 h-6 opacity-75" />
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </Link>
     </motion.div>

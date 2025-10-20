@@ -18,7 +18,7 @@ import RoadmapViewer from "@/components/subjects-subject/RoadmapViewer";
 import CountBadge from "@/components/subjects-subject/CountBadge";
 import { Subject } from "@/types/types.subjects";
 import { motion, AnimatePresence } from "framer-motion";
-import "../../styles/roadmap-viewer.css";
+import "../../styles/roadmap-viewer.module.css";
 import TipTapEditor from "../Editor/TipTapEditor";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import SubjectPageSkeleton from "./SubjectPageSkeleton";
@@ -44,7 +44,8 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
 
     useEffect(() => {
         fetchSubjectById(subjectId);
-    }, [subjectId, fetchSubjectById]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subjectId]);
 
     useEffect(() => {
         if (selectedSubject) {

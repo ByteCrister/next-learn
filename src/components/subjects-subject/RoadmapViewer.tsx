@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import "../../styles/roadmap-viewer.css";
+import "../../styles/roadmap-viewer.module.css";
 import { normalizeHtml } from "@/utils/helpers/normalizeHtml";
 
 interface RoadmapViewerProps {
