@@ -14,17 +14,21 @@ const PUBLIC_ROUTES = [
   // /^\/contact$/,
   // /^\/terms$/,
   // /^\/privacy$/,
-  /^\/view-subject\/[^/]+$/, // dynamic view-subject/:id
-  /^\/view-routine\/[^/]+$/, // dynamic view-routine
-  /^\/view-result\/[^/]+$/, // dynamic view-result
+
+  // allow any nested dynamic paths (including slashes)
+  /^\/view-subject\/.+/,
+  /^\/view-routine\/.+/,
+  /^\/view-result\/.+/,
+  /^\/join-exam\/.+/,
 ];
 
 // Public API routes (accessible with or without login)
 const PUBLIC_APIS = [
   /^\/api\/view\/subject$/, // GET /api/view/subject
   /^\/api\/view\/note$/, // GET /api/view/note
-  /^\/api\/view-routine$/, // GET /api/view-routine
+  /^\/api\/routines\/view$/, // GET /api/view-routine
   /^\/api\/results\/view-result$/, // GET /api/view-routine
+  /^\/api\/exams\/.+/, // GET /api/exams/check
   // /^\/api\/make-admin$/,       // POST /api/make-admin
 ];
 

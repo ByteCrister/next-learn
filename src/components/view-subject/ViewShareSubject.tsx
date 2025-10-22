@@ -33,7 +33,7 @@ export default function ViewSubjectPage() {
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const { slug } = useParams(); // slug will be "68977baa-0edaacbf-608660b5"
-  const subjectId = decodeId(slug as string);
+  const subjectId = decodeId(decodeURIComponent(slug as string));
 
   const load = React.useCallback(async () => {
     setLoading(true);
