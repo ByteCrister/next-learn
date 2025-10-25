@@ -371,5 +371,5 @@ For inquiries or bug reports:
 ---
 
 <div style="text-align:center;">
-Made with ❤️ by <strong>ByteCrister</strong>
+Made by <strong>ByteCrister & Adil</strong>
 </div>
