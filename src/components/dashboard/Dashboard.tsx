@@ -33,6 +33,7 @@ import {
 import ExamQAction from './ExamQAction';
 import SubjectQAction from './SubjectQAction';
 import DashboardSkeleton from './DashboardSkeleton';
+import RoutineAction from './RoutineAction';
 
 const CountUp = dynamic(() => import('react-countup'), { ssr: true });
 
@@ -110,7 +111,7 @@ export default function DashboardPage() {
 
   const quickActions = [
     { label: 'Create Subject', icon: <PlusCircle size={18} />, palette: palettes[1], content: <SubjectQAction /> },
-    { label: 'Add Routine', icon: <Link2 size={18} />, palette: palettes[3], content: <span className="text-sm text-gray-500">Will create soon</span> },
+    { label: 'Add Routine', icon: <Link2 size={18} />, palette: palettes[3], content: <RoutineAction /> },
     { label: 'Create Exam', icon: <Zap size={18} />, palette: palettes[0], content: <ExamQAction /> },
   ];
 
