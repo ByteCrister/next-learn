@@ -23,6 +23,7 @@ import TipTapEditor from "../Editor/TipTapEditor";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import SubjectPageSkeleton from "./SubjectPageSkeleton";
 import ShareButton from "./ShareButton";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
@@ -149,7 +150,7 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
                 {/* Header Buttons */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-4 sm:mt-0">
                     <motion.a
-                        href={`/subjects/${subjectId}/read`} // replace with your read page route
+                        href={`/subjects/${encodeId(encodeURIComponent(subjectId))}/read`} // ! encoded the id, so in the read subject page id must be decoded safely
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="w-full sm:w-auto px-4 py-2 flex items-center justify-center gap-2 rounded-lg 

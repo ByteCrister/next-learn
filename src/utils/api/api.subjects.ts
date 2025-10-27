@@ -68,7 +68,7 @@ export async function fetchSubjectById(
 > {
     try {
         const { data } = await api.get<{ subject: Subject; roadmap: VCourseRoadmap | null }>(
-            `${BASE_URL}/${id}`
+            `${BASE_URL}/${encodeURIComponent(id)}`
         );
         return data;
     } catch (err) {

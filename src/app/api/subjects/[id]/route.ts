@@ -16,17 +16,19 @@ export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const { id } = await params;
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
+    
     try {
         await ConnectDB();
+        
+        const { id } = await params;
+        const sId = decodeURIComponent(id);
+        const userId = await getUserIdFromSession();
+        if (!userId) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
 
         // Fetch subject
-        const subjectDoc = await Subject.findById(id).lean<ISubject & { _id: Types.ObjectId }>();
+        const subjectDoc = await Subject.findById(sId).lean<ISubject & { _id: Types.ObjectId }>();
         if (!subjectDoc || subjectDoc.userId.toString() !== userId) {
             return NextResponse.json({ message: "Not found" }, { status: 404 });
         }
