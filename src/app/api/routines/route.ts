@@ -71,16 +71,23 @@ function validateRoutinePayload(payload: CreateRoutineDto): string | null {
  * GET /api/routines
  *  - Returns a list of routines for the current user
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        const userId = await getUserIdFromSession()
+        const userId = await getUserIdFromSession();
         if (!userId) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
         }
 
-        await ConnectDB()
-        const docs = await Routine.find({ userId }).sort({ createdAt: -1 })
+        await ConnectDB();
 
+        // read searchedId from query string if present
+        const url = new URL(req.url);
+        const searchedId = url.searchParams.get('searchedId');
+
+        // Fetch all routines (kept sorted by createdAt desc)
+        const docs = await Routine.find({ userId }).sort({ createdAt: -1 });
+
+        // Map to response DTOs
         const data: RoutineResponseDto[] = docs.map((doc) => ({
             id: doc._id.toString(),
             userId: doc.userId.toString(),
@@ -90,12 +97,21 @@ export async function GET() {
             shareId: doc.shareId,
             createdAt: doc.createdAt.toISOString(),
             updatedAt: doc.updatedAt.toISOString(),
-        }))
+        }));
 
-        return NextResponse.json({ data }, { status: 200 })
+        // If searchedId provided and exists, move that item to front
+        if (searchedId) {
+            const idx = data.findIndex((r) => r.id === searchedId);
+            if (idx > 0) {
+                const [found] = data.splice(idx, 1);
+                data.unshift(found);
+            }
+        }
+
+        return NextResponse.json({ data }, { status: 200 });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Something went wrong';
-        return NextResponse.json({ message }, { status: 400 })
+        return NextResponse.json({ message }, { status: 400 });
     }
 }
 

@@ -29,7 +29,7 @@ interface RoutineState {
     error: string | null
 
     /** Fetch all routines for the signed-in user */
-    fetchRoutines: (force?: boolean) => Promise<void>
+    fetchRoutines: (force?: boolean, searchedId?: string) => Promise<void>
 
     /** Create a new routine on the server and update state */
     createRoutine: (payload: CreateRoutineDto) => Promise<void>
@@ -126,37 +126,56 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         }
     },
 
-    fetchRoutines: async (force = false) => {
+    /**
+  * Fetch all routines for the signed-in user.
+  * If searchedId is provided and routines are already cached, reorder locally.
+  * If routines are not cached (or force=true) call API with ?searchedId=... to
+  * let server place the searched routine first.
+  */
+    fetchRoutines: async (force = false, searchedId?: string) => {
         const { routines, lastFetched, isFetching } = get();
 
-        //  prevent duplicate in-flight fetch
+        // prevent duplicate in-flight fetch
         if (isFetching) return;
 
         const CACHE_DURATION = 5 * 60 * 1000;
         const now = Date.now();
 
+        // If we have cached items and no forced refetch, try to satisfy locally
         if (!force && routines.length > 0 && lastFetched && now - lastFetched < CACHE_DURATION) {
-            return; // serve from cache
+            // If searchedId present, move it to front if exists in cache
+            if (searchedId) {
+                const idx = routines.findIndex((r) => r.id === searchedId);
+                if (idx > 0) {
+                    const copy = [...routines];
+                    const [found] = copy.splice(idx, 1);
+                    copy.unshift(found);
+                    set({ routines: copy });
+                }
+            }
+            return; // served from cache (possibly re-ordered)
         }
 
+        // Build endpoint with optional searchedId param so server can return prioritized order
+        const url = searchedId ? `${MAIN_ROOT}?searchedId=${encodeURIComponent(searchedId)}` : MAIN_ROOT;
+
         const result = await get().handleApi(
-            () => api.get<{ data: RoutineResponseDto[] }>(MAIN_ROOT),
+            () => api.get<{ data: RoutineResponseDto[] }>(url),
             {
                 loadingType: "fetching",
-                // successMsg: 'Routines fetched successfully!', // optional, can be noisy
                 errorMsg: "Failed to fetch routines",
             }
         );
 
-        console.log(result?.data.data);
-
         if (result?.data.data) {
+            // Server already returns searched-first order when searchedId was present in query
             set({
                 routines: result.data.data,
                 lastFetched: now,
             });
         }
     },
+
 
     createRoutine: async (payload) => {
         const result = await get().handleApi(

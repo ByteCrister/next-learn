@@ -18,6 +18,7 @@ type Props = {
     totalPages: number;
     setPage: (p: number) => void;
     onEdit: (r: RoutineResponseDto) => void;
+    searchedId?: string | null
 };
 
 export default function RoutineList({
@@ -26,6 +27,7 @@ export default function RoutineList({
     totalPages,
     setPage,
     onEdit,
+    searchedId = null,
 }: Props) {
     const { deleteRoutine, isMutating } = useRoutineStore();
 
@@ -56,6 +58,7 @@ export default function RoutineList({
                             onEdit={() => onEdit(r)}
                             onDelete={() => deleteRoutine(r.id)}
                             isMutating={isMutating}
+                            searchedId={searchedId}
                         />
                     ))}
                 </Accordion>

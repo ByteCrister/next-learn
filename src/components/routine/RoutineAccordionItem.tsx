@@ -19,16 +19,22 @@ type Props = {
     onEdit: () => void
     onDelete: () => void
     isMutating: boolean
+    searchedId?: string | null
 }
 
+/**
+ * Visual enhancement:
+ * - Adds a ring to the left of the accordion trigger when routine.id === searchedId.
+ * - Ring is animated and non-blocking.
+ */
 export default function RoutineAccordionItem({
     routine,
     onEdit,
     onDelete,
     isMutating,
+    searchedId = null,
 }: Props) {
     const totalSlots = routine.days.reduce((acc, d) => acc + d.slots.length, 0);
-
     const [copied, setCopied] = useState(false)
 
     const handleShare = async () => {
@@ -36,38 +42,58 @@ export default function RoutineAccordionItem({
             const encodedRoutineId = encodeId(routine.id)
             const encodedShareId = encodeId(routine.shareId)
             const url = `${window.location.origin}/view-routine/${encodedRoutineId}/${encodedShareId}`
-            console.log(routine);
             await navigator.clipboard.writeText(url)
             setCopied(true)
-            setTimeout(() => setCopied(false), 2000) // reset after 2s
+            setTimeout(() => setCopied(false), 2000)
         } catch (err) {
             console.error('Failed to copy link:', err)
         }
     }
 
+    const isSearchedMatch = Boolean(searchedId && searchedId === routine.id)
+
     return (
         <AccordionItem value={routine.id} className="px-2">
             <AccordionTrigger className="py-4 hover:no-underline">
                 <div className="flex w-full items-center justify-between gap-4">
-                    <div className="text-left">
-                        <div className="font-medium">{routine.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                            {routine.description || 'No description'}
+                    <div className="flex items-center gap-3">
+                        {/* left ring indicator when searched */}
+                        <div className="flex-shrink-0">
+                            <motion.div
+                                initial={{ scale: isSearchedMatch ? 1 : 0 }}
+                                animate={{ scale: isSearchedMatch ? 1 : 0 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                                className={`
+                                  rounded-full p-0.5
+                                  ${isSearchedMatch ? 'ring-2 ring-indigo-400/60' : 'opacity-0'}
+                                `}
+                                aria-hidden
+                            >
+                                <div className="w-3 h-3 rounded-full bg-indigo-600 shadow-sm" />
+                            </motion.div>
+                        </div>
+
+                        <div className="text-left">
+                            <div className="font-medium">{routine.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                                {routine.description || 'No description'}
+                            </div>
                         </div>
                     </div>
+
                     <div className="flex items-center gap-2">
                         <Badge variant="secondary">{totalSlots} slots</Badge>
                         <Badge variant="outline">
                             Updated {new Date(routine.updatedAt).toLocaleDateString()}
                         </Badge>
 
-                        {/* Share button */}
                         <motion.div
                             onClick={(e) => {
                                 e.stopPropagation()
                                 handleShare()
-                            }} whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
+                            }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             className="rounded-md border border-indigo-500/30 bg-indigo-50 px-2 py-1 text-indigo-600 shadow-sm hover:bg-indigo-100"
                             title="Copy share link"
                         >
@@ -179,7 +205,6 @@ export default function RoutineAccordionItem({
                             <Button variant="outline" size="sm" onClick={onEdit}>
                                 <FiEdit2 className="mr-2" /> Edit
                             </Button>
-                            {/* Delete with confirmation modal */}
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                     <Button

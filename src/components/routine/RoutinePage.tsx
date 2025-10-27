@@ -13,13 +13,20 @@ import { useRoutineSearch } from "@/hooks/useRoutineSearch";
 import { FiAlertTriangle } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
+import { useSearchParams } from "next/navigation";
+import { decodeId } from "@/utils/helpers/IdConversion";
 
-type SortKey = "name" | "createdAt" | "updatedAt";
+type SortKey = "name" | "createdAt" | "updatedAt" | "searched";
 type SortDir = "asc" | "desc";
 
 const PAGE_SIZE = 8;
 
 export default function RoutinePage() {
+    // Searching parameters
+    const searchParams = useSearchParams();
+    const searchedParam = searchParams?.get("searched") ?? null;
+    const [searchedId, setSearchedId] = useState<string | null>(null);
+
     const [sortKey, setSortKey] = useState<SortKey>("updatedAt");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [page, setPage] = useState(1);
@@ -34,17 +41,38 @@ export default function RoutinePage() {
 
 
     useEffect(() => {
-        fetchRoutines(true);
+        const sid = searchedParam ?? null;
+        if (sid)
+            setSearchedId(decodeId(decodeURIComponent(sid)));
+
+        // if there is a searchedId, fetch prioritizing it
+        if (sid) {
+            // force fetch and ask API to return searched-first
+            fetchRoutines(true, sid);
+            // set sortKey to sentinel so client sorting doesn't move the searched item
+            setSortKey('searched');
+            // keep sortDir as-is or choose a stable default
+        } else {
+            // no searchedId, normal fetch (use cache if available)
+            fetchRoutines(true);
+            // restore default sort if it was previously set to 'searched'
+            if (sortKey === 'searched') setSortKey('updatedAt');
+        }
+
         setBreadcrumbs([
             { label: 'Home', href: '/' },
             { label: 'Routines', href: '/routines' },
         ]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [setBreadcrumbs]);
+    }, [setBreadcrumbs, searchedParam]);
+
 
     const sorted = useMemo(() => {
+        // When sortKey === 'searched' we should return results as-is, trusting server/store ordering
+        if (sortKey === 'searched') return results;
         return sortRoutines(results, sortKey, sortDir);
     }, [results, sortKey, sortDir]);
+
 
     const { items, totalPages } = useMemo(() => {
         return paginate(sorted, page, PAGE_SIZE);
@@ -103,6 +131,7 @@ export default function RoutinePage() {
                         totalPages={totalPages}
                         setPage={setPage}
                         onEdit={onEdit}
+                        searchedId={searchedId}
                     />
                 </motion.div>
             )}

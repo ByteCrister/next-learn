@@ -23,7 +23,7 @@ import {
 type Props = {
     query: string;
     onQuery: (v: string) => void;
-    sortKey: "name" | "createdAt" | "updatedAt";
+    sortKey: "name" | "createdAt" | "updatedAt" | "searched";
     sortDir: "asc" | "desc";
     onSortKey: (k: Props["sortKey"]) => void;
     onSortDir: (d: Props["sortDir"]) => void;

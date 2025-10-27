@@ -25,7 +25,7 @@ export default function SearchBar() {
   const [items, setItems] = useState<UiItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false); // control Combobox visibility
+  const [isOpen, setIsOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -46,7 +46,10 @@ export default function SearchBar() {
 
     const ac = new AbortController();
     abortRef.current = ac;
+
+    // Show dropdown immediately so loading UI is visible
     setLoading(true);
+    setIsOpen(true);
 
     (async () => {
       try {
@@ -64,14 +67,17 @@ export default function SearchBar() {
             meta: (r as unknown as { meta?: unknown }).meta,
             key: `${r.type}:${r.meta?.id ?? Math.random().toString(36).slice(2, 8)}`,
           }));
+
         setItems(ui);
-        setIsOpen(ui.length > 0); // keep items visible until user clicks outside or selects
+        // keep dropdown open so results are visible; close only when empty and you prefer that
+        setIsOpen(ui.length > 0 || !!error);
       } catch (err) {
         if ((err as DOMException)?.name === "AbortError") return;
         console.error("Search error:", err);
         setError("Unable to search. Try again.");
         setItems([]);
-        setIsOpen(false);
+        // keep open so the error message is visible to the user
+        setIsOpen(true);
       } finally {
         setLoading(false);
       }
@@ -81,6 +87,7 @@ export default function SearchBar() {
       abortRef.current?.abort();
       abortRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
 
   // Close popup when clicking outside or pressing Escape
@@ -109,7 +116,6 @@ export default function SearchBar() {
 
   function clear() {
     setQuery("");
-    // keep items until user clicks outside or new search happens
     setError(null);
     inputRef.current?.focus();
     setIsOpen(false);
@@ -121,7 +127,7 @@ export default function SearchBar() {
   }
 
   return (
-    <Combobox as="div" className="relative w-full max-w-lg" nullable value={null} onChange={() => { }} >
+    <Combobox as="div" className="relative w-full max-w-lg" nullable value={null} onChange={() => { }}>
       <div ref={containerRef} className="relative">
         <Search
           size={20}
@@ -135,8 +141,7 @@ export default function SearchBar() {
             setQuery(e.target.value);
           }}
           onFocus={() => {
-            // open if we already have items (retain previous results)
-            if (items.length > 0) setIsOpen(true);
+            if (items.length > 0 || loading || error) setIsOpen(true);
           }}
           placeholder="Search subjects, routines, events, exams..."
           aria-label="Global search"
