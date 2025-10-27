@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/providers/Providers";
 import { Inter, Sora } from 'next/font/google'
+import "../lib/cron/scheduler";
 
 export const metadata: Metadata = {
   title: {
