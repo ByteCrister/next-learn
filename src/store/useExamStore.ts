@@ -26,7 +26,7 @@ interface ExamStoreState {
   hasFetchedExams: boolean;
   message: string | null;
 
-  fetchExams: () => Promise<void>;
+  fetchExams: (searchedId?: string) => Promise<void>;
   fetchExamById: (
     id: string,
     forceRefresh?: boolean
@@ -54,18 +54,41 @@ export const useExamStore = create<ExamStoreState>()(
     message: null,
 
     // 1. Load overview list (always fetch)
-    fetchExams: async () => {
-      // If we've already loaded exams and aren't forcing, bail out
-      if (get().hasFetchedExams || get().fetching || get().exams.length > 0) {
+    fetchExams: async (searchedId?: string) => {
+      // If a fetch is already in progress, do nothing
+      if (get().fetching) return;
+
+      // If we already have exams and no searchedId requested, avoid duplicate fetch
+      // (existing logic kept: only fetch once unless store cleared or caller forces)
+      if (get().hasFetchedExams && !searchedId && get().exams.length > 0) {
         return;
       }
+
+      // If we have cached exams and a searchedId is provided, prefer local reordering if fresh
+      if (searchedId && get().exams.length > 0) {
+        // Move matching exam to front if it exists locally
+        const idx = get().exams.findIndex((e) => e._id === searchedId);
+        if (idx > 0) {
+          set((s) => {
+            const copy = [...s.exams];
+            const [found] = copy.splice(idx, 1);
+            copy.unshift(found);
+            s.exams = copy;
+          });
+          // mark we have fetched exams to avoid unnecessary network call
+          return;
+        }
+        // if not found locally, continue to fetch from server with searchedId param
+      }
+
+      // Normal fetch path (optionally with searchedId query so server returns prioritized ordering)
       set((s) => {
         s.fetching = true;
         s.message = null;
         s.hasFetchedExams = true;
       });
 
-      const data = await getExams();
+      const data = await getExams(searchedId);
       if ("message" in data) {
         toast.error(data.message || "Failed to fetch exams");
         return set((s) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,12 +39,19 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { decodeId } from "@/utils/helpers/IdConversion";
 
-type SortKey = "title" | "subjectCode" | "examCode";
+type SortKey = "title" | "subjectCode" | "examCode" | "searched";
 type SortDir = "asc" | "desc";
 
 export default function ExamsPage() {
   const router = useRouter();
+
+  // Searching parameters
+  const searchParams = useSearchParams();
+  const searchedParam = searchParams?.get("searched") ?? null;
+  const [searchedId, setSearchedId] = React.useState<string | null>(null);
+
   const { setBreadcrumbs } = useBreadcrumbStore();
   const { exams, fetchExams, fetching, message } = useExamStore();
   const [query, setQuery] = React.useState("");
@@ -53,10 +60,25 @@ export default function ExamsPage() {
   const [page, setPage] = React.useState(1);
   const pageSize = 8;
 
+  // read search param and prioritize exam
   React.useEffect(() => {
-    fetchExams();
+    const sidParam = searchedParam ?? null;
+    // if your app encodes ids in the URL, decode here; otherwise use sidParam directly
+    const sid = sidParam ? decodeId(decodeURIComponent(sidParam)) : null;
+    if (sid) {
+      setSearchedId(sid);
+      // ask store to fetch with searchedId so server/response will prioritize it
+      fetchExams(sid);
+      // set sentinel so client sorting won't push it away
+      setSortKey("searched");
+    } else {
+      // normal initial fetch
+      fetchExams();
+      // restore default if sentinel left over
+      if (sortKey === "searched") setSortKey("title");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchedParam]);
 
   React.useEffect(() => {
     setBreadcrumbs([
@@ -69,12 +91,15 @@ export default function ExamsPage() {
     const q = query.trim().toLowerCase();
     const list = q
       ? exams.filter((e) =>
-        [e.title, e.description ?? "", e.subjectCode, e.examCode]
-          .join(" ")
-          .toLowerCase()
-          .includes(q)
-      )
+          [e.title, e.description ?? "", e.subjectCode, e.examCode]
+            .join(" ")
+            .toLowerCase()
+            .includes(q)
+        )
       : exams;
+
+    // if sentinel 'searched' is active, trust server/store ordering (do not re-sort)
+    if (sortKey === "searched") return list;
 
     const sorted = [...list].sort((a, b) => {
       const av = (a[sortKey] ?? "").toString().toLowerCase();
@@ -135,7 +160,8 @@ export default function ExamsPage() {
                 Exams
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
-                Manage and organize your exams. Search, filter, and create new exams with ease.
+                Manage and organize your exams. Search, filter, and create new
+                exams with ease.
               </p>
             </motion.div>
 
@@ -164,7 +190,9 @@ export default function ExamsPage() {
               <CreateExamDialog>
                 <Button className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
                   <Plus className="h-5 w-5" />
-                  <span className="hidden sm:inline font-semibold">Add exam</span>
+                  <span className="hidden sm:inline font-semibold">
+                    Add exam
+                  </span>
                   <span className="sm:hidden font-semibold">Add</span>
                 </Button>
               </CreateExamDialog>
@@ -224,6 +252,7 @@ export default function ExamsPage() {
                         <SelectItem value="title">Title</SelectItem>
                         <SelectItem value="subjectCode">Subject</SelectItem>
                         <SelectItem value="examCode">Exam code</SelectItem>
+                        <SelectItem value="searched">Searched</SelectItem>
                       </SelectContent>
                     </Select>
 
@@ -263,7 +292,10 @@ export default function ExamsPage() {
                 <div className="text-sm text-slate-600 dark:text-slate-400">
                   Showing{" "}
                   <span className="font-semibold text-slate-900 dark:text-slate-100">
-                    {((currentPage - 1) * pageSize + 1).toString().padStart(2, "0")}-
+                    {((currentPage - 1) * pageSize + 1)
+                      .toString()
+                      .padStart(2, "0")}
+                    -
                     {Math.min(currentPage * pageSize, filtered.length)
                       .toString()
                       .padStart(2, "0")}
@@ -324,7 +356,9 @@ export default function ExamsPage() {
               layout
               // className="grid auto-cols-max gap-6 justify-start"
               className="grid gap-6 justify-start items-stretch"
-              style={{ gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))" }}
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+              }}
               transition={{ layout: { duration: 0.2, ease: "easeOut" } }}
             >
               {pageItems.map((exam, idx) => (
@@ -341,6 +375,7 @@ export default function ExamsPage() {
                     exam={exam}
                     onClick={() => router.push(`/exams/${exam._id}`)}
                     index={idx}
+                    isSearched={searchedId === exam._id}
                   />
                 </motion.div>
               ))}
@@ -375,7 +410,8 @@ function EmptyState() {
             No exams found
           </CardTitle>
           <CardDescription className="text-base text-slate-600 dark:text-slate-400 max-w-sm">
-            Get started by creating your first exam or adjust your search filters to find what you&apos;re looking for.
+            Get started by creating your first exam or adjust your search
+            filters to find what you&apos;re looking for.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center pb-8">

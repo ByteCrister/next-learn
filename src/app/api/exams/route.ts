@@ -7,10 +7,19 @@ import { Types } from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 // * get all exams as cards in the creator interface
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await ConnectDB();
     const userId = await getUserIdFromSession();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // read searchedId query param if present (null-safe)
+    const url = new URL(req.url);
+    const sidParam = url.searchParams.get("searchedId");
+    const searchedId = sidParam ? decodeURIComponent(sidParam) : null;
+
 
     // fetch only overview fields
     const examsDB = await ExamModel.find({ createdBy: userId })
@@ -52,11 +61,20 @@ export async function GET() {
       };
     });
 
+    // If searchedId provided and found, move that exam to the front while preserving relative order of the rest
+    if (searchedId) {
+      const idx = exams.findIndex((e) => e._id === searchedId);
+      if (idx > 0) {
+        const [found] = exams.splice(idx, 1);
+        exams.unshift(found);
+      }
+    }
+
     return NextResponse.json(exams as GetExamOverviewResponse, { status: 200 });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "An unexpected error occurred";
-    return NextResponse.json({ error: message }, { status: 404 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

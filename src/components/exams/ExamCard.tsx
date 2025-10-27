@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ExamOverviewCard } from "@/types/types.exam";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 function statusColor(status: ExamOverviewCard["status"]) {
   switch (status) {
@@ -43,10 +44,12 @@ export function ExamCard({
   exam,
   onClick,
   index = 0,
+  isSearched = false,
 }: {
   exam: ExamOverviewCard;
   onClick?: () => void;
   index?: number;
+  isSearched?: boolean;
 }) {
   return (
     <motion.div
@@ -58,20 +61,40 @@ export function ExamCard({
       className="h-full"
     >
       <Card
-        className="
-          group relative cursor-pointer overflow-hidden
-          rounded-xl border border-slate-200 dark:border-slate-800
-          bg-white/80 dark:bg-slate-900/80 backdrop-blur
-          shadow-sm hover:shadow-lg transition-all duration-300
-          hover:border-blue-300 dark:hover:border-blue-600
-           flex flex-col h-full
-        "
+        onClick={onClick}
+        className={cn(
+          "group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm hover:shadow-lg transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-600 flex flex-col h-full",
+          isSearched ? "z-10" : ""
+        )}
       >
+        {/* Highlight ring (animated) */}
+        {isSearched && (
+          <motion.div
+            aria-hidden
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+            className="pointer-events-none absolute -inset-1 rounded-2xl ring-2 ring-indigo-400/40 dark:ring-indigo-500/30 shadow-[0_8px_30px_rgba(99,102,241,0.08)]"
+          />
+        )}
+
+        {/* Small pulsing indicator at top-right */}
+        {isSearched && (
+          <span className="pointer-events-none absolute top-3 right-3 flex items-center gap-2">
+            <motion.span
+              aria-hidden
+              initial={{ scale: 0.9, opacity: 0.9 }}
+              animate={{ scale: [0.9, 1.3, 0.9], opacity: [0.9, 0.35, 0.9] }}
+              transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+              className="block w-3 h-3 rounded-full bg-indigo-400/80 dark:bg-indigo-500/90"
+            />
+          </span>
+        )}
+
         {/* Accent gradient bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
 
         <div className="relative p-6 flex flex-col h-full space-y-5">
-          {/* Header */}
           <CardHeader className="p-0 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -101,9 +124,7 @@ export function ExamCard({
             )}
           </CardHeader>
 
-          {/* Content */}
           <CardContent className="flex-1 p-0 space-y-3">
-            {/* Subject Code */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
               <Code2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               <div className="text-sm font-mono font-semibold text-slate-900 dark:text-slate-100">
@@ -111,7 +132,6 @@ export function ExamCard({
               </div>
             </div>
 
-            {/* Question Count */}
             <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
               <ListChecks className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -119,7 +139,6 @@ export function ExamCard({
               </div>
             </div>
 
-            {/* Timing Info */}
             {exam.isTimed && (
               <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
                 <Clock className="w-4 h-4 text-slate-600 dark:text-slate-400" />
@@ -150,7 +169,6 @@ export function ExamCard({
             </div>
           </CardContent>
 
-          {/* Footer Actions */}
           <CardFooter className="p-0 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-3">
             <Button
               variant="outline"

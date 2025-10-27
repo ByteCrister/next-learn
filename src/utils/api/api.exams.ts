@@ -33,9 +33,14 @@ export async function createExam(
 /**
  * Get all exams as cards for the logged-in user
  */
-export async function getExams(): Promise<ExamOverviewCard[] | ApiError> {
+export async function getExams(
+    searchedId?: string
+): Promise<ExamOverviewCard[] | ApiError> {
     try {
-        const { data } = await api.get<ExamOverviewCard[]>(ROOT_URL);
+        const url = searchedId
+            ? `${ROOT_URL}?searchedId=${encodeURIComponent(searchedId)}`
+            : ROOT_URL;
+        const { data } = await api.get<ExamOverviewCard[]>(url);
         return data;
     } catch (err) {
         console.error("getExams error:", err);
@@ -66,10 +71,7 @@ export async function updateExam(
     updates: Partial<ExamDTO>
 ): Promise<ExamDTO | ApiError> {
     try {
-        const { data } = await api.patch<ExamDTO>(
-            `${ROOT_URL}/${examId}`,
-            updates
-        );
+        const { data } = await api.patch<ExamDTO>(`${ROOT_URL}/${examId}`, updates);
         return data;
     } catch (err) {
         console.error(`updateExam error (examId=${examId}):`, err);
@@ -93,7 +95,6 @@ export async function deleteExam(
         return extractErrorData(err);
     }
 }
-
 
 /**
  * Update a specific question in an exam
@@ -141,8 +142,10 @@ export async function deleteExamQuestion(
  * @param examId - The unique identifier of the exam to be checked.
  * @returns The response data from the API if successful, or extracted error details if the request fails.
  */
-export async function getCheckExam(createdBy: string, examId: string)
-    : Promise<ExamCheckResponse | ApiError> {
+export async function getCheckExam(
+    createdBy: string,
+    examId: string
+): Promise<ExamCheckResponse | ApiError> {
     try {
         // Send a GET request to the /check endpoint with query parameters
         const { data } = await api.get(`${ROOT_URL}/check`, {
@@ -165,7 +168,9 @@ export async function getCheckExam(createdBy: string, examId: string)
  * @param input - An object containing the necessary exam check parameters (e.g., createdBy, examId).
  * @returns A successful exam check response or a structured API error.
  */
-export async function getCheckExamForm(input: CheckExamInput): Promise<ExamCheckResponse | ApiError> {
+export async function getCheckExamForm(
+    input: CheckExamInput
+): Promise<ExamCheckResponse | ApiError> {
     try {
         // Send POST request to /check endpoint with input payload
         const { data } = await api.post(`${ROOT_URL}/check`, input);
@@ -179,7 +184,6 @@ export async function getCheckExamForm(input: CheckExamInput): Promise<ExamCheck
         return extractErrorData(err);
     }
 }
-
 
 /**
  * Fetches join exam data for a specific exam, validating participant and exam code.
@@ -215,7 +219,9 @@ export async function getJoinExam(
  * @param result ExamResultDTO object containing answers and participant info
  * @returns Promise resolving to submitted result
  */
-export const submitExamAnswers = async (result: SubmitResult): Promise<{ success: boolean } | ApiError> => {
+export const submitExamAnswers = async (
+    result: SubmitResult
+): Promise<{ success: boolean } | ApiError> => {
     try {
         const { data } = await api.post(`${ROOT_URL}/join`, result);
         return data;
