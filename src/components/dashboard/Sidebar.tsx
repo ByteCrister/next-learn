@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookOpen, Clock, PenLine, CalendarDays, Users } from 'lucide-react';
+import { Home, BookOpen, Clock, PenLine, CalendarDays, Users, GraduationCap } from 'lucide-react';
 import LogoutButton from '../auth/LogoutButton';
 import { useDashboardStore } from '@/store/useDashboardStore';
 
@@ -18,6 +18,7 @@ const Sidebar = () => {
         { href: '/routines', label: 'Routines', icon: Clock },
         { href: '/events', label: 'Events', icon: CalendarDays },
         { href: '/exams', label: 'Exams', icon: PenLine },
+        { href: '/batches', label: 'Batches', icon: GraduationCap },
     ];
 
     // conditionally add admin link
