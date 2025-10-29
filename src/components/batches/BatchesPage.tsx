@@ -11,25 +11,30 @@ import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export default function BatchesPage() {
-  const {
-    fetchBatches,
-    loading,
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
-    batches: rawBatches,
-  } = useBatchesStore();
+  const { fetchBatches, loading, total, batches: rawBatches } = useBatchesStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"new" | "old" | "name">("new");
 
+  // Local pagination state (UI-managed)
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(12); // default page size you prefer
+
   useEffect(() => {
+    // skip if already loading or batches already fetched in this session
+    if (loading || rawBatches.length > 0) {
+      setBreadcrumbs([
+        { label: "Home", href: "/" },
+        { label: "Batches", href: "/batches" },
+      ]);
+      return;
+    }
+
     fetchBatches().catch(() => { });
     setBreadcrumbs([
-      { label: 'Home', href: '/' },
-      { label: 'Batches', href: '/batches' },
+      { label: "Home", href: "/" },
+      { label: "Batches", href: "/batches" },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -66,19 +71,19 @@ export default function BatchesPage() {
     return list;
   }, [rawBatches, query, sort]);
 
+  // If the current page becomes invalid (e.g., change pageSize or filtered length), reset to 1
   useEffect(() => {
-    const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const safePageSize = pageSize > 0 ? pageSize : 1;
+    const pageCount = Math.max(1, Math.ceil(filtered.length / safePageSize));
     if (page > pageCount) setPage(1);
-  }, [filtered.length, pageSize, page, setPage]);
+  }, [filtered.length, pageSize, page]);
 
   return (
-    <main className={`${inter.className} min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950`}>
+    <main
+      className={`${inter.className} min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950`}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: "easeOut" }}>
           {/* Page Header */}
           <div className="mb-8">
             <motion.h1
@@ -89,12 +94,7 @@ export default function BatchesPage() {
             >
               Batches
             </motion.h1>
-            <motion.p
-              className="text-slate-600 dark:text-slate-400 text-lg"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.p className="text-slate-600 dark:text-slate-400 text-lg" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               Manage and organize your student batches
             </motion.p>
           </div>
@@ -112,13 +112,8 @@ export default function BatchesPage() {
             onCreate={() => (location.pathname = "/batches/new")}
           />
 
-          <motion.div
-            className="mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <BatchGrid batches={filtered} loading={loading} />
+          <motion.div className="mt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <BatchGrid batches={filtered} loading={loading} page={page} pageSize={pageSize} setPage={setPage} />
           </motion.div>
         </motion.div>
       </div>

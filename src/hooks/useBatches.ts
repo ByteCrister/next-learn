@@ -16,8 +16,9 @@ export function useBatches() {
   } = useBatchesStore();
 
   useEffect(() => {
-    if (!batches.length) fetchBatches().catch(() => {});
-  }, [batches.length, fetchBatches]);
+    if (!batches.length) fetchBatches().catch(() => { });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     batches,

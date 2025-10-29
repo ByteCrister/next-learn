@@ -57,7 +57,7 @@ export async function middleware(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // 🚨 Special case: Block /api/make-admin unless role = admin
+  // Special case: Block /api/make-admin unless role = admin
   if (pathname.startsWith("/api/make-admin")) {
     if (!token || token.role !== "admin") {
       return NextResponse.json(

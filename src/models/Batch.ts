@@ -2,7 +2,7 @@
  * models/batch.ts
  *
  * Batch schema implementing:
- * - Batch -> Semesters -> CourseAssignment -> CoursePart
+ * - Batch -> Semesters -> Course -> CoursePart
  * - Per CoursePart: examDefinitions, results, attendance, assignments, others
  * - Per CoursePart: studentSummaries storing running totals and overall
  * - Only createdBy/updatedBy reference User
@@ -109,24 +109,9 @@ export interface CourseRecord {
     notes?: string;
 }
 
-/* Student summary holds running totals for a CoursePart to compute overall quickly */
-export interface StudentSummary {
-    _id?: ObjId;
-    student: ObjId;
-    mid?: number;
-    final?: number;
-    tt?: number;
-    assignments?: number;
-    attendance?: number;
-    others?: number;
-    overall?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-}
-
 export interface CoursePart {
     _id?: ObjId;
-    partType: CourseType;
+    courseType: CourseType;
     credits: number;
     teachers: TeacherSnapshot[];
     examDefinitions: ExamDefinition[];
@@ -134,13 +119,12 @@ export interface CoursePart {
     attendance?: CourseRecord[];  // per-part attendance
     assignments?: CourseRecord[]; // per-part assignments
     others?: CourseRecord[];      // per-part other records
-    studentSummaries?: StudentSummary[]; // aggregated running totals for UI
     createdAt?: Date;
     updatedAt?: Date;
     notes?: string;
 }
 
-export interface CourseAssignment {
+export interface Course {
     _id?: ObjId;
     courseId?: ObjId;
     code?: string;
@@ -155,10 +139,9 @@ export interface SemesterDoc {
     _id?: ObjId;
     name: string;
     index: number;
-    type: CourseType;
     startAt?: Date;
     endAt?: Date;
-    courses: CourseAssignment[];
+    courses: Course[];
     notes?: string;
     deletedAt?: Date | null;
     createdAt?: Date;
@@ -256,26 +239,9 @@ const CourseRecordSchema = new Schema<CourseRecord>(
     { _id: true }
 );
 
-/* StudentSummary schema */
-const StudentSummarySchema = new Schema<StudentSummary>(
-    {
-        student: { type: Schema.Types.ObjectId, required: true, index: true },
-        mid: { type: Number, default: 0 },
-        final: { type: Number, default: 0 },
-        tt: { type: Number, default: 0 },
-        assignments: { type: Number, default: 0 },
-        attendance: { type: Number, default: 0 },
-        others: { type: Number, default: 0 },
-        overall: { type: Number, default: 0 },
-        createdAt: { type: Date, default: Date.now },
-        updatedAt: { type: Date, default: Date.now },
-    },
-    { _id: true }
-);
-
 const CoursePartSchema = new Schema<CoursePart>(
     {
-        partType: { type: String, required: true, enum: Object.values(COURSE_TYPE) },
+        courseType: { type: String, required: true, enum: Object.values(COURSE_TYPE) },
         credits: { type: Number, required: true, min: 0 },
         teachers: { type: [TeacherSnapshotSchema], default: [] },
         examDefinitions: { type: [ExamDefinitionSchema], default: [] },
@@ -283,7 +249,6 @@ const CoursePartSchema = new Schema<CoursePart>(
         attendance: { type: [CourseRecordSchema], default: [] },
         assignments: { type: [CourseRecordSchema], default: [] },
         others: { type: [CourseRecordSchema], default: [] },
-        studentSummaries: { type: [StudentSummarySchema], default: [] },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
@@ -291,7 +256,7 @@ const CoursePartSchema = new Schema<CoursePart>(
     { _id: true }
 );
 
-const CourseAssignmentSchema = new Schema<CourseAssignment>(
+const CourseSchema = new Schema<Course>(
     {
         courseId: { type: Schema.Types.ObjectId }, // plain id, no ref
         code: { type: String, trim: true },
@@ -308,10 +273,9 @@ const SemesterSchema = new Schema<SemesterDoc>(
     {
         name: { type: String, required: true, trim: true },
         index: { type: Number, required: true },
-        type: { type: String, enum: Object.values(COURSE_TYPE), default: COURSE_TYPE.THEORY },
         startAt: { type: Date },
         endAt: { type: Date },
-        courses: { type: [CourseAssignmentSchema], default: [] },
+        courses: { type: [CourseSchema], default: [] },
         notes: { type: String },
         deletedAt: { type: Date, default: null },
         createdAt: { type: Date, default: Date.now },
@@ -385,7 +349,6 @@ BatchSchema.pre("save", function (this: mongoose.Document & BatchDoc, next) {
                             const arr = (part as unknown as Record<string, unknown>)[arrName] as
                                 | CourseResult[]
                                 | CourseRecord[]
-                                | StudentSummary[]
                                 | undefined;
                             if (!Array.isArray(arr)) continue;
                             for (const it of arr) {

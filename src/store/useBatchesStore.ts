@@ -1,4 +1,3 @@
-// store.batch.ts
 import { create } from "zustand";
 import { produce } from "immer";
 import type {
@@ -13,24 +12,15 @@ import type {
     DeleteBatchResponse,
     APIError,
     BatchesState,
-} from "../types/types.batch";
+} from "@/types/types.batch";
 import api, { ApiError } from "@/utils/api/api.client";
 
 export const ROOT_DIRECTORY = "/batches";
-
 type ApiErrorTyped = ApiError;
 
-/**
- * Simplified store for a small project: fetch all batches at once (no pagination cache).
- * - fetchBatches() requests GET /batches?all=true (server should return all)
- * - fetchBatchById(id) requests GET /batches/:id
- * - create/update/delete map to REST endpoints under ROOT_DIRECTORY
- *
- * The store keeps a simple item cache (Map) to avoid redundant refetches during a session.
- */
-
-export const useBatchesStore = create<BatchesState>((set, get) => {
+export const useBatchesStore = create<BatchesState>((set) => {
     const itemCache = new Map<ID, Batch>();
+    let fetchAllInFlight: Promise<void> | null = null;
 
     async function handleError(err: unknown): Promise<APIError> {
         const apiErr = err as ApiErrorTyped | unknown;
@@ -50,28 +40,10 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
         batches: [],
         currentBatch: null,
         total: 0,
-        page: 1,
-        pageSize: 0,
         loading: false,
         error: null,
 
-        // actions
-        setPage(page: number) {
-            set(
-                produce((s: BatchesState) => {
-                    s.page = page;
-                })
-            );
-        },
-
-        setPageSize(size: number) {
-            set(
-                produce((s: BatchesState) => {
-                    s.pageSize = size;
-                })
-            );
-        },
-
+        // helpers
         setError(err: APIError | null) {
             set({ error: err });
         },
@@ -82,41 +54,54 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
                 batches: [],
                 currentBatch: null,
                 total: 0,
-                page: 1,
-                pageSize: 0,
                 loading: false,
                 error: null,
             });
         },
 
-        // fetch all batches (server endpoint should support returning all entries)
+        // fetch all batches (deduped)
         fetchBatches: async () => {
-            set({ loading: true, error: null });
-            try {
-                // request server to return all records; adjust query param if your API differs
-                const res = await api.get<{ data: Batch[] }>(`${ROOT_DIRECTORY}`, {
-                    params: { all: true },
-                });
-                const batches = res.data.data ?? [];
-
-                // update simple cache
-                batches.forEach((b) => itemCache.set(b._id, b));
-
+            // short-circuit if cache populated
+            if (itemCache.size > 0) {
                 set({
-                    batches,
-                    total: batches.length,
+                    batches: Array.from(itemCache.values()),
+                    total: itemCache.size,
                     loading: false,
                     error: null,
                 });
-            } catch (err) {
-                const e = await handleError(err);
-                set({ loading: false, error: e });
-                throw e;
+                return;
             }
+
+            // reuse in-flight request if present
+            if (fetchAllInFlight) return fetchAllInFlight;
+
+            fetchAllInFlight = (async () => {
+                set({ loading: true, error: null });
+                try {
+                    // call the API that returns all batches
+                    const res = await api.get<{ data: Batch[]; total?: number }>(`${ROOT_DIRECTORY}`);
+                    const batches = res.data.data ?? [];
+                    batches.forEach((b) => itemCache.set(b._id, b));
+
+                    set({
+                        batches,
+                        total: res.data.total ?? batches.length,
+                        loading: false,
+                        error: null,
+                    });
+                } catch (err) {
+                    const e = await handleError(err);
+                    set({ loading: false, error: e });
+                    throw e;
+                } finally {
+                    fetchAllInFlight = null;
+                }
+            })();
+
+            return fetchAllInFlight;
         },
 
         fetchBatchById: async (id: ID) => {
-            // use simple in-memory item cache to avoid refetching within the session
             const cached = itemCache.get(id);
             if (cached) {
                 set({ currentBatch: cached, loading: false, error: null });
@@ -129,7 +114,6 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
                 const batch = res.data.data;
                 itemCache.set(id, batch);
 
-                // also update list if present
                 set(
                     produce((s: BatchesState) => {
                         const idx = s.batches.findIndex((b) => b._id === batch._id);
@@ -137,6 +121,7 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
                         s.currentBatch = batch;
                         s.loading = false;
                         s.error = null;
+                        s.total = s.batches.length;
                     })
                 );
             } catch (err) {
@@ -151,7 +136,6 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
             try {
                 const res = await api.post<CreateBatchResponse>(`${ROOT_DIRECTORY}`, payload);
                 const batch = res.data.data;
-
                 itemCache.set(batch._id, batch);
 
                 set(
@@ -177,7 +161,6 @@ export const useBatchesStore = create<BatchesState>((set, get) => {
             try {
                 const res = await api.put<UpdateBatchResponse>(`${ROOT_DIRECTORY}/${payload._id}`, payload);
                 const updated = res.data.data;
-
                 itemCache.set(updated._id, updated);
 
                 set(

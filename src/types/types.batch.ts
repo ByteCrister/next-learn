@@ -8,7 +8,6 @@ export type ID = string;
 export enum COURSE_TYPE {
     THEORY = "theory",
     LAB = "lab",
-    MIXED = "mixed",
 }
 
 export enum EXAM_TYPE {
@@ -116,7 +115,7 @@ export type StudentSummary = {
 /** Course part (theory / lab) containing exam definitions and per-part records */
 export type CoursePart = {
     _id?: ID;
-    partType: COURSE_TYPE;
+    courseType: COURSE_TYPE;
     credits: number;
     teachers: TeacherSnapshot[];
     examDefinitions: ExamDefinition[]; // distribution metadata
@@ -131,7 +130,7 @@ export type CoursePart = {
 };
 
 /** Course assignment within a semester (can contain multiple parts) */
-export type CourseAssignment = {
+export type Course = {
     _id?: ID;
     courseId?: ID; // optional plain course identifier
     code?: string;
@@ -147,10 +146,9 @@ export type Semester = {
     _id?: ID;
     name: string; // e.g., "Semester 1"
     index: number; // 1-based order
-    type: COURSE_TYPE;
     startAt?: string;
     endAt?: string;
-    courses: CourseAssignment[];
+    courses: Course[];
     notes?: string;
     deletedAt?: string | null;
     createdAt?: string;
@@ -184,16 +182,18 @@ export type CreateBatchPayload = {
     semesters?: Array<{
         name: string;
         index: number;
-        type?: COURSE_TYPE;
         startAt?: string;
         endAt?: string;
+        notes?: string;
         courses?: Array<{
             courseId?: ID;
             code?: string;
             name?: string;
+            notes?: string;
             parts?: Array<{
-                partType: COURSE_TYPE;
+                courseType: COURSE_TYPE;
                 credits: number;
+                notes?: string;
                 teachers?: Array<{
                     name: string;
                     designation?: string;
@@ -216,8 +216,8 @@ export type UpdateBatchPayload = Partial<{
     program: string | null;
     year: number | null;
     notes: string | null;
-    // For nested edits, prefer dedicated endpoints; allow partial replacement arrays when needed:
-    semesters?: Semester[]; // full replacement of semesters array
+    // For nested edits, prefer dedicated endpoints; allow full replacement arrays when needed:
+    semesters?: Semester[] | null; // full replacement of semesters array or explicit null to clear
     updatedBy?: ID;
 }> & { _id: ID };
 
@@ -231,14 +231,6 @@ export type APIError = {
     status: number;
     message: string;
     details?: unknown;
-};
-
-/** Response for list batches (paginated) */
-export type ListBatchesResponse = {
-    data: Batch[];
-    total: number;
-    page: number;
-    pageSize: number;
 };
 
 /** Response for fetching a single batch */
@@ -264,29 +256,31 @@ export type DeleteBatchResponse = {
 
 /* --------------------------- UI / Zustand types ------------------------- */
 
-/** Zustand state and actions for /batches page (shape only) */
+/* Response for list batches (all) */
+export type ListBatchesResponse = {
+    data: Batch[];
+    total: number;
+};
+
+/* Zustand state and actions for /batches page (shape only) */
 export type BatchesState = {
     // Data
-    batches: Batch[]; // current page or cached list
+    batches: Batch[]; // cached list of all batches
     currentBatch?: Batch | null;
 
-    // Pagination / loading
+    // Loading / error
     total: number;
-    page: number;
-    pageSize: number;
     loading: boolean;
     error?: APIError | null;
 
     // Actions
-    fetchBatches: (opts?: { page?: number; pageSize?: number; q?: string }) => Promise<void>;
+    fetchBatches: () => Promise<void>;
     fetchBatchById: (id: ID) => Promise<void>;
     createBatch: (payload: CreateBatchPayload) => Promise<Batch>;
     updateBatch: (payload: UpdateBatchPayload) => Promise<Batch>;
     deleteBatch: (payload: DeleteBatchPayload) => Promise<void>;
 
     // Helpers
-    setPage: (page: number) => void;
-    setPageSize: (size: number) => void;
     setError: (err: APIError | null) => void;
     reset: () => void;
 };
