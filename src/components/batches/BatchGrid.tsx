@@ -1,4 +1,3 @@
-// components/batches/BatchGrid.tsx
 "use client";
 
 import React from "react";
@@ -12,14 +11,16 @@ export default function BatchGrid({
   batches,
   loading,
   page,
-  pageSize,
-  setPage,
+  pageCount,
+  onPageChange,
+  totalCount,
 }: {
-  batches: Batch[];
+  batches: Batch[]; // already paginated items
   loading: boolean;
   page: number;
-  pageSize: number;
-  setPage: (n: number) => void;
+  pageCount: number;
+  onPageChange: (n: number) => void;
+  totalCount?: number; // optional, for showing summary if needed
 }) {
   if (loading) {
     return (
@@ -38,26 +39,23 @@ export default function BatchGrid({
     );
   }
 
-  // defensive pageSize
-  const safePageSize = pageSize > 0 ? pageSize : Math.max(1, batches.length);
-  const pageCount = Math.max(1, Math.ceil(batches.length / safePageSize));
-  const safePage = Math.max(1, Math.min(page, pageCount));
-
-  const start = (safePage - 1) * safePageSize;
-  const pageItems = batches.slice(start, start + safePageSize);
-
   return (
     <>
       <AnimatePresence>
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pageItems.map((b) => (
+          {batches.map((b) => (
             <BatchCard key={b._id} batch={b} />
           ))}
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-6">
-        <PaginationBar page={safePage} pageCount={pageCount} onPageChange={(n) => setPage(n)} />
+      <div className="mt-6 flex items-center gap-4">
+        <div className="text-sm text-slate-500">
+          {totalCount !== undefined ? `${totalCount} result${totalCount === 1 ? "" : "s"}` : null}
+        </div>
+        <div className="ml-auto">
+          <PaginationBar page={page} pageCount={pageCount} onPageChange={(n) => onPageChange(n)} />
+        </div>
       </div>
     </>
   );

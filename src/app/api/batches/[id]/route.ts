@@ -6,35 +6,64 @@ import { Batch } from "@/models/Batch";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 import { parseYear, sanitizeSemesters, toObjectIdIfValid } from "@/lib/batch-validators";
 
-/* -------------------- Route handlers: GET / PUT / DELETE -------------------- */
-
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     await ConnectDB();
-    const { id } = params;
+
+    const { id } = await params;
+    const userId = await getUserIdFromSession();
+
+    if (!userId) {
+        return NextResponse.json(
+            { status: 401, message: "Unauthorized" },
+            { status: 401 }
+        );
+    }
 
     if (!mongoose.isValidObjectId(id)) {
-        return NextResponse.json({ status: 400, message: "Invalid id" }, { status: 400 });
+        return NextResponse.json(
+            { status: 400, message: "Invalid batch id" },
+            { status: 400 }
+        );
     }
 
     try {
-        const doc = await Batch.findById(id).lean();
-        if (!doc || doc.deletedAt) return NextResponse.json({ status: 404, message: "Batch not found" }, { status: 404 });
-        return NextResponse.json({ data: doc }, { status: 200 });
-    } catch (err: unknown) {
-        return NextResponse.json({ status: 500, message: "Failed to fetch batch", details: (err as Error)?.message ?? err }, { status: 500 });
+        // Fetch batch by _id and createdBy (ownership check)
+        const batch = await Batch.findOne({
+            _id: id,
+            createdBy: userId,
+            deletedAt: null,
+        }).lean();
+
+        if (!batch) {
+            return NextResponse.json(
+                { status: 404, message: "Batch not found or access denied" },
+                { status: 404 }
+            );
+        }
+        return NextResponse.json({ data: batch }, { status: 200 });
+    } catch (err) {
+        console.log("Error fetching batch:", err);
+        return NextResponse.json(
+            {
+                status: 500,
+                message: "Failed to fetch batch",
+                details: (err as Error)?.message ?? err,
+            },
+            { status: 500 }
+        );
     }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
     await ConnectDB();
-    const { id } = params;
+    const { id } = await params;
 
     if (!mongoose.isValidObjectId(id)) {
         return NextResponse.json({ status: 400, message: "Invalid id" }, { status: 400 });
     }
 
     try {
-        const userId = getUserIdFromSession();
+        const userId = await getUserIdFromSession();
         if (!userId) return NextResponse.json({ status: 401, message: "Unauthorized" }, { status: 401 });
 
         const raw = await req.json().catch(() => ({}));
@@ -84,8 +113,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
         updates.updatedAt = new Date();
 
-        // run validators so enums/min constraints are enforced on nested documents
-        const updated = await Batch.findOneAndUpdate({ _id: id }, { $set: updates }, { new: true, runValidators: true, context: "query" }).lean();
+        const updated = await Batch.findOneAndUpdate(
+            {
+                _id: id,
+                createdBy: userId,
+                deletedAt: null,
+            },
+            { $set: updates },
+            { new: true, runValidators: true, context: "query" }
+        ).lean();
 
         if (!updated) return NextResponse.json({ status: 404, message: "Batch not found" }, { status: 404 });
 
@@ -114,7 +150,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     await ConnectDB();
-    const { id } = params;
+    const { id } = await params;
+
+    const userId = await getUserIdFromSession();
+    if (!userId) return NextResponse.json({ status: 401, message: "Unauthorized" }, { status: 401 });
 
     if (!mongoose.isValidObjectId(id)) {
         return NextResponse.json({ status: 400, message: "Invalid id" }, { status: 400 });
@@ -125,11 +164,15 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const deletedByRaw = (raw && typeof raw === "object" && "deletedBy" in raw) ? (raw as Record<string, unknown>).deletedBy : undefined;
         const deletedBy = toObjectIdIfValid(typeof deletedByRaw === "string" ? deletedByRaw : undefined);
 
-        const doc = await Batch.findById(id);
+        const doc = await Batch.findOne({
+            _id: id,
+            createdBy: userId,
+            deletedAt: null,
+        });
         if (!doc || doc.deletedAt) return NextResponse.json({ status: 404, message: "Batch not found" }, { status: 404 });
 
         doc.deletedAt = new Date();
-        if (deletedBy) doc.updatedBy = deletedBy;
+        doc.updatedBy = deletedBy ?? toObjectIdIfValid(userId);
         await doc.save();
 
         return NextResponse.json({ success: true, _id: id }, { status: 200 });

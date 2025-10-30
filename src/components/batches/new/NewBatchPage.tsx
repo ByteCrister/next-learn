@@ -2,15 +2,15 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BatchFormNested from "@/components/batches/BatchFormNested";
-import { useBatches } from "@/hooks/useBatches";
 import { toast } from "react-toastify";
 import { CreateBatchPayload } from "@/types/types.batch";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import { encodeId } from "@/utils/helpers/IdConversion";
+import { useBatchesStore } from "@/store/useBatchesStore";
 
 export default function NewBatchPage() {
     const router = useRouter();
-    const { createBatch } = useBatches();
+    const { createBatch } = useBatchesStore();
     const [submitting, setSubmitting] = useState(false);
     const { setBreadcrumbs } = useBreadcrumbStore();
     useEffect(() => {

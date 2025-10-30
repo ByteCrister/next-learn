@@ -1,4 +1,3 @@
-// components/batches/PaginationBar.tsx
 "use client";
 
 import React from "react";

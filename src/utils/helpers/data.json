@@ -1,612 +1,626 @@
 {
-    "_id": "652f52a0f6e912345678abcd",
-    "name": "Batch 2025",
-    "program": "BSc in Computer Science and Engineering",
-    "year": 2025,
+    "_id": "69038d9f0afbcb15896f6aa0",
+    "name": "Summer 22",
+    "program": "Bsc Engineering in CSE",
+    "year": 2021,
     "semesters": [
         {
-            "_id": "652f52a0f6e912345678abce",
-            "name": "1st Semester",
-            "index": 1,
-            "startAt": "2025-01-10T00:00:00.000Z",
-            "endAt": "2025-05-30T00:00:00.000Z",
+            "name": "5th Semester",
+            "index": 5,
+            "startAt": "2024-07-01T00:00:00.000Z",
+            "endAt": "2025-12-31T00:00:00.000Z",
             "courses": [
                 {
-                    "_id": "652f52a0f6e912345678abcf",
-                    "courseId": "652f52a0f6e912345678aaa1",
-                    "code": "CSE101",
-                    "name": "Introduction to Programming",
+                    "code": "CHE-101",
+                    "name": "Fundamentals of Chemestry",
                     "parts": [
                         {
-                            "_id": "652f52a0f6e912345678abd0",
-                            "partType": "theory",
+                            "courseType": "theory",
                             "credits": 3,
                             "teachers": [
                                 {
-                                    "_id": "652f52a0f6e912345678t001",
-                                    "name": "Dr. Rahman",
-                                    "designation": "Assistant Professor",
-                                    "notes": "Main instructor for theory section",
-                                    "createdAt": "2025-01-05T08:00:00.000Z",
-                                    "updatedAt": "2025-02-01T09:15:00.000Z"
+                                    "name": "Ms. Munira Siddika",
+                                    "designation": "Guest Teacher",
+                                    "createdAt": "2025-10-30T16:09:03.631Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
                                 }
                             ],
                             "examDefinitions": [
                                 {
-                                    "_id": "652f52a0f6e912345678e001",
+                                    "examType": "mid",
+                                    "condition": "regular",
+                                    "totalMarks": 25,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.632Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.632Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.632Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aa4",
+                                    "createdAt": "2025-10-30T16:09:03.632Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                },
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 35.5,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.633Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.635Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.635Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aa5",
+                                    "createdAt": "2025-10-30T16:09:03.635Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6aa3",
+                            "createdAt": "2025-10-30T16:09:03.636Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6aa2",
+                    "createdAt": "2025-10-30T16:09:03.636Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-216",
+                    "name": "Engineering Drawings",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 2,
+                            "teachers": [
+                                {
+                                    "name": "Dr. Abdul Mukid Moahammad Mukaddes",
+                                    "designation": "Guest Teacher",
+                                    "createdAt": "2025-10-30T16:09:03.637Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 40,
+                                    "components": [
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.638Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "viva",
+                                            "maxMarks": 6,
+                                            "createdAt": "2025-10-30T16:09:03.638Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "practical",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.638Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aa8",
+                                    "createdAt": "2025-10-30T16:09:03.638Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6aa7",
+                            "createdAt": "2025-10-30T16:09:03.639Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6aa6",
+                    "createdAt": "2025-10-30T16:09:03.639Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-315",
+                    "name": "Communication Engineering",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 3,
+                            "teachers": [
+                                {
+                                    "name": "Mr. Razorshi Prozzal Talukder",
+                                    "designation": "Lecturer",
+                                    "createdAt": "2025-10-30T16:09:03.640Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "mid",
+                                    "condition": "regular",
+                                    "totalMarks": 25,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.641Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.641Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.641Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aab",
+                                    "createdAt": "2025-10-30T16:09:03.641Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                },
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 33.3,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.642Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.642Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.642Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aac",
+                                    "createdAt": "2025-10-30T16:09:03.642Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6aaa",
+                            "createdAt": "2025-10-30T16:09:03.642Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6aa9",
+                    "createdAt": "2025-10-30T16:09:03.642Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-317",
+                    "name": "Simulation and Modeling",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 3,
+                            "teachers": [
+                                {
+                                    "name": "Mr. Moammad Salah Uddin",
+                                    "designation": "Guest Teacher",
+                                    "createdAt": "2025-10-30T16:09:03.643Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "mid",
+                                    "condition": "regular",
+                                    "totalMarks": 22,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.643Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.643Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.644Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6aaf",
+                                    "createdAt": "2025-10-30T16:09:03.645Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                },
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 35,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.645Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.646Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.646Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6ab0",
+                                    "createdAt": "2025-10-30T16:09:03.646Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6aae",
+                            "createdAt": "2025-10-30T16:09:03.646Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6aad",
+                    "createdAt": "2025-10-30T16:09:03.646Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-323",
+                    "name": "Management Information System",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 3,
+                            "teachers": [
+                                {
+                                    "name": "Ms. Tanjina Akter",
+                                    "designation": "Guest Lecturer",
+                                    "createdAt": "2025-10-30T16:09:03.647Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "mid",
+                                    "condition": "regular",
+                                    "totalMarks": 24,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.648Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.648Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.648Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6ab3",
+                                    "createdAt": "2025-10-30T16:09:03.648Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                },
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 34.5,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.649Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 6,
+                                            "createdAt": "2025-10-30T16:09:03.649Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.649Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6ab4",
+                                    "createdAt": "2025-10-30T16:09:03.649Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6ab2",
+                            "createdAt": "2025-10-30T16:09:03.649Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6ab1",
+                    "createdAt": "2025-10-30T16:09:03.649Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-325",
+                    "name": "Computer Networking",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 3,
+                            "teachers": [
+                                {
+                                    "name": "Mr. Ayon Dey",
+                                    "designation": "Lecturer",
+                                    "createdAt": "2025-10-30T16:09:03.650Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "mid",
+                                    "condition": "regular",
+                                    "totalMarks": 27,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.650Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.650Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.650Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6ab7",
+                                    "createdAt": "2025-10-30T16:09:03.650Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                },
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 33.5,
+                                    "components": [
+                                        {
+                                            "name": "tt",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.650Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "assignments",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.651Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.651Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6ab8",
+                                    "createdAt": "2025-10-30T16:09:03.651Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6ab6",
+                            "createdAt": "2025-10-30T16:09:03.651Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6ab5",
+                    "createdAt": "2025-10-30T16:09:03.651Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-326",
+                    "name": "Computer Networking Lab",
+                    "parts": [
+                        {
+                            "courseType": "lab",
+                            "credits": 1.5,
+                            "teachers": [
+                                {
+                                    "name": "Mr. Ayon Dey",
+                                    "designation": "Lecturer",
+                                    "createdAt": "2025-10-30T16:09:03.653Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
+                                    "examType": "final",
+                                    "condition": "regular",
+                                    "totalMarks": 60,
+                                    "components": [
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.654Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "viva",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.654Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "others",
+                                            "maxMarks": 8,
+                                            "createdAt": "2025-10-30T16:09:03.655Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        }
+                                    ],
+                                    "_id": "69038d9f0afbcb15896f6abb",
+                                    "createdAt": "2025-10-30T16:09:03.655Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "_id": "69038d9f0afbcb15896f6aba",
+                            "createdAt": "2025-10-30T16:09:03.657Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                        }
+                    ],
+                    "_id": "69038d9f0afbcb15896f6ab9",
+                    "createdAt": "2025-10-30T16:09:03.657Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                },
+                {
+                    "code": "CSE-300",
+                    "name": "Project Work ||",
+                    "parts": [
+                        {
+                            "courseType": "theory",
+                            "credits": 2,
+                            "teachers": [
+                                {
+                                    "name": "Mr. Khadem Mohammad Asif-uz-zaman",
+                                    "designation": "Lecturer",
+                                    "createdAt": "2025-10-30T16:09:03.657Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
+                                }
+                            ],
+                            "examDefinitions": [
+                                {
                                     "examType": "mid",
                                     "condition": "regular",
                                     "totalMarks": 30,
                                     "components": [
                                         {
-                                            "name": "tt",
+                                            "name": "viva",
                                             "maxMarks": 10,
-                                            "notes": "Teacher test",
-                                            "createdAt": "2025-01-06T08:00:00.000Z",
-                                            "updatedAt": "2025-01-06T08:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "maxMarks": 10,
-                                            "notes": "Assignment average",
-                                            "createdAt": "2025-01-06T08:00:00.000Z",
-                                            "updatedAt": "2025-01-06T08:00:00.000Z"
+                                            "createdAt": "2025-10-30T16:09:03.658Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
                                         },
                                         {
                                             "name": "attendance",
                                             "maxMarks": 10,
-                                            "notes": "Attendance contribution",
-                                            "createdAt": "2025-01-06T08:00:00.000Z",
-                                            "updatedAt": "2025-01-06T08:00:00.000Z"
-                                        }
-                                    ],
-                                    "createdAt": "2025-01-06T08:00:00.000Z",
-                                    "updatedAt": "2025-01-06T08:00:00.000Z",
-                                    "notes": "Midterm split"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678e002",
-                                    "examType": "final",
-                                    "condition": "regular",
-                                    "totalMarks": 70,
-                                    "components": [
-                                        {
-                                            "name": "tt",
-                                            "maxMarks": 20,
-                                            "notes": "Theory test in final",
-                                            "createdAt": "2025-01-06T08:05:00.000Z",
-                                            "updatedAt": "2025-01-06T08:05:00.000Z"
+                                            "createdAt": "2025-10-30T16:09:03.658Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
                                         },
                                         {
                                             "name": "others",
                                             "maxMarks": 10,
-                                            "notes": "Quizzes / short tests",
-                                            "createdAt": "2025-01-06T08:05:00.000Z",
-                                            "updatedAt": "2025-01-06T08:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "maxMarks": 20,
-                                            "notes": "Final assignments",
-                                            "createdAt": "2025-01-06T08:05:00.000Z",
-                                            "updatedAt": "2025-01-06T08:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "attendance",
-                                            "maxMarks": 20,
-                                            "notes": "Final attendance weight",
-                                            "createdAt": "2025-01-06T08:05:00.000Z",
-                                            "updatedAt": "2025-01-06T08:05:00.000Z"
+                                            "createdAt": "2025-10-30T16:09:03.658Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
                                         }
                                     ],
-                                    "createdAt": "2025-01-06T08:05:00.000Z",
-                                    "updatedAt": "2025-01-06T08:05:00.000Z",
-                                    "notes": "Final exam split"
-                                }
-                            ],
-                            "results": [
-                                {
-                                    "_id": "652f52a0f6e912345678r001",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "examType": "mid",
-                                    "condition": "regular",
-                                    "components": [
-                                        {
-                                            "name": "tt",
-                                            "marks": 8,
-                                            "maxMarks": 10,
-                                            "notes": "Good performance",
-                                            "createdAt": "2025-02-20T10:00:00.000Z",
-                                            "updatedAt": "2025-02-20T10:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "marks": 9,
-                                            "maxMarks": 10,
-                                            "notes": "High assignment score",
-                                            "createdAt": "2025-02-20T10:00:00.000Z",
-                                            "updatedAt": "2025-02-20T10:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "attendance",
-                                            "marks": 8,
-                                            "maxMarks": 10,
-                                            "notes": "Consistent attendance",
-                                            "createdAt": "2025-02-20T10:00:00.000Z",
-                                            "updatedAt": "2025-02-20T10:00:00.000Z"
-                                        }
-                                    ],
-                                    "total": 25,
-                                    "grade": "B+",
-                                    "createdAt": "2025-02-20T10:00:00.000Z",
-                                    "updatedAt": "2025-02-20T10:00:00.000Z",
-                                    "notes": "Midterm recorded"
+                                    "_id": "69038d9f0afbcb15896f6abe",
+                                    "createdAt": "2025-10-30T16:09:03.659Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
                                 },
                                 {
-                                    "_id": "652f52a0f6e912345678r002",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "examType": "mid",
-                                    "condition": "regular",
-                                    "components": [
-                                        {
-                                            "name": "tt",
-                                            "marks": 6,
-                                            "maxMarks": 10,
-                                            "notes": "Below average TT",
-                                            "createdAt": "2025-02-20T10:05:00.000Z",
-                                            "updatedAt": "2025-02-20T10:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "marks": 7,
-                                            "maxMarks": 10,
-                                            "notes": "Assignments ok",
-                                            "createdAt": "2025-02-20T10:05:00.000Z",
-                                            "updatedAt": "2025-02-20T10:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "attendance",
-                                            "marks": 6,
-                                            "maxMarks": 10,
-                                            "notes": "Some absences",
-                                            "createdAt": "2025-02-20T10:05:00.000Z",
-                                            "updatedAt": "2025-02-20T10:05:00.000Z"
-                                        }
-                                    ],
-                                    "total": 19,
-                                    "grade": "C",
-                                    "createdAt": "2025-02-20T10:05:00.000Z",
-                                    "updatedAt": "2025-02-20T10:05:00.000Z",
-                                    "notes": "Midterm recorded"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678r003",
-                                    "student": "652f52a0f6e912345678stu01",
                                     "examType": "final",
                                     "condition": "regular",
+                                    "totalMarks": 40,
                                     "components": [
                                         {
-                                            "name": "tt",
-                                            "marks": 15,
-                                            "maxMarks": 20,
-                                            "notes": "Strong theory in final",
-                                            "createdAt": "2025-05-28T14:00:00.000Z",
-                                            "updatedAt": "2025-05-28T14:00:00.000Z"
+                                            "name": "viva",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.659Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
+                                        },
+                                        {
+                                            "name": "attendance",
+                                            "maxMarks": 10,
+                                            "createdAt": "2025-10-30T16:09:03.659Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
                                         },
                                         {
                                             "name": "others",
-                                            "marks": 7,
                                             "maxMarks": 10,
-                                            "notes": "Quiz contributions",
-                                            "createdAt": "2025-05-28T14:00:00.000Z",
-                                            "updatedAt": "2025-05-28T14:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "marks": 17,
-                                            "maxMarks": 20,
-                                            "notes": "Final assignment work",
-                                            "createdAt": "2025-05-28T14:00:00.000Z",
-                                            "updatedAt": "2025-05-28T14:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "attendance",
-                                            "marks": 18,
-                                            "maxMarks": 20,
-                                            "notes": "Excellent attendance",
-                                            "createdAt": "2025-05-28T14:00:00.000Z",
-                                            "updatedAt": "2025-05-28T14:00:00.000Z"
+                                            "createdAt": "2025-10-30T16:09:03.659Z",
+                                            "updatedAt": "2025-10-30T16:09:03.718Z"
                                         }
                                     ],
-                                    "total": 57,
-                                    "grade": "A-",
-                                    "createdAt": "2025-05-28T14:00:00.000Z",
-                                    "updatedAt": "2025-05-28T14:00:00.000Z",
-                                    "notes": "Final recorded"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678r004",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "examType": "final",
-                                    "condition": "regular",
-                                    "components": [
-                                        {
-                                            "name": "tt",
-                                            "marks": 12,
-                                            "maxMarks": 20,
-                                            "notes": "Decent TT",
-                                            "createdAt": "2025-05-28T14:05:00.000Z",
-                                            "updatedAt": "2025-05-28T14:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "others",
-                                            "marks": 5,
-                                            "maxMarks": 10,
-                                            "notes": "Few quiz points",
-                                            "createdAt": "2025-05-28T14:05:00.000Z",
-                                            "updatedAt": "2025-05-28T14:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "assignments",
-                                            "marks": 13,
-                                            "maxMarks": 20,
-                                            "notes": "Assignments below top",
-                                            "createdAt": "2025-05-28T14:05:00.000Z",
-                                            "updatedAt": "2025-05-28T14:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "attendance",
-                                            "marks": 15,
-                                            "maxMarks": 20,
-                                            "notes": "Good attendance",
-                                            "createdAt": "2025-05-28T14:05:00.000Z",
-                                            "updatedAt": "2025-05-28T14:05:00.000Z"
-                                        }
-                                    ],
-                                    "total": 45,
-                                    "grade": "B",
-                                    "createdAt": "2025-05-28T14:05:00.000Z",
-                                    "updatedAt": "2025-05-28T14:05:00.000Z",
-                                    "notes": "Final recorded"
+                                    "_id": "69038d9f0afbcb15896f6abf",
+                                    "createdAt": "2025-10-30T16:09:03.660Z",
+                                    "updatedAt": "2025-10-30T16:09:03.718Z"
                                 }
                             ],
-                            "attendance": [
-                                {
-                                    "_id": "652f52a0f6e912345678a001",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "attendance",
-                                    "title": "Lecture attendance January - March",
-                                    "marks": 18,
-                                    "maxMarks": 20,
-                                    "notes": "18/20 attendance credit",
-                                    "createdAt": "2025-03-31T09:00:00.000Z",
-                                    "updatedAt": "2025-03-31T09:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678a002",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "attendance",
-                                    "title": "Lecture attendance January - March",
-                                    "marks": 15,
-                                    "maxMarks": 20,
-                                    "notes": "15/20 attendance credit",
-                                    "createdAt": "2025-03-31T09:05:00.000Z",
-                                    "updatedAt": "2025-03-31T09:05:00.000Z"
-                                }
-                            ],
-                            "assignments": [
-                                {
-                                    "_id": "652f52a0f6e912345678as001",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "assignments",
-                                    "title": "Assignment set 1-3 average",
-                                    "marks": 26,
-                                    "maxMarks": 30,
-                                    "notes": "Strong assignments",
-                                    "createdAt": "2025-04-15T11:00:00.000Z",
-                                    "updatedAt": "2025-04-15T11:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678as002",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "assignments",
-                                    "title": "Assignment set 1-3 average",
-                                    "marks": 20,
-                                    "maxMarks": 30,
-                                    "notes": "Satisfactory",
-                                    "createdAt": "2025-04-15T11:05:00.000Z",
-                                    "updatedAt": "2025-04-15T11:05:00.000Z"
-                                }
-                            ],
-                            "others": [
-                                {
-                                    "_id": "652f52a0f6e912345678o001",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "others",
-                                    "title": "Quiz average",
-                                    "marks": 12,
-                                    "maxMarks": 20,
-                                    "notes": "Multiple short quizzes",
-                                    "createdAt": "2025-04-22T12:00:00.000Z",
-                                    "updatedAt": "2025-04-22T12:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678o002",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "others",
-                                    "title": "Quiz average",
-                                    "marks": 9,
-                                    "maxMarks": 20,
-                                    "notes": "Missed one quiz",
-                                    "createdAt": "2025-04-22T12:05:00.000Z",
-                                    "updatedAt": "2025-04-22T12:05:00.000Z"
-                                }
-                            ],
-                            "studentSummaries": [
-                                {
-                                    "_id": "652f52a0f6e912345678s001",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "mid": 25,
-                                    "final": 57,
-                                    "tt": 23,
-                                    "assignments": 26,
-                                    "attendance": 36,
-                                    "others": 12,
-                                    "overall": 82,
-                                    "createdAt": "2025-05-29T08:00:00.000Z",
-                                    "updatedAt": "2025-05-29T08:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678s002",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "mid": 19,
-                                    "final": 45,
-                                    "tt": 18,
-                                    "assignments": 20,
-                                    "attendance": 30,
-                                    "others": 9,
-                                    "overall": 64,
-                                    "createdAt": "2025-05-29T08:05:00.000Z",
-                                    "updatedAt": "2025-05-29T08:05:00.000Z"
-                                }
-                            ],
-                            "notes": "Theory part includes mid & final; summaries kept for quick UI aggregation",
-                            "createdAt": "2025-01-05T08:00:00.000Z",
-                            "updatedAt": "2025-05-29T08:05:00.000Z"
+                            "_id": "69038d9f0afbcb15896f6abd",
+                            "createdAt": "2025-10-30T16:09:03.660Z",
+                            "updatedAt": "2025-10-30T16:09:03.718Z"
                         }
                     ],
-                    "notes": "Core theory course for first semester",
-                    "createdAt": "2025-01-05T07:50:00.000Z",
-                    "updatedAt": "2025-05-29T08:05:00.000Z"
-                },
-                
-                {
-                    "_id": "652f52a0f6e912345678abd1",
-                    "courseId": "652f52a0f6e912345678aaa2",
-                    "code": "CSE102",
-                    "name": "Programming Lab",
-                    "parts": [
-                        {
-                            "_id": "652f52a0f6e912345678abd2",
-                            "partType": "lab",
-                            "credits": 1,
-                            "teachers": [
-                                {
-                                    "_id": "652f52a0f6e912345678t002",
-                                    "name": "Ms. Jahan",
-                                    "designation": "Lecturer",
-                                    "notes": "Lab instructor",
-                                    "createdAt": "2025-01-07T09:00:00.000Z",
-                                    "updatedAt": "2025-02-10T09:30:00.000Z"
-                                }
-                            ],
-                            "examDefinitions": [
-                                {
-                                    "_id": "652f52a0f6e912345678e003",
-                                    "examType": "final",
-                                    "condition": "regular",
-                                    "totalMarks": 50,
-                                    "components": [
-                                        {
-                                            "name": "practical",
-                                            "maxMarks": 30,
-                                            "notes": "Practical execution",
-                                            "createdAt": "2025-01-07T09:05:00.000Z",
-                                            "updatedAt": "2025-01-07T09:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "viva",
-                                            "maxMarks": 20,
-                                            "notes": "Viva voce",
-                                            "createdAt": "2025-01-07T09:05:00.000Z",
-                                            "updatedAt": "2025-01-07T09:05:00.000Z"
-                                        }
-                                    ],
-                                    "createdAt": "2025-01-07T09:05:00.000Z",
-                                    "updatedAt": "2025-01-07T09:05:00.000Z",
-                                    "notes": "Lab final configuration"
-                                }
-                            ],
-                            "results": [
-                                {
-                                    "_id": "652f52a0f6e912345678r005",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "examType": "final",
-                                    "condition": "regular",
-                                    "components": [
-                                        {
-                                            "name": "practical",
-                                            "marks": 26,
-                                            "maxMarks": 30,
-                                            "notes": "Excellent practical",
-                                            "createdAt": "2025-05-29T10:00:00.000Z",
-                                            "updatedAt": "2025-05-29T10:00:00.000Z"
-                                        },
-                                        {
-                                            "name": "viva",
-                                            "marks": 17,
-                                            "maxMarks": 20,
-                                            "notes": "Clear explanations",
-                                            "createdAt": "2025-05-29T10:00:00.000Z",
-                                            "updatedAt": "2025-05-29T10:00:00.000Z"
-                                        }
-                                    ],
-                                    "total": 43,
-                                    "grade": "A",
-                                    "createdAt": "2025-05-29T10:00:00.000Z",
-                                    "updatedAt": "2025-05-29T10:00:00.000Z",
-                                    "notes": "Lab final recorded"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678r006",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "examType": "final",
-                                    "condition": "regular",
-                                    "components": [
-                                        {
-                                            "name": "practical",
-                                            "marks": 22,
-                                            "maxMarks": 30,
-                                            "notes": "Satisfactory practical",
-                                            "createdAt": "2025-05-29T10:05:00.000Z",
-                                            "updatedAt": "2025-05-29T10:05:00.000Z"
-                                        },
-                                        {
-                                            "name": "viva",
-                                            "marks": 14,
-                                            "maxMarks": 20,
-                                            "notes": "Viva nervous",
-                                            "createdAt": "2025-05-29T10:05:00.000Z",
-                                            "updatedAt": "2025-05-29T10:05:00.000Z"
-                                        }
-                                    ],
-                                    "total": 36,
-                                    "grade": "B+",
-                                    "createdAt": "2025-05-29T10:05:00.000Z",
-                                    "updatedAt": "2025-05-29T10:05:00.000Z",
-                                    "notes": "Lab final recorded"
-                                }
-                            ],
-                            "attendance": [
-                                {
-                                    "_id": "652f52a0f6e912345678a003",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "attendance",
-                                    "title": "Practical attendance Jan-May",
-                                    "marks": 10,
-                                    "maxMarks": 10,
-                                    "notes": "Full practical attendance",
-                                    "createdAt": "2025-05-01T08:00:00.000Z",
-                                    "updatedAt": "2025-05-01T08:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678a004",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "attendance",
-                                    "title": "Practical attendance Jan-May",
-                                    "marks": 8,
-                                    "maxMarks": 10,
-                                    "notes": "Missed two sessions",
-                                    "createdAt": "2025-05-01T08:05:00.000Z",
-                                    "updatedAt": "2025-05-01T08:05:00.000Z"
-                                }
-                            ],
-                            "assignments": [
-                                {
-                                    "_id": "652f52a0f6e912345678as003",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "assignments",
-                                    "title": "Lab mini projects",
-                                    "marks": 18,
-                                    "maxMarks": 20,
-                                    "notes": "Well documented",
-                                    "createdAt": "2025-04-20T13:00:00.000Z",
-                                    "updatedAt": "2025-04-20T13:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678as004",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "assignments",
-                                    "title": "Lab mini projects",
-                                    "marks": 14,
-                                    "maxMarks": 20,
-                                    "notes": "Incomplete documentation",
-                                    "createdAt": "2025-04-20T13:05:00.000Z",
-                                    "updatedAt": "2025-04-20T13:05:00.000Z"
-                                }
-                            ],
-                            "others": [
-                                {
-                                    "_id": "652f52a0f6e912345678o003",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "type": "others",
-                                    "title": "Extra credit lab tasks",
-                                    "marks": 5,
-                                    "maxMarks": 5,
-                                    "notes": "Bonus task completed",
-                                    "createdAt": "2025-04-25T15:00:00.000Z",
-                                    "updatedAt": "2025-04-25T15:00:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678o004",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "type": "others",
-                                    "title": "Extra credit lab tasks",
-                                    "marks": 3,
-                                    "maxMarks": 5,
-                                    "notes": "Partial bonus",
-                                    "createdAt": "2025-04-25T15:05:00.000Z",
-                                    "updatedAt": "2025-04-25T15:05:00.000Z"
-                                }
-                            ],
-                            "studentSummaries": [
-                                {
-                                    "_id": "652f52a0f6e912345678s003",
-                                    "student": "652f52a0f6e912345678stu01",
-                                    "mid": 0,
-                                    "final": 43,
-                                    "tt": 0,
-                                    "assignments": 18,
-                                    "attendance": 10,
-                                    "others": 5,
-                                    "overall": 43,
-                                    "createdAt": "2025-05-29T10:10:00.000Z",
-                                    "updatedAt": "2025-05-29T10:10:00.000Z"
-                                },
-                                {
-                                    "_id": "652f52a0f6e912345678s004",
-                                    "student": "652f52a0f6e912345678stu02",
-                                    "mid": 0,
-                                    "final": 36,
-                                    "tt": 0,
-                                    "assignments": 14,
-                                    "attendance": 8,
-                                    "others": 3,
-                                    "overall": 36,
-                                    "createdAt": "2025-05-29T10:15:00.000Z",
-                                    "updatedAt": "2025-05-29T10:15:00.000Z"
-                                }
-                            ],
-                            "notes": "Lab part with practical and viva; final only",
-                            "createdAt": "2025-01-07T09:00:00.000Z",
-                            "updatedAt": "2025-05-29T10:15:00.000Z"
-                        }
-                    ],
-                    "notes": "Practical lab course",
-                    "createdAt": "2025-01-07T08:50:00.000Z",
-                    "updatedAt": "2025-05-29T10:15:00.000Z"
+                    "_id": "69038d9f0afbcb15896f6abc",
+                    "createdAt": "2025-10-30T16:09:03.660Z",
+                    "updatedAt": "2025-10-30T16:09:03.718Z"
                 }
             ],
-            "notes": "Semester created with two courses for seeding/testing",
             "deletedAt": null,
-            "createdAt": "2025-01-01T07:00:00.000Z",
-            "updatedAt": "2025-05-29T10:15:00.000Z"
+            "_id": "69038d9f0afbcb15896f6aa1",
+            "createdAt": "2025-10-30T16:09:03.660Z",
+            "updatedAt": "2025-10-30T16:09:03.718Z"
         }
     ],
-    "notes": "Initial batch created with full mock data for testing UI and transactions.",
-    "createdBy": "652f52a0f6e912345678u001",
-    "updatedBy": "652f52a0f6e912345678u001",
+    "createdBy": "68ad2fa6c1c211bab8de03fb",
+    "updatedBy": "68ad2fa6c1c211bab8de03fb",
     "deletedAt": null,
-    "createdAt": "2025-01-01T06:00:00.000Z",
-    "updatedAt": "2025-05-29T10:15:00.000Z"
+    "createdAt": "2025-10-30T16:09:03.661Z",
+    "updatedAt": "2025-10-30T16:09:03.718Z",
+    "__v": 0
 }

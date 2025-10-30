@@ -4,7 +4,6 @@
  * Batch schema implementing:
  * - Batch -> Semesters -> Course -> CoursePart
  * - Per CoursePart: examDefinitions, results, attendance, assignments, others
- * - Per CoursePart: studentSummaries storing running totals and overall
  * - Only createdBy/updatedBy reference User
  *
  * Helper functions:
@@ -97,18 +96,6 @@ export interface CourseResult {
     updatedAt?: Date;
 }
 
-export interface CourseRecord {
-    _id?: ObjId;
-    student?: ObjId;
-    type: ResultComponentName;
-    title?: string;
-    marks?: number;
-    maxMarks?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-    notes?: string;
-}
-
 export interface CoursePart {
     _id?: ObjId;
     courseType: CourseType;
@@ -116,9 +103,6 @@ export interface CoursePart {
     teachers: TeacherSnapshot[];
     examDefinitions: ExamDefinition[];
     results?: CourseResult[];     // per-student per-exam entries (mid/final)
-    attendance?: CourseRecord[];  // per-part attendance
-    assignments?: CourseRecord[]; // per-part assignments
-    others?: CourseRecord[];      // per-part other records
     createdAt?: Date;
     updatedAt?: Date;
     notes?: string;
@@ -225,19 +209,19 @@ const CourseResultSchema = new Schema<CourseResult>(
     { _id: true }
 );
 
-const CourseRecordSchema = new Schema<CourseRecord>(
-    {
-        student: { type: Schema.Types.ObjectId, index: true },
-        type: { type: String, required: true, enum: Object.values(RESULT_COMPONENT_NAME) },
-        title: { type: String, trim: true },
-        marks: { type: Number },
-        maxMarks: { type: Number },
-        notes: { type: String },
-        createdAt: { type: Date, default: Date.now },
-        updatedAt: { type: Date, default: Date.now },
-    },
-    { _id: true }
-);
+// const CourseRecordSchema = new Schema<CourseRecord>(
+//     {
+//         student: { type: Schema.Types.ObjectId, index: true },
+//         type: { type: String, required: true, enum: Object.values(RESULT_COMPONENT_NAME) },
+//         title: { type: String, trim: true },
+//         marks: { type: Number },
+//         maxMarks: { type: Number },
+//         notes: { type: String },
+//         createdAt: { type: Date, default: Date.now },
+//         updatedAt: { type: Date, default: Date.now },
+//     },
+//     { _id: true }
+// );
 
 const CoursePartSchema = new Schema<CoursePart>(
     {
@@ -246,9 +230,6 @@ const CoursePartSchema = new Schema<CoursePart>(
         teachers: { type: [TeacherSnapshotSchema], default: [] },
         examDefinitions: { type: [ExamDefinitionSchema], default: [] },
         results: { type: [CourseResultSchema], default: [] },
-        attendance: { type: [CourseRecordSchema], default: [] },
-        assignments: { type: [CourseRecordSchema], default: [] },
-        others: { type: [CourseRecordSchema], default: [] },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
@@ -344,11 +325,10 @@ BatchSchema.pre("save", function (this: mongoose.Document & BatchDoc, next) {
                             }
                         }
 
-                        const partArrays = ["results", "attendance", "assignments", "others", "studentSummaries"] as const;
+                        const partArrays = ["results", "attendance", "assignments", "others"] as const;
                         for (const arrName of partArrays) {
                             const arr = (part as unknown as Record<string, unknown>)[arrName] as
                                 | CourseResult[]
-                                | CourseRecord[]
                                 | undefined;
                             if (!Array.isArray(arr)) continue;
                             for (const it of arr) {

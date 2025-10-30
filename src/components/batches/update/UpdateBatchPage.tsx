@@ -3,15 +3,15 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
-import { useBatches } from "@/hooks/useBatches";
 import BatchFormNested from "@/components/batches/BatchFormNested";
 import { toast } from "react-toastify";
 import { UpdateBatchPayload } from "@/types/types.batch";
 import { encodeId } from "@/utils/helpers/IdConversion";
+import { useBatchesStore } from "@/store/useBatchesStore";
 
 export default function UpdateBatchPage({ batchId }: { batchId: string }) {
     const router = useRouter();
-    const { fetchBatchById, currentBatch, updateBatch } = useBatches();
+    const { fetchBatchById, currentBatch, updateBatch } = useBatchesStore();
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 

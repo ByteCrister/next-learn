@@ -105,6 +105,7 @@ export const useBatchesStore = create<BatchesState>((set) => {
             const cached = itemCache.get(id);
             if (cached) {
                 set({ currentBatch: cached, loading: false, error: null });
+                console.log(JSON.stringify(cached));
                 return;
             }
 
@@ -124,6 +125,7 @@ export const useBatchesStore = create<BatchesState>((set) => {
                         s.total = s.batches.length;
                     })
                 );
+                console.log(JSON.stringify(cached));
             } catch (err) {
                 const e = await handleError(err);
                 set({ loading: false, error: e });

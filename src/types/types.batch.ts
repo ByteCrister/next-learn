@@ -63,15 +63,14 @@ export type ExamDefinition = {
 
 /** Individual recorded marks component (actual marks for a student) */
 export type ResultComponent = {
-    name: RESULT_COMPONENT_NAME;
-    marks?: number;
-    maxMarks?: number;
-    notes?: string;
-    createdAt?: string;
-    updatedAt?: string;
+  name: RESULT_COMPONENT_NAME;
+  marks?: number;
+  maxMarks?: number;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
-/** Per-student per-exam result (inside a CoursePart) */
 export type CourseResult = {
     _id?: ID;
     student?: ID;
@@ -84,34 +83,6 @@ export type CourseResult = {
     updatedAt?: string;
 };
 
-/** Attendance / assignment / other record shape */
-export type CourseRecord = {
-    _id?: ID;
-    student?: ID;
-    type: RESULT_COMPONENT_NAME;
-    title?: string;
-    marks?: number;
-    maxMarks?: number;
-    notes?: string;
-    createdAt?: string;
-    updatedAt?: string;
-};
-
-/** Aggregated running totals for a student inside a CoursePart (fast UI reads) */
-export type StudentSummary = {
-    _id?: ID;
-    student: ID;
-    mid?: number;
-    final?: number;
-    tt?: number;
-    assignments?: number;
-    attendance?: number;
-    others?: number;
-    overall?: number;
-    createdAt?: string;
-    updatedAt?: string;
-};
-
 /** Course part (theory / lab) containing exam definitions and per-part records */
 export type CoursePart = {
     _id?: ID;
@@ -120,10 +91,6 @@ export type CoursePart = {
     teachers: TeacherSnapshot[];
     examDefinitions: ExamDefinition[]; // distribution metadata
     results?: CourseResult[]; // recorded exam entries
-    attendance?: CourseRecord[];
-    assignments?: CourseRecord[];
-    others?: CourseRecord[];
-    studentSummaries?: StudentSummary[]; // aggregated running totals
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -290,7 +257,6 @@ export type BatchesState = {
 /** Minimal summary used on /batches list cards */
 export type BatchCard = Pick<Batch, "_id" | "name" | "program" | "year" | "createdAt"> & {
     semesterCount: number;
-    studentCount?: number; // optional if available from API
 };
 
 /* ---------------------------- Notes for frontend ------------------------ */

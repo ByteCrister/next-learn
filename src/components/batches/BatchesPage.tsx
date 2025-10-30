@@ -7,22 +7,23 @@ import BatchesShell from "@/components/batches/BatchesShell";
 import BatchGrid from "@/components/batches/BatchGrid";
 import { useBatchesStore } from "@/store/useBatchesStore";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
+import { useRouter } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 export default function BatchesPage() {
-  const { fetchBatches, loading, total, batches: rawBatches } = useBatchesStore();
+  const router = useRouter();
+  const { fetchBatches, loading, total: storeTotal, batches: rawBatches } = useBatchesStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"new" | "old" | "name">("new");
 
-  // Local pagination state (UI-managed)
+  // pagination states (UI-managed)
   const [page, setPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(12); // default page size you prefer
+  const [pageSize, setPageSize] = useState<number>(12);
 
   useEffect(() => {
-    // skip if already loading or batches already fetched in this session
     if (loading || rawBatches.length > 0) {
       setBreadcrumbs([
         { label: "Home", href: "/" },
@@ -71,12 +72,18 @@ export default function BatchesPage() {
     return list;
   }, [rawBatches, query, sort]);
 
-  // If the current page becomes invalid (e.g., change pageSize or filtered length), reset to 1
+  // compute pagination here (single source of truth)
+  const safePageSize = Math.max(1, pageSize);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / safePageSize));
+  const safePage = Math.max(1, Math.min(page, pageCount));
+
+  // if page becomes invalid due to change in pageSize or filters, reset to 1
   useEffect(() => {
-    const safePageSize = pageSize > 0 ? pageSize : 1;
-    const pageCount = Math.max(1, Math.ceil(filtered.length / safePageSize));
     if (page > pageCount) setPage(1);
-  }, [filtered.length, pageSize, page]);
+  }, [pageCount, page]);
+
+  const start = (safePage - 1) * safePageSize;
+  const pageItems = filtered.slice(start, start + safePageSize);
 
   return (
     <main
@@ -100,20 +107,36 @@ export default function BatchesPage() {
           </div>
 
           <BatchesShell
-            total={rawBatches.length}
+            total={storeTotal}
             query={query}
-            onQueryChange={setQuery}
+            onQueryChange={(v) => {
+              setQuery(v);
+              setPage(1);
+            }}
             sort={sort}
-            onSortChange={setSort}
-            page={page}
+            onSortChange={(v) => {
+              setSort(v);
+              setPage(1);
+            }}
+            page={safePage}
             pageSize={pageSize}
             setPage={setPage}
-            setPageSize={setPageSize}
-            onCreate={() => (location.pathname = "/batches/new")}
+            setPageSize={(n) => {
+              setPageSize(n);
+              setPage(1);
+            }}
+            onCreate={() => router.push("/batches/new")}
           />
 
           <motion.div className="mt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <BatchGrid batches={filtered} loading={loading} page={page} pageSize={pageSize} setPage={setPage} />
+            <BatchGrid
+              batches={pageItems}
+              loading={loading}
+              page={safePage}
+              pageCount={pageCount}
+              onPageChange={(n) => setPage(n)}
+              totalCount={filtered.length}
+            />
           </motion.div>
         </motion.div>
       </div>

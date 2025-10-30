@@ -11,14 +11,12 @@ type ListBatchesResponse = {
     total: number;
 };
 
-/* -------------------- GET and POST handlers -------------------- */
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(_req: NextRequest) {
     try {
         await ConnectDB();
 
-        const userId = getUserIdFromSession();
+        const userId = await getUserIdFromSession();
         if (!userId) return NextResponse.json({ status: 401, message: "Unauthorized" }, { status: 401 });
 
         const docs = (await Batch.find({ deletedAt: null, createdBy: userId }).sort({ createdAt: -1 }).lean()) as unknown as BatchType[];
@@ -27,6 +25,8 @@ export async function GET(_req: NextRequest) {
             data: docs,
             total: docs.length,
         };
+
+        console.log(resp);
 
         return NextResponse.json(resp, { status: 200 });
     } catch (err: unknown) {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     try {
         await ConnectDB();
 
-        const userId = getUserIdFromSession();
+        const userId = await getUserIdFromSession();
         if (!userId) return NextResponse.json({ status: 401, message: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
@@ -66,8 +66,6 @@ export async function POST(req: NextRequest) {
 
         const doc = new Batch(payload);
         await doc.save();
-
-        console.log(doc);
 
         const saved = (await Batch.findById(doc._id).lean()) as BatchType | null;
         return NextResponse.json({ data: saved, total: saved ? 1 : 0 }, { status: 201 });

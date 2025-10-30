@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Formik, Form, Field, FieldArray, FieldProps, FormikHelpers } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -30,6 +30,7 @@ import useBatchForm, {
   ServerErrorShape,
   UpdateProps,
 } from "@/hooks/useBatchForm";
+import { v4 as uuidv4 } from "uuid";
 
 /* --------- Main Component ---------- */
 
@@ -50,7 +51,103 @@ export default function BatchFormNested(props: Props) {
     emptyResultComponent,
   } = useBatchForm();
 
+  const initialShared = useMemo(
+    () => ({
+      courseNames: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .map((c) => c.name)
+            .filter((name): name is string => Boolean(name))
+        )
+      ),
+      courseCodes: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .map((c) => c.code)
+            .filter((code): code is string => Boolean(code))
+        )
+      ),
+      teacherNames: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .flatMap((c) => c.parts ?? [])
+            .flatMap((p) => p.teachers ?? [])
+            .map((t) => t.name)
+            .filter(Boolean)
+        )
+      ),
+      credits: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .flatMap((c) => c.parts ?? [])
+            .map((p) => p.credits)
+            .filter((v) => typeof v === "number")
+        )
+      ).sort((a: number, b: number) => a - b),
+    }),
+    [initialValues]
+  );
+
+  const [shared, setShared] = useState<{
+    courseNames: string[];
+    courseCodes: string[];
+    teacherNames: string[];
+    credits: number[];
+  }>(initialShared);
+
+  // small helpers to mutate shared lists
+  const addCourseName = (v: string) =>
+    v && setShared((s) => ({ ...s, courseNames: Array.from(new Set([v.trim(), ...s.courseNames])) }));
+  const updateCourseName = (idx: number, v: string) =>
+    setShared((s) => {
+      const arr = [...s.courseNames];
+      arr[idx] = v;
+      return { ...s, courseNames: Array.from(new Set(arr.map((x) => x.trim()).filter(Boolean))) };
+    });
+  const removeCourseName = (idx: number) =>
+    setShared((s) => ({ ...s, courseNames: s.courseNames.filter((_, i) => i !== idx) }));
+
+  const addCourseCode = (v: string) =>
+    v && setShared((s) => ({ ...s, courseCodes: Array.from(new Set([v.trim(), ...s.courseCodes])) }));
+  const updateCourseCode = (idx: number, v: string) =>
+    setShared((s) => {
+      const arr = [...s.courseCodes];
+      arr[idx] = v;
+      return { ...s, courseCodes: Array.from(new Set(arr.map((x) => x.trim()).filter(Boolean))) };
+    });
+  const removeCourseCode = (idx: number) => setShared((s) => ({ ...s, courseCodes: s.courseCodes.filter((_, i) => i !== idx) }));
+
+  const addTeacherName = (v: string) =>
+    v && setShared((s) => ({ ...s, teacherNames: Array.from(new Set([v.trim(), ...s.teacherNames])) }));
+  const updateTeacherName = (idx: number, v: string) =>
+    setShared((s) => {
+      const arr = [...s.teacherNames];
+      arr[idx] = v;
+      return { ...s, teacherNames: Array.from(new Set(arr.map((x) => x.trim()).filter(Boolean))) };
+    });
+  const removeTeacherName = (idx: number) => setShared((s) => ({ ...s, teacherNames: s.teacherNames.filter((_, i) => i !== idx) }));
+
+  const addCredit = (v: number) =>
+    Number.isFinite(v) && setShared((s) => ({ ...s, credits: Array.from(new Set([v, ...s.credits])).sort((a, b) => a - b) }));
+  const updateCredit = (idx: number, v: number) =>
+    setShared((s) => {
+      const arr = [...s.credits];
+      arr[idx] = v;
+      return { ...s, credits: Array.from(new Set(arr.filter((n) => Number.isFinite(n)))).sort((a, b) => a - b) };
+    });
+  const removeCredit = (idx: number) => setShared((s) => ({ ...s, credits: s.credits.filter((_, i) => i !== idx) }));
+
+  const [tempCourseName, setTempCourseName] = useState("");
+  const [tempCourseCode, setTempCourseCode] = useState("");
+  const [tempTeacherName, setTempTeacherName] = useState("");
+  const [tempCredit, setTempCredit] = useState<number | "">("");
+
   const defaultValues: BatchNestedFormValues = {
+    _uid: uuidv4(),
     name: initialValues.name ?? "",
     program: initialValues.program ?? "",
     year: initialValues.year ?? "",
@@ -58,7 +155,7 @@ export default function BatchFormNested(props: Props) {
     semesters:
       initialValues.semesters && initialValues.semesters.length > 0
         ? initialValues.semesters.map((s, i) => ({
-          _uid: s._uid,
+          _uid: s._uid ?? uuidv4(),
           name: s.name ?? `Semester ${i + 1}`,
           index: s.index ?? i + 1,
           type: s.type ?? COURSE_TYPE.THEORY,
@@ -68,28 +165,28 @@ export default function BatchFormNested(props: Props) {
           courses:
             s.courses && s.courses.length
               ? s.courses.map((c) => ({
-                _uid: c._uid,
+                _uid: c._uid ?? uuidv4(),
                 code: c.code ?? "",
                 name: c.name ?? "",
                 courseId: c.courseId ?? "",
                 parts:
                   c.parts && c.parts.length
                     ? c.parts.map((p) => ({
-                      _uid: p._uid,
+                      _uid: p._uid ?? uuidv4(),
                       courseType: p.courseType ?? COURSE_TYPE.THEORY,
                       credits: p.credits ?? 3,
                       teachers:
                         p.teachers && p.teachers.length
-                          ? p.teachers.map((t) => ({ _uid: t._uid, name: t.name ?? "", designation: t.designation ?? "", notes: t.notes ?? "" }))
+                          ? p.teachers.map((t) => ({ _uid: t._uid ?? uuidv4(), name: t.name ?? "", designation: t.designation ?? "", notes: t.notes ?? "" }))
                           : [emptyTeacher()],
                       examDefinitions:
                         p.examDefinitions && p.examDefinitions.length
                           ? p.examDefinitions.map((ed) => ({
-                            _uid: ed._uid,
+                            _uid: ed._uid ?? uuidv4(),
                             examType: ed.examType ?? EXAM_TYPE.MID,
                             condition: ed.condition ?? EXAM_TYPE_CONDITION.REGULAR,
                             totalMarks: typeof ed.totalMarks === "number" ? ed.totalMarks : undefined,
-                            components: ed.components?.map((c) => ({ _uid: c._uid, name: c.name, maxMarks: c.maxMarks })) ?? [emptyResultComponent()],
+                            components: ed.components?.map((c) => ({ _uid: c._uid ?? uuidv4(), name: c.name, maxMarks: c.maxMarks })) ?? [emptyResultComponent()],
                           }))
                           : [emptyExamDefinition()],
                       notes: p.notes ?? "",
@@ -156,8 +253,8 @@ export default function BatchFormNested(props: Props) {
         </div>
 
         <Formik<BatchNestedFormValues> initialValues={defaultValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
-          {({ values, errors, touched, isSubmitting, resetForm }) => (
-            <Form className="space-y-6" noValidate>
+          {({ values, errors, touched, isSubmitting, resetForm, setFieldValue }) => (
+            <Form key={values._uid} className="space-y-6" noValidate>
               {/* Header Card */}
               <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -231,6 +328,123 @@ export default function BatchFormNested(props: Props) {
                         </div>
                       )}
                     </Field>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+              {/* Shared lists manager */}
+              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white">
+                      <FiUsers className="w-4 h-4" />
+                    </span>
+                    Shared lists
+                  </h2>
+                  <p className="text-sm text-gray-500">Manage reusable options for course names, codes, teachers and credits</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Course names */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="!mb-0">Course names</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={tempCourseName} onChange={(e) => setTempCourseName(e.target.value)} placeholder="Add course name" />
+                        <Button type="button" variant="ghost" onClick={() => { addCourseName(tempCourseName); setTempCourseName(""); }}>
+                          <FiPlus />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {shared.courseNames.length === 0 && <div className="text-xs text-gray-400">No course names yet</div>}
+                      {shared.courseNames.map((cn, i) => (
+                        <div key={cn + i} className="flex items-center gap-2">
+                          <Input value={cn} onChange={(e) => updateCourseName(i, e.target.value)} />
+                          <Button type="button" variant="destructive" onClick={() => removeCourseName(i)} className="!p-2">
+                            <FiX />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Course codes */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="!mb-0">Course codes</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={tempCourseCode} onChange={(e) => setTempCourseCode(e.target.value)} placeholder="Add course code" />
+                        <Button type="button" variant="ghost" onClick={() => { addCourseCode(tempCourseCode); setTempCourseCode(""); }}>
+                          <FiPlus />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {shared.courseCodes.length === 0 && <div className="text-xs text-gray-400">No course codes yet</div>}
+                      {shared.courseCodes.map((cc, i) => (
+                        <div key={cc + i} className="flex items-center gap-2">
+                          <Input value={cc} onChange={(e) => updateCourseCode(i, e.target.value)} />
+                          <Button type="button" variant="destructive" onClick={() => removeCourseCode(i)} className="!p-2">
+                            <FiX />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Teacher names */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="!mb-0">Teacher names</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={tempTeacherName} onChange={(e) => setTempTeacherName(e.target.value)} placeholder="Add teacher name" />
+                        <Button type="button" variant="ghost" onClick={() => { addTeacherName(tempTeacherName); setTempTeacherName(""); }}>
+                          <FiPlus />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {shared.teacherNames.length === 0 && <div className="text-xs text-gray-400">No teachers yet</div>}
+                      {shared.teacherNames.map((tn, i) => (
+                        <div key={tn + i} className="flex items-center gap-2">
+                          <Input value={tn} onChange={(e) => updateTeacherName(i, e.target.value)} />
+                          <Button type="button" variant="destructive" onClick={() => removeTeacherName(i)} className="!p-2">
+                            <FiX />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Credits */}
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="!mb-0">Credits</Label>
+                      <div className="flex items-center gap-2">
+                        <Input value={tempCredit === "" ? "" : String(tempCredit)} onChange={(e) => setTempCredit(e.target.value === "" ? "" : Number(e.target.value))} placeholder="Add credit e.g. 3" type="number" />
+                        <Button type="button" variant="ghost" onClick={() => { if (tempCredit !== "") addCredit(Number(tempCredit)); setTempCredit(""); }}>
+                          <FiPlus />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {shared.credits.length === 0 && <div className="text-xs text-gray-400">No credits yet</div>}
+                      {shared.credits.map((cr, i) => (
+                        <div key={cr + "-" + i} className="flex items-center gap-2">
+                          <Input value={String(cr)} onChange={(e) => updateCredit(i, Number(e.target.value))} type="number" />
+                          <Button type="button" variant="destructive" onClick={() => removeCredit(i)} className="!p-2">
+                            <FiX />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -368,9 +582,44 @@ export default function BatchFormNested(props: Props) {
                                             <FiBook className="text-gray-500" />
                                             <span className="font-medium">Course Name</span>
                                           </Label>
-                                          <Field name={`semesters.${sIdx}.courses.${cIdx}.name`}>
-                                            {({ field }: FieldProps<string>) => <Input {...field} placeholder="e.g., Data Structures" className="mt-2" />}
-                                          </Field>
+
+                                          {/* Course name select populated from shared.courseNames */}
+                                          <div className="mt-2 flex gap-2">
+                                            <Field name={`semesters.${sIdx}.courses.${cIdx}.name`}>
+                                              {({ field }: FieldProps<string>) => (
+                                                <>
+                                                  <Select
+                                                    {...field}
+                                                    onChange={(e) => {
+                                                      // set the field and optionally add to shared list automatically if not present
+                                                      const v = e.target.value;
+                                                      setFieldValue(`semesters.${sIdx}.courses.${cIdx}.name`, v);
+                                                      if (v && !shared.courseNames.includes(v)) addCourseName(v);
+                                                    }}
+                                                    className="flex-1"
+                                                  >
+                                                    <option value="">— select / type —</option>
+                                                    {shared.courseNames.map((cn) => (
+                                                      <option key={cn} value={cn}>
+                                                        {cn}
+                                                      </option>
+                                                    ))}
+                                                  </Select>
+                                                </>
+                                              )}
+                                            </Field>
+
+                                            {/* small inline add */}
+                                            <div className="flex items-center gap-1">
+                                              <Input
+                                                value={""}
+                                                onChange={() => { }}
+                                                placeholder="Type then select"
+                                                className="hidden"
+                                                aria-hidden
+                                              />
+                                            </div>
+                                          </div>
                                         </div>
 
                                         <div>
@@ -378,9 +627,30 @@ export default function BatchFormNested(props: Props) {
                                             <FiHash className="text-gray-500" />
                                             <span className="font-medium">Course Code</span>
                                           </Label>
-                                          <Field name={`semesters.${sIdx}.courses.${cIdx}.code`}>
-                                            {({ field }: FieldProps<string>) => <Input {...field} placeholder="e.g., CSE201" className="mt-2" />}
-                                          </Field>
+
+                                          {/* Course code select */}
+                                          <div className="mt-2 flex gap-2">
+                                            <Field name={`semesters.${sIdx}.courses.${cIdx}.code`}>
+                                              {({ field }: FieldProps<string>) => (
+                                                <Select
+                                                  {...field}
+                                                  onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    setFieldValue(`semesters.${sIdx}.courses.${cIdx}.code`, v);
+                                                    if (v && !shared.courseCodes.includes(v)) addCourseCode(v);
+                                                  }}
+                                                  className="flex-1"
+                                                >
+                                                  <option value="">— select / type —</option>
+                                                  {shared.courseCodes.map((cc) => (
+                                                    <option key={cc} value={cc}>
+                                                      {cc}
+                                                    </option>
+                                                  ))}
+                                                </Select>
+                                              )}
+                                            </Field>
+                                          </div>
                                         </div>
 
                                         <div>
@@ -436,9 +706,30 @@ export default function BatchFormNested(props: Props) {
                                                     <FiHash className="text-gray-500" />
                                                     <span className="font-medium">Credits</span>
                                                   </Label>
-                                                  <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.credits`}>
-                                                    {({ field }: FieldProps<number>) => <Input {...field} type="number" className="mt-2" />}
-                                                  </Field>
+
+                                                  {/* Credits select uses shared.credits */}
+                                                  <div className="mt-2 flex gap-2">
+                                                    <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.credits`}>
+                                                      {({ field }: FieldProps<number>) => (
+                                                        <Select
+                                                          {...field}
+                                                          onChange={(e) => {
+                                                            const v = Number(e.target.value);
+                                                            setFieldValue(`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.credits`, v);
+                                                            if (!shared.credits.includes(v)) addCredit(v);
+                                                          }}
+                                                          className="w-full"
+                                                        >
+                                                          <option value="">—</option>
+                                                          {shared.credits.map((cr) => (
+                                                            <option key={cr} value={cr}>
+                                                              {cr}
+                                                            </option>
+                                                          ))}
+                                                        </Select>
+                                                      )}
+                                                    </Field>
+                                                  </div>
                                                 </div>
 
                                                 {values.semesters[sIdx].courses[cIdx].parts.length > 1 && (
@@ -479,9 +770,27 @@ export default function BatchFormNested(props: Props) {
 
                                                     {values.semesters[sIdx].courses[cIdx].parts[pIdx].teachers.map((t, tIdx) => (
                                                       <div key={t._uid} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
-                                                        <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.name`}>
-                                                          {({ field }: FieldProps<string>) => <Input {...field} placeholder="Name" />}
-                                                        </Field>
+                                                        <div className="flex gap-2">
+                                                          <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.name`}>
+                                                            {({ field }: FieldProps<string>) => (
+                                                              <Select
+                                                                {...field}
+                                                                onChange={(e) => {
+                                                                  const v = e.target.value;
+                                                                  setFieldValue(`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.name`, v);
+                                                                  if (v && !shared.teacherNames.includes(v)) addTeacherName(v);
+                                                                }}
+                                                              >
+                                                                <option value="">— select / type —</option>
+                                                                {shared.teacherNames.map((tn) => (
+                                                                  <option key={tn} value={tn}>
+                                                                    {tn}
+                                                                  </option>
+                                                                ))}
+                                                              </Select>
+                                                            )}
+                                                          </Field>
+                                                        </div>
 
                                                         <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.designation`}>
                                                           {({ field }: FieldProps<string>) => <Input {...field} placeholder="Designation" />}
@@ -644,7 +953,7 @@ export default function BatchFormNested(props: Props) {
                   {isSubmitting || submitting ? "Saving..." : submitLabel}
                 </Button>
 
-                <Button type="button" variant="secondary" onClick={() => resetForm()} className="!py-3 flex items-center gap-2">
+                <Button type="button" variant="secondary" onClick={() => { resetForm(); }} className="!py-3 flex items-center gap-2">
                   <FiRotateCcw className="w-5 h-5" />
                   Reset
                 </Button>
