@@ -133,6 +133,7 @@ export interface SemesterDoc {
 }
 
 export interface BatchDoc extends Document {
+    studentRegistration: string;
     name: string;
     program?: string;
     year?: number;
@@ -209,20 +210,6 @@ const CourseResultSchema = new Schema<CourseResult>(
     { _id: true }
 );
 
-// const CourseRecordSchema = new Schema<CourseRecord>(
-//     {
-//         student: { type: Schema.Types.ObjectId, index: true },
-//         type: { type: String, required: true, enum: Object.values(RESULT_COMPONENT_NAME) },
-//         title: { type: String, trim: true },
-//         marks: { type: Number },
-//         maxMarks: { type: Number },
-//         notes: { type: String },
-//         createdAt: { type: Date, default: Date.now },
-//         updatedAt: { type: Date, default: Date.now },
-//     },
-//     { _id: true }
-// );
-
 const CoursePartSchema = new Schema<CoursePart>(
     {
         courseType: { type: String, required: true, enum: Object.values(COURSE_TYPE) },
@@ -267,6 +254,7 @@ const SemesterSchema = new Schema<SemesterDoc>(
 
 const BatchSchema = new Schema<BatchDoc>(
     {
+        studentRegistration: { type: String, trim: true },
         name: { type: String, required: true, trim: true, index: true },
         program: { type: String, trim: true },
         year: { type: Number, index: true },

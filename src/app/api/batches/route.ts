@@ -26,8 +26,6 @@ export async function GET(_req: NextRequest) {
             total: docs.length,
         };
 
-        console.log(resp);
-
         return NextResponse.json(resp, { status: 200 });
     } catch (err: unknown) {
         return NextResponse.json({ status: 500, message: "Failed to fetch batches", details: (err as Error)?.message ?? err }, { status: 500 });
