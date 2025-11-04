@@ -1,44 +1,36 @@
+// stores/useBatchesStore.ts
 import { create } from "zustand";
 import { produce } from "immer";
-import type {
-    ID,
-    Batch,
-    GetBatchResponse,
-    CreateBatchPayload,
-    CreateBatchResponse,
-    UpdateBatchPayload,
-    UpdateBatchResponse,
-    DeleteBatchPayload,
-    DeleteBatchResponse,
-    APIError,
-    BatchesState,
-} from "@/types/types.batch";
+
+
 import api, { ApiError } from "@/utils/api/api.client";
+import { APIError, Cohort, CohortsState, CreateCohortPayload, CreateCohortResponse, DeleteCohortPayload, DeleteCohortResponse, GetCohortResponse, ID, UpdateCohortPayload, UpdateCohortResponse } from "@/types/types.batch";
 
 export const ROOT_DIRECTORY = "/batches";
+
 type ApiErrorTyped = ApiError;
 
-export const useBatchesStore = create<BatchesState>((set) => {
-    const itemCache = new Map<ID, Batch>();
-    let fetchAllInFlight: Promise<void> | null = null;
-
-    async function handleError(err: unknown): Promise<APIError> {
-        const apiErr = err as ApiErrorTyped | unknown;
-        if ((apiErr as ApiErrorTyped)?.isAxiosError) {
-            const a = apiErr as ApiErrorTyped;
-            return {
-                status: a.response?.status ?? 500,
-                message: a.response?.data?.message ?? a.message,
-                details: a.response?.data ?? undefined,
-            };
-        }
-        return { status: 500, message: (err as Error)?.message ?? "Unknown error" };
+async function handleError(err: unknown): Promise<APIError> {
+    const apiErr = err as ApiErrorTyped | unknown;
+    if ((apiErr as ApiErrorTyped)?.isAxiosError) {
+        const a = apiErr as ApiErrorTyped;
+        return {
+            status: a.response?.status ?? 500,
+            message: a.response?.data?.message ?? a.message,
+            details: a.response?.data ?? undefined,
+        };
     }
+    return { status: 500, message: (err as Error)?.message ?? "Unknown error" };
+}
+
+export const useBatchesStore = create<CohortsState>((set) => {
+    const itemCache = new Map<ID, Cohort>();
+    let fetchAllInFlight: Promise<void> | null = null;
 
     return {
         // state
-        batches: [],
-        currentBatch: null,
+        cohorts: [],
+        currentCohort: null,
         total: 0,
         loading: false,
         error: null,
@@ -51,20 +43,20 @@ export const useBatchesStore = create<BatchesState>((set) => {
         reset() {
             itemCache.clear();
             set({
-                batches: [],
-                currentBatch: null,
+                cohorts: [],
+                currentCohort: null,
                 total: 0,
                 loading: false,
                 error: null,
             });
         },
 
-        // fetch all batches (deduped)
-        fetchBatches: async () => {
-            // short-circuit if cache populated
+        // actions
+        fetchCohorts: async () => {
+            // if we already have cache, return cached list
             if (itemCache.size > 0) {
                 set({
-                    batches: Array.from(itemCache.values()),
+                    cohorts: Array.from(itemCache.values()),
                     total: itemCache.size,
                     loading: false,
                     error: null,
@@ -72,20 +64,18 @@ export const useBatchesStore = create<BatchesState>((set) => {
                 return;
             }
 
-            // reuse in-flight request if present
+            // reuse in-flight request
             if (fetchAllInFlight) return fetchAllInFlight;
 
             fetchAllInFlight = (async () => {
                 set({ loading: true, error: null });
                 try {
-                    // call the API that returns all batches
-                    const res = await api.get<{ data: Batch[]; total?: number }>(`${ROOT_DIRECTORY}`);
-                    const batches = res.data.data ?? [];
-                    batches.forEach((b) => itemCache.set(b._id, b));
-
+                    const res = await api.get<{ data: Cohort[]; total?: number }>(`${ROOT_DIRECTORY}`);
+                    const cohorts = res.data.data ?? [];
+                    cohorts.forEach((c) => itemCache.set(c._id, c));
                     set({
-                        batches,
-                        total: res.data.total ?? batches.length,
+                        cohorts,
+                        total: res.data.total ?? cohorts.length,
                         loading: false,
                         error: null,
                     });
@@ -101,31 +91,30 @@ export const useBatchesStore = create<BatchesState>((set) => {
             return fetchAllInFlight;
         },
 
-        fetchBatchById: async (id: ID) => {
+        fetchCohortById: async (id: ID) => {
             const cached = itemCache.get(id);
             if (cached) {
-                set({ currentBatch: cached, loading: false, error: null });
-                console.log(JSON.stringify(cached));
+                set({ currentCohort: cached, loading: false, error: null });
                 return;
             }
 
             set({ loading: true, error: null });
             try {
-                const res = await api.get<GetBatchResponse>(`${ROOT_DIRECTORY}/${id}`);
-                const batch = res.data.data;
-                itemCache.set(id, batch);
+                const res = await api.get<GetCohortResponse>(`${ROOT_DIRECTORY}/${id}`);
+                const cohort = res.data.data;
+                itemCache.set(id, cohort);
 
                 set(
-                    produce((s: BatchesState) => {
-                        const idx = s.batches.findIndex((b) => b._id === batch._id);
-                        if (idx >= 0) s.batches[idx] = batch;
-                        s.currentBatch = batch;
+                    produce((s: CohortsState) => {
+                        const idx = s.cohorts.findIndex((c) => c._id === cohort._id);
+                        if (idx >= 0) s.cohorts[idx] = cohort;
+                        else s.cohorts = [cohort, ...s.cohorts];
+                        s.currentCohort = cohort;
                         s.loading = false;
                         s.error = null;
-                        s.total = s.batches.length;
+                        s.total = s.cohorts.length;
                     })
                 );
-                console.log(JSON.stringify(cached));
             } catch (err) {
                 const e = await handleError(err);
                 set({ loading: false, error: e });
@@ -133,24 +122,24 @@ export const useBatchesStore = create<BatchesState>((set) => {
             }
         },
 
-        createBatch: async (payload: CreateBatchPayload) => {
+        createCohort: async (payload: CreateCohortPayload) => {
             set({ loading: true, error: null });
             try {
-                const res = await api.post<CreateBatchResponse>(`${ROOT_DIRECTORY}`, payload);
-                const batch = res.data.data;
-                itemCache.set(batch._id, batch);
+                const res = await api.post<CreateCohortResponse>(`${ROOT_DIRECTORY}`, payload);
+                const cohort = res.data.data;
+                itemCache.set(cohort._id, cohort);
 
                 set(
-                    produce((s: BatchesState) => {
-                        s.batches = [batch, ...s.batches];
-                        s.total = s.batches.length;
-                        s.currentBatch = batch;
+                    produce((s: CohortsState) => {
+                        s.cohorts = [cohort, ...s.cohorts];
+                        s.total = s.cohorts.length;
+                        s.currentCohort = cohort;
                         s.loading = false;
                         s.error = null;
                     })
                 );
 
-                return batch;
+                return cohort;
             } catch (err) {
                 const e = await handleError(err);
                 set({ loading: false, error: e });
@@ -158,21 +147,22 @@ export const useBatchesStore = create<BatchesState>((set) => {
             }
         },
 
-        updateBatch: async (payload: UpdateBatchPayload) => {
+        updateCohort: async (payload: UpdateCohortPayload) => {
             set({ loading: true, error: null });
             try {
-                const res = await api.put<UpdateBatchResponse>(`${ROOT_DIRECTORY}/${payload._id}`, payload);
+                const res = await api.put<UpdateCohortResponse>(`${ROOT_DIRECTORY}/${payload._id}`, payload);
                 const updated = res.data.data;
                 itemCache.set(updated._id, updated);
 
                 set(
-                    produce((s: BatchesState) => {
-                        const idx = s.batches.findIndex((b) => b._id === updated._id);
-                        if (idx >= 0) s.batches[idx] = updated;
-                        if (s.currentBatch && s.currentBatch._id === updated._id) s.currentBatch = updated;
+                    produce((s: CohortsState) => {
+                        const idx = s.cohorts.findIndex((c) => c._id === updated._id);
+                        if (idx >= 0) s.cohorts[idx] = updated;
+                        else s.cohorts = [updated, ...s.cohorts];
+                        if (s.currentCohort && s.currentCohort._id === updated._id) s.currentCohort = updated;
                         s.loading = false;
                         s.error = null;
-                        s.total = s.batches.length;
+                        s.total = s.cohorts.length;
                     })
                 );
 
@@ -184,22 +174,20 @@ export const useBatchesStore = create<BatchesState>((set) => {
             }
         },
 
-        deleteBatch: async (payload: DeleteBatchPayload) => {
+        deleteCohort: async (payload: DeleteCohortPayload) => {
             set({ loading: true, error: null });
             try {
-                const res = await api.delete<DeleteBatchResponse>(`${ROOT_DIRECTORY}/${payload._id}`, {
+                const res = await api.delete<DeleteCohortResponse>(`${ROOT_DIRECTORY}/${payload._id}`, {
                     data: payload,
                 });
                 const success = res.data.success;
-
                 if (success) {
                     itemCache.delete(payload._id);
-
                     set(
-                        produce((s: BatchesState) => {
-                            s.batches = s.batches.filter((b) => b._id !== payload._id);
-                            if (s.currentBatch && s.currentBatch._id === payload._id) s.currentBatch = null;
-                            s.total = s.batches.length;
+                        produce((s: CohortsState) => {
+                            s.cohorts = s.cohorts.filter((c) => c._id !== payload._id);
+                            if (s.currentCohort && s.currentCohort._id === payload._id) s.currentCohort = null;
+                            s.total = s.cohorts.length;
                             s.loading = false;
                             s.error = null;
                         })
@@ -207,7 +195,6 @@ export const useBatchesStore = create<BatchesState>((set) => {
                 } else {
                     set({ loading: false });
                 }
-
                 return;
             } catch (err) {
                 const e = await handleError(err);

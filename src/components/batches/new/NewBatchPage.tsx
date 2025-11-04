@@ -1,16 +1,17 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import BatchFormNested from "@/components/batches/BatchFormNested";
+import BatchFormNested from "@/components/batches/nested-batch/BatchFormNested";
 import { toast } from "react-toastify";
-import { CreateBatchPayload } from "@/types/types.batch";
+import { CreateCohortPayload } from "@/types/types.batch";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import { encodeId } from "@/utils/helpers/IdConversion";
 import { useBatchesStore } from "@/store/useBatchesStore";
 
 export default function NewBatchPage() {
     const router = useRouter();
-    const { createBatch } = useBatchesStore();
+    const { createCohort } = useBatchesStore();
     const [submitting, setSubmitting] = useState(false);
     const { setBreadcrumbs } = useBreadcrumbStore();
     useEffect(() => {
@@ -22,10 +23,10 @@ export default function NewBatchPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    async function handleCreate(payload: CreateBatchPayload) {
+    async function handleCreate(payload: CreateCohortPayload) {
         setSubmitting(true);
         try {
-            const created = await createBatch(payload);
+            const created = await createCohort(payload);
             toast.success("Batch created");
             router.push(`/batches/${encodeId(encodeURIComponent(created._id))}`);
         } catch (err) {

@@ -1,26 +1,30 @@
 // types.batch.ts
-// Frontend / UI types for Next.js + TypeScript + Zustand (use plain string IDs for ObjectId)
+// Frontend / UI types for Next.js + TypeScript + Zustand
+// Use string IDs for ObjectId (ID)
 
 export type ID = string;
 
 /* ------------------------------- Enums ---------------------------------- */
 
-export enum COURSE_TYPE {
+export enum CourseDelivery {
     THEORY = "theory",
     LAB = "lab",
 }
+export type CourseDeliveryType = `${CourseDelivery}`;
 
-export enum EXAM_TYPE {
+export enum ExamKind {
     MID = "mid",
     FINAL = "final",
 }
+export type ExamKindType = `${ExamKind}`;
 
-export enum EXAM_TYPE_CONDITION {
+export enum ExamCondition {
     MAKEUP = "makeup",
     REGULAR = "regular",
 }
+export type ExamConditionType = `${ExamCondition}`;
 
-export enum RESULT_COMPONENT_NAME {
+export enum ComponentName {
     TT = "tt",
     ASSIGNMENTS = "assignments",
     ATTENDANCE = "attendance",
@@ -28,8 +32,9 @@ export enum RESULT_COMPONENT_NAME {
     PRACTICAL = "practical",
     VIVA = "viva",
 }
+export type ComponentNameType = `${ComponentName}`;
 
-/* ----------------------------- Domain types ------------------------------ */
+/* ----------------------------- Domain types -------------------------------- */
 
 /** Snapshot of a teacher (frontend-friendly) */
 export type TeacherSnapshot = {
@@ -41,80 +46,99 @@ export type TeacherSnapshot = {
     updatedAt?: string; // ISO
 };
 
-/** Definition of a result component inside an exam (max marks) */
-export type ResultComponentDef = {
-    name: RESULT_COMPONENT_NAME;
+/** Mark distribution for a course (matches server markDistribution) */
+export type MarkDistribution = {
+    totalMarks?: number;
+    mid?: number;
+    final?: number;
+    tt?: number;
+    assignments?: number;
+    attendance?: number;
+    practical?: number;
+    viva?: number;
+    others?: number;
+};
+
+/** Component template that defines max marks for an exam component */
+export type ComponentDef = {
+    name: ComponentNameType;
     maxMarks: number;
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
 };
 
-/** Exam definition for a course part (mid / final + condition + distribution) */
-export type ExamDefinition = {
+/** Exam configuration (template) for a CourseSection */
+export type ExamConfig = {
     _id?: ID;
-    examType: EXAM_TYPE;
-    condition: EXAM_TYPE_CONDITION;
+    examKind: ExamKindType;
+    condition: ExamConditionType;
     totalMarks?: number;
-    components: ResultComponentDef[];
+    components?: ComponentDef[]; // template (maxMarks)
+    notes?: string;
     createdAt?: string;
     updatedAt?: string;
 };
 
-/** Individual recorded marks component (actual marks for a student) */
-export type ResultComponent = {
-  name: RESULT_COMPONENT_NAME;
-  marks?: number;
-  maxMarks?: number;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+/** Component marks recorded for a student (obtained marks) */
+export type ObtainedComponent = {
+    name: ComponentNameType;
+    obtainedMarks?: number;
+    maxMarks?: number;
+    notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
-export type CourseResult = {
+/** Per-student exam result entry */
+export type StudentExamResult = {
     _id?: ID;
-    student?: ID;
-    examType: EXAM_TYPE;
-    condition: EXAM_TYPE_CONDITION;
-    components: ResultComponent[];
-    total?: number;
+    student: ID;
+    examKind: ExamKindType;
+    condition: ExamConditionType;
+    components: ObtainedComponent[]; // obtained marks per component
+    totalObtained?: number;
     grade?: string;
     createdAt?: string;
     updatedAt?: string;
 };
 
-/** Course part (theory / lab) containing exam definitions and per-part records */
-export type CoursePart = {
+/** Course section (was CoursePart / CourseSection on server) */
+export type CourseSection = {
     _id?: ID;
-    courseType: COURSE_TYPE;
+    delivery: CourseDeliveryType; // theory | lab
     credits: number;
     teachers: TeacherSnapshot[];
-    examDefinitions: ExamDefinition[]; // distribution metadata
-    results?: CourseResult[]; // recorded exam entries
+    examConfigs: ExamConfig[]; // templates for exams
+    results?: StudentExamResult[]; // per-student per-exam entries
+    attendance?: ObtainedComponent[]; // optional arrays for other records
+    assignments?: ObtainedComponent[];
+    others?: ObtainedComponent[];
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
 };
 
-/** Course assignment within a semester (can contain multiple parts) */
+/** Course entry inside a semester */
 export type Course = {
     _id?: ID;
-    courseId?: ID; // optional plain course identifier
+    courseRefId?: ID | null; // optional link to course catalog
     code?: string;
-    name?: string;
-    parts: CoursePart[]; // usually theory and/or lab
+    title?: string;
+    parts: CourseSection[]; // sections/parts of the course
+    markDistribution?: MarkDistribution;
     notes?: string;
     createdAt?: string;
     updatedAt?: string;
 };
 
-/** Semester embedded inside a batch */
+/** Semester embedded inside a cohort */
 export type Semester = {
     _id?: ID;
-    name: string; // e.g., "Semester 1"
+    title: string; // e.g., "5th Semester"
     index: number; // 1-based order
-    startAt?: string;
-    endAt?: string;
+    startAt: string;
+    endAt: string;
     courses: Course[];
     notes?: string;
     deletedAt?: string | null;
@@ -122,12 +146,13 @@ export type Semester = {
     updatedAt?: string;
 };
 
-/** Top-level batch document used by the UI */
-export type Batch = {
+/** Top-level Cohort document (was Cohort on server; formerly Batch) */
+export type Cohort = {
     _id: ID;
-    name: string; // e.g., "Summer-22"
+    registrationPrefix?: string; // optional mapping from previous studentRegistration
+    title: string; // cohort name
     program?: string;
-    year?: number;
+    admissionYear?: number;
     semesters: Semester[];
     notes?: string;
     createdBy?: ID;
@@ -139,26 +164,27 @@ export type Batch = {
 
 /* ---------------------------- API payload types ------------------------- */
 
-/** Used when creating a batch (frontend -> API) */
-export type CreateBatchPayload = {
-    name: string;
+/** Payload to create a cohort */
+export type CreateCohortPayload = {
+    registrationPrefix?: string;
+    title: string;
     program?: string;
-    year?: number;
+    admissionYear?: number;
     notes?: string;
-    // optionally pre-seed semesters / courses for UI creation flows
     semesters?: Array<{
-        name: string;
+        title: string;
         index: number;
         startAt?: string;
         endAt?: string;
         notes?: string;
         courses?: Array<{
-            courseId?: ID;
+            courseRefId?: ID | null;
             code?: string;
-            name?: string;
+            title?: string;
+            markDistribution?: MarkDistribution;
             notes?: string;
             parts?: Array<{
-                courseType: COURSE_TYPE;
+                delivery: CourseDeliveryType;
                 credits: number;
                 notes?: string;
                 teachers?: Array<{
@@ -166,106 +192,68 @@ export type CreateBatchPayload = {
                     designation?: string;
                     notes?: string;
                 }>;
-                examDefinitions?: Array<{
-                    examType: EXAM_TYPE;
-                    condition: EXAM_TYPE_CONDITION;
+                examConfigs?: Array<{
+                    examKind: ExamKindType;
+                    condition: ExamConditionType;
                     totalMarks?: number;
-                    components?: Array<{ name: RESULT_COMPONENT_NAME; maxMarks: number }>;
+                    components?: Array<{ name: ComponentNameType; maxMarks: number }>;
                 }>;
             }>;
         }>;
     }>;
 };
 
-/** Payload to update a batch (partial) */
-export type UpdateBatchPayload = Partial<{
-    name: string;
+/** Partial update payload for Cohort */
+export type UpdateCohortPayload = Partial<{
+    _id: ID;
+    registrationPrefix: string | null;
+    title: string | null;
     program: string | null;
-    year: number | null;
+    admissionYear: number | null;
     notes: string | null;
-    // For nested edits, prefer dedicated endpoints; allow full replacement arrays when needed:
-    semesters?: Semester[] | null; // full replacement of semesters array or explicit null to clear
+    semesters: Semester[] | null; // full replacement or null to clear
     updatedBy?: ID;
 }> & { _id: ID };
 
-/** Payload to delete (soft) */
-export type DeleteBatchPayload = { _id: ID; deletedBy?: ID };
+/** Soft delete payload */
+export type DeleteCohortPayload = { _id: ID; deletedBy?: ID };
 
 /* ---------------------------- API response types ------------------------ */
 
-/** Generic error response shape */
 export type APIError = {
     status: number;
     message: string;
     details?: unknown;
 };
 
-/** Response for fetching a single batch */
-export type GetBatchResponse = {
-    data: Batch;
-};
+export type GetCohortResponse = { data: Cohort };
+export type CreateCohortResponse = { data: Cohort };
+export type UpdateCohortResponse = { data: Cohort };
+export type DeleteCohortResponse = { success: boolean; _id?: ID };
 
-/** Response after create */
-export type CreateBatchResponse = {
-    data: Batch;
-};
-
-/** Response after update */
-export type UpdateBatchResponse = {
-    data: Batch;
-};
-
-/** Response after delete */
-export type DeleteBatchResponse = {
-    success: boolean;
-    _id?: ID;
-};
+export type ListCohortsResponse = { data: Cohort[]; total: number };
 
 /* --------------------------- UI / Zustand types ------------------------- */
 
-/* Response for list batches (all) */
-export type ListBatchesResponse = {
-    data: Batch[];
-    total: number;
+/** Minimal card used on cohort lists */
+export type CohortCard = Pick<Cohort, "_id" | "title" | "program" | "admissionYear" | "createdAt"> & {
+    semesterCount: number;
 };
 
-/* Zustand state and actions for /batches page (shape only) */
-export type BatchesState = {
-    // Data
-    batches: Batch[]; // cached list of all batches
-    currentBatch?: Batch | null;
-
-    // Loading / error
+/** Zustand state shape for cohorts page */
+export type CohortsState = {
+    cohorts: Cohort[];
+    currentCohort?: Cohort | null;
     total: number;
     loading: boolean;
     error?: APIError | null;
 
-    // Actions
-    fetchBatches: () => Promise<void>;
-    fetchBatchById: (id: ID) => Promise<void>;
-    createBatch: (payload: CreateBatchPayload) => Promise<Batch>;
-    updateBatch: (payload: UpdateBatchPayload) => Promise<Batch>;
-    deleteBatch: (payload: DeleteBatchPayload) => Promise<void>;
+    fetchCohorts: () => Promise<void>;
+    fetchCohortById: (id: ID) => Promise<void>;
+    createCohort: (payload: CreateCohortPayload) => Promise<Cohort>;
+    updateCohort: (payload: UpdateCohortPayload) => Promise<Cohort>;
+    deleteCohort: (payload: DeleteCohortPayload) => Promise<void>;
 
-    // Helpers
     setError: (err: APIError | null) => void;
     reset: () => void;
 };
-
-/* --------------------------- Utility / View types ----------------------- */
-
-/** Minimal summary used on /batches list cards */
-export type BatchCard = Pick<Batch, "_id" | "name" | "program" | "year" | "createdAt"> & {
-    semesterCount: number;
-};
-
-/* ---------------------------- Notes for frontend ------------------------ */
-
-/*
- - Use ID (string) everywhere in the frontend; convert to/from ObjectId server-side.
- - Prefer dedicated endpoints for nested edits (add semester, add course, update student summary)
-   rather than sending full nested arrays for small changes.
- - StudentSummary exists inside CoursePart.studentSummaries to allow fast UI reads.
- - Use the Zustand store shape BatchesState to implement the client store for /batches page.
- - API responses should match the response types above (ListBatchesResponse, GetBatchResponse).
-*/

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
-import BatchFormNested from "@/components/batches/BatchFormNested";
+import BatchFormNested from "@/components/batches/nested-batch/BatchFormNested";
 import { toast } from "react-toastify";
 import { UpdateBatchPayload } from "@/types/types.batch";
 import { encodeId } from "@/utils/helpers/IdConversion";

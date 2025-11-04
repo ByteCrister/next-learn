@@ -1,42 +1,28 @@
-/**
- * models/batch.ts
- *
- * Batch schema implementing:
- * - Batch -> Semesters -> Course -> CoursePart
- * - Per CoursePart: examDefinitions, results, attendance, assignments, others
- * - Only createdBy/updatedBy reference User
- *
- * Helper functions:
- * - createBatchWithCourses(Batch, userId, studentIds) => creates example batch with zeros
- * - recordExamMarksTransaction(Batch, batchId, semId, courseId, partId, studentId, examType, condition, components) =>
- *   pushes CourseResult and updates studentSummary overall atomically using a transaction
- */
-
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
 export type ObjId = Types.ObjectId;
 
 /* ------------------------------- Enums ---------------------------------- */
 
-export enum COURSE_TYPE {
+export enum CourseDelivery {
     THEORY = "theory",
     LAB = "lab",
 }
-export type CourseType = `${COURSE_TYPE}`;
+export type CourseDeliveryType = `${CourseDelivery}`;
 
-export enum EXAM_TYPE {
+export enum ExamKind {
     MID = "mid",
     FINAL = "final",
 }
-export type ExamType = `${EXAM_TYPE}`;
+export type ExamKindType = `${ExamKind}`;
 
-export enum EXAM_TYPE_CONDITION {
+export enum ExamCondition {
     MAKEUP = "makeup",
     REGULAR = "regular",
 }
-export type ExamTypeCondition = `${EXAM_TYPE_CONDITION}`;
+export type ExamConditionType = `${ExamCondition}`;
 
-export enum RESULT_COMPONENT_NAME {
+export enum ComponentName {
     TT = "tt",
     ASSIGNMENTS = "assignments",
     ATTENDANCE = "attendance",
@@ -44,9 +30,9 @@ export enum RESULT_COMPONENT_NAME {
     PRACTICAL = "practical",
     VIVA = "viva",
 }
-export type ResultComponentName = `${RESULT_COMPONENT_NAME}`;
+export type ComponentNameType = `${ComponentName}`;
 
-/* ----------------------------- Types / Interfaces ------------------------ */
+/* ----------------------------- Interfaces -------------------------------- */
 
 export interface TeacherSnapshot {
     _id?: ObjId;
@@ -57,63 +43,84 @@ export interface TeacherSnapshot {
     updatedAt?: Date;
 }
 
-export interface ResultComponentDef {
-    name: ResultComponentName;
-    maxMarks: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-    notes?: string;
-}
-
-export interface ExamDefinition {
-    _id?: ObjId;
-    examType: ExamType;
-    condition: EXAM_TYPE_CONDITION;
+export interface MarkDistribution {
     totalMarks?: number;
-    components: ResultComponentDef[];
+    mid?: number;
+    final?: number;
+    tt?: number;
+    assignments?: number;
+    attendance?: number;
+    practical?: number;
+    viva?: number;
+    others?: number;
+}
+
+export interface ComponentDef {
+    name: ComponentNameType;
+    maxMarks: number;
+    notes?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
-export interface ResultComponent {
-    name: ResultComponentName;
-    marks?: number;
-    maxMarks?: number;
+export interface ExamConfig {
+    _id?: ObjId;
+    examKind: ExamKindType;
+    condition: ExamConditionType;
+    totalMarks?: number; // configured total for this exam entry
+    components?: ComponentDef[]; // template of components (maxMarks)
+    // createdAt/updatedAt present
     createdAt?: Date;
     updatedAt?: Date;
     notes?: string;
 }
 
-export interface CourseResult {
+export interface ObtainedComponent {
+    name: ComponentNameType;
+    obtainedMarks?: number;
+    maxMarks?: number;
+    notes?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface StudentExamResult {
     _id?: ObjId;
-    student?: ObjId;
-    examType: ExamType;
-    condition: EXAM_TYPE_CONDITION;
-    components: ResultComponent[];
-    total?: number;
+    student: ObjId;
+    examKind: ExamKindType;
+    condition: ExamConditionType;
+    // components for this student-exam (obtained marks)
+    components: ObtainedComponent[];
+    totalObtained?: number;
     grade?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
 
-export interface CoursePart {
+export interface CourseSection {
     _id?: ObjId;
-    courseType: CourseType;
+    delivery: CourseDeliveryType; // theory | lab
     credits: number;
     teachers: TeacherSnapshot[];
-    examDefinitions: ExamDefinition[];
-    results?: CourseResult[];     // per-student per-exam entries (mid/final)
+    // templates
+    examConfigs: ExamConfig[];
+    // per-student results and also other arrays (attendance, assignments, others)
+    results?: StudentExamResult[]; // per-student per-exam entries
+    attendance?: ObtainedComponent[]; // optional separate arrays if needed
+    assignments?: ObtainedComponent[];
+    others?: ObtainedComponent[];
+    notes?: string;
     createdAt?: Date;
     updatedAt?: Date;
-    notes?: string;
 }
 
 export interface Course {
     _id?: ObjId;
-    courseId?: ObjId;
+    courseRefId?: ObjId; // reference to course catalog (optional)
     code?: string;
-    name?: string;
-    parts: CoursePart[];
+    title?: string;
+    parts: CourseSection[]; // sections/parts of the course
+    markDistribution?: MarkDistribution; // matches your JSON `markDistributions`
     notes?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -121,7 +128,7 @@ export interface Course {
 
 export interface SemesterDoc {
     _id?: ObjId;
-    name: string;
+    title: string;
     index: number;
     startAt?: Date;
     endAt?: Date;
@@ -133,10 +140,10 @@ export interface SemesterDoc {
 }
 
 export interface BatchDoc extends Document {
-    studentRegistration: string;
-    name: string;
+    registrationPrefix?: string; // was studentRegistration in JSON
+    title: string; // was name
     program?: string;
-    year?: number;
+    admissionYear?: number; // was year
     semesters: SemesterDoc[];
     notes?: string;
     createdBy?: ObjId; // ref User
@@ -148,7 +155,8 @@ export interface BatchDoc extends Document {
 
 /* ---------------------------- Mongoose schemas --------------------------- */
 
-/* Embedded small schemas */
+/* Small embedded schemas */
+
 const TeacherSnapshotSchema = new Schema<TeacherSnapshot>(
     {
         _id: { type: Schema.Types.ObjectId, required: false },
@@ -161,9 +169,9 @@ const TeacherSnapshotSchema = new Schema<TeacherSnapshot>(
     { _id: false }
 );
 
-const ResultComponentDefSchema = new Schema<ResultComponentDef>(
+const ComponentDefSchema = new Schema<ComponentDef>(
     {
-        name: { type: String, required: true, enum: Object.values(RESULT_COMPONENT_NAME) },
+        name: { type: String, required: true, enum: Object.values(ComponentName) },
         maxMarks: { type: Number, required: true, min: 0 },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
@@ -172,22 +180,23 @@ const ResultComponentDefSchema = new Schema<ResultComponentDef>(
     { _id: false }
 );
 
-const ExamDefinitionSchema = new Schema<ExamDefinition>(
+const ExamConfigSchema = new Schema<ExamConfig>(
     {
-        examType: { type: String, required: true, enum: Object.values(EXAM_TYPE) },
-        condition: { type: String, required: true, enum: Object.values(EXAM_TYPE_CONDITION) },
+        examKind: { type: String, required: true, enum: Object.values(ExamKind) },
+        condition: { type: String, required: true, enum: Object.values(ExamCondition) },
         totalMarks: { type: Number },
-        components: { type: [ResultComponentDefSchema], default: [] },
+        components: { type: [ComponentDefSchema], default: [] },
+        notes: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
     },
     { _id: true }
 );
 
-const ResultComponentSchema = new Schema<ResultComponent>(
+const ObtainedComponentSchema = new Schema<ObtainedComponent>(
     {
-        name: { type: String, required: true, enum: Object.values(RESULT_COMPONENT_NAME) },
-        marks: { type: Number },
+        name: { type: String, required: true, enum: Object.values(ComponentName) },
+        obtainedMarks: { type: Number },
         maxMarks: { type: Number },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
@@ -196,13 +205,13 @@ const ResultComponentSchema = new Schema<ResultComponent>(
     { _id: false }
 );
 
-const CourseResultSchema = new Schema<CourseResult>(
+const StudentExamResultSchema = new Schema<StudentExamResult>(
     {
-        student: { type: Schema.Types.ObjectId, index: true },
-        examType: { type: String, required: true, enum: Object.values(EXAM_TYPE) },
-        condition: { type: String, required: true, enum: Object.values(EXAM_TYPE_CONDITION) },
-        components: { type: [ResultComponentSchema], default: [] },
-        total: { type: Number },
+        student: { type: Schema.Types.ObjectId, required: true, index: true },
+        examKind: { type: String, required: true, enum: Object.values(ExamKind) },
+        condition: { type: String, required: true, enum: Object.values(ExamCondition) },
+        components: { type: [ObtainedComponentSchema], default: [] },
+        totalObtained: { type: Number },
         grade: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
@@ -210,13 +219,16 @@ const CourseResultSchema = new Schema<CourseResult>(
     { _id: true }
 );
 
-const CoursePartSchema = new Schema<CoursePart>(
+const CourseSectionSchema = new Schema<CourseSection>(
     {
-        courseType: { type: String, required: true, enum: Object.values(COURSE_TYPE) },
+        delivery: { type: String, required: true, enum: Object.values(CourseDelivery) },
         credits: { type: Number, required: true, min: 0 },
         teachers: { type: [TeacherSnapshotSchema], default: [] },
-        examDefinitions: { type: [ExamDefinitionSchema], default: [] },
-        results: { type: [CourseResultSchema], default: [] },
+        examConfigs: { type: [ExamConfigSchema], default: [] },
+        results: { type: [StudentExamResultSchema], default: [] },
+        attendance: { type: [ObtainedComponentSchema], default: [] },
+        assignments: { type: [ObtainedComponentSchema], default: [] },
+        others: { type: [ObtainedComponentSchema], default: [] },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
@@ -224,12 +236,28 @@ const CoursePartSchema = new Schema<CoursePart>(
     { _id: true }
 );
 
+const MarkDistributionSchema = new Schema<MarkDistribution>(
+    {
+        totalMarks: { type: Number },
+        mid: { type: Number },
+        final: { type: Number },
+        tt: { type: Number },
+        assignments: { type: Number },
+        attendance: { type: Number },
+        practical: { type: Number },
+        viva: { type: Number },
+        others: { type: Number },
+    },
+    { _id: false }
+);
+
 const CourseSchema = new Schema<Course>(
     {
-        courseId: { type: Schema.Types.ObjectId }, // plain id, no ref
-        code: { type: String, trim: true },
-        name: { type: String, trim: true },
-        parts: { type: [CoursePartSchema], default: [] },
+        courseRefId: { type: Schema.Types.ObjectId }, // optional link to a course catalog
+        code: { type: String, trim: true, index: true },
+        title: { type: String, trim: true },
+        parts: { type: [CourseSectionSchema], default: [] },
+        markDistribution: { type: MarkDistributionSchema, default: {} },
         notes: { type: String },
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
@@ -239,7 +267,7 @@ const CourseSchema = new Schema<Course>(
 
 const SemesterSchema = new Schema<SemesterDoc>(
     {
-        name: { type: String, required: true, trim: true },
+        title: { type: String, required: true, trim: true },
         index: { type: Number, required: true },
         startAt: { type: Date },
         endAt: { type: Date },
@@ -254,10 +282,10 @@ const SemesterSchema = new Schema<SemesterDoc>(
 
 const BatchSchema = new Schema<BatchDoc>(
     {
-        studentRegistration: { type: String, trim: true },
-        name: { type: String, required: true, trim: true, index: true },
+        registrationPrefix: { type: String, trim: true }, // maps to studentRegistration
+        title: { type: String, required: true, trim: true, index: true }, // maps to name
         program: { type: String, trim: true },
-        year: { type: Number, index: true },
+        admissionYear: { type: Number, index: true }, // maps to year
         semesters: { type: [SemesterSchema], default: [] },
         notes: { type: String },
         createdBy: { type: Schema.Types.ObjectId, ref: "User" },
@@ -273,63 +301,66 @@ const BatchSchema = new Schema<BatchDoc>(
 
 BatchSchema.pre("save", function (this: mongoose.Document & BatchDoc, next) {
     const now = new Date();
-    if (!this.createdAt) this.createdAt = now;
-    this.updatedAt = now;
+
+    // Helper to safely update createdAt/updatedAt recursively
+    const touch = <T extends { createdAt?: Date; updatedAt?: Date }>(obj: T): void => {
+        if (!obj.createdAt) obj.createdAt = now;
+        obj.updatedAt = now;
+    };
+
+    touch(this);
 
     if (!Array.isArray(this.semesters)) return next();
 
     for (const sem of this.semesters) {
-        if (!sem.createdAt) sem.createdAt = now;
-        sem.updatedAt = now;
+        touch(sem);
 
-        if (Array.isArray(sem.courses)) {
-            for (const course of sem.courses) {
-                if (!course.createdAt) course.createdAt = now;
-                course.updatedAt = now;
+        if (!Array.isArray(sem.courses)) continue;
 
-                if (Array.isArray(course.parts)) {
-                    for (const part of course.parts) {
-                        if (!part.createdAt) part.createdAt = now;
-                        part.updatedAt = now;
+        for (const course of sem.courses) {
+            touch(course);
 
-                        if (Array.isArray(part.teachers)) {
-                            for (const t of part.teachers) {
-                                if (!t.createdAt) t.createdAt = now;
-                                t.updatedAt = now;
-                            }
+            if (!Array.isArray(course.parts)) continue;
+
+            for (const part of course.parts) {
+                touch(part);
+
+                if (Array.isArray(part.teachers)) {
+                    for (const t of part.teachers) touch(t);
+                }
+
+                if (Array.isArray(part.examConfigs)) {
+                    for (const ed of part.examConfigs) {
+                        touch(ed);
+                        if (Array.isArray(ed.components)) {
+                            for (const c of ed.components) touch(c);
                         }
+                    }
+                }
 
-                        if (Array.isArray(part.examDefinitions)) {
-                            for (const ed of part.examDefinitions) {
-                                if (!ed.createdAt) ed.createdAt = now;
-                                ed.updatedAt = now;
+                // Strongly typed mapping of array properties on CourseSection
+                const sectionArrays: {
+                    results?: StudentExamResult[];
+                    attendance?: ObtainedComponent[];
+                    assignments?: ObtainedComponent[];
+                    others?: ObtainedComponent[];
+                } = {
+                    results: part.results,
+                    attendance: part.attendance,
+                    assignments: part.assignments,
+                    others: part.others,
+                };
 
-                                if (Array.isArray(ed.components)) {
-                                    for (const c of ed.components) {
-                                        if (!c.createdAt) c.createdAt = now;
-                                        c.updatedAt = now;
-                                    }
-                                }
-                            }
-                        }
+                for (const key of Object.keys(sectionArrays) as (keyof typeof sectionArrays)[]) {
+                    const arr = sectionArrays[key];
+                    if (!Array.isArray(arr)) continue;
 
-                        const partArrays = ["results", "attendance", "assignments", "others"] as const;
-                        for (const arrName of partArrays) {
-                            const arr = (part as unknown as Record<string, unknown>)[arrName] as
-                                | CourseResult[]
-                                | undefined;
-                            if (!Array.isArray(arr)) continue;
-                            for (const it of arr) {
-                                if (!it.createdAt) it.createdAt = now;
-                                it.updatedAt = now;
-                                const comps = (it as CourseResult).components;
-                                if (Array.isArray(comps)) {
-                                    for (const comp of comps) {
-                                        if (!comp.createdAt) comp.createdAt = now;
-                                        comp.updatedAt = now;
-                                    }
-                                }
-                            }
+                    for (const it of arr) {
+                        touch(it);
+
+                        // Only StudentExamResult has `components`
+                        if ("components" in it && Array.isArray(it.components)) {
+                            for (const comp of it.components) touch(comp);
                         }
                     }
                 }
@@ -341,5 +372,4 @@ BatchSchema.pre("save", function (this: mongoose.Document & BatchDoc, next) {
 });
 
 /* ----------------------------- Model export ------------------------------ */
-
 export const Batch: Model<BatchDoc> = (mongoose.models.Batch as Model<BatchDoc>) || mongoose.model<BatchDoc>("Batch", BatchSchema);

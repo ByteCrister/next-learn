@@ -1,0 +1,1129 @@
+"use client";
+
+import React, { useMemo, useState, useCallback, useRef } from "react";
+import { Formik, Form, Field, FieldArray, FieldProps, FormikHelpers } from "formik";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiSave,
+  FiRotateCcw,
+  FiPlus,
+  FiX,
+  FiAlertCircle,
+  FiCalendar,
+  FiBook,
+  FiUsers,
+  FiFileText,
+  FiHash,
+  FiFile,
+  FiTag,
+  FiClock,
+  FiInfo,
+} from "react-icons/fi";
+
+import { CourseDelivery, ExamKind, ExamCondition, ComponentName } from "@/types/types.batch";
+import { validationSchema } from "@/utils/auth/BatchValidation";
+import { Button, Input, Label, Select, Textarea } from "../modern-ui-components";
+import useBatchForm, {
+  CohortFormValues,
+  CreateProps,
+  Props,
+  ServerErrorShape,
+  UpdateProps,
+} from "@/hooks/useBatchForm";
+import { v4 as uuidv4 } from "uuid";
+
+/**
+ * BatchFormNested (production-grade)
+ *
+ * Notes:
+ * - Keeps same feature set, but avoids unnecessary re-renders and stabilizes callbacks.
+ * - Uses accessible labels and button semantics.
+ * - Relies on hook helpers (buildCreatePayload / buildUpdatePayload) for server payload transforms.
+ */
+
+/* ---------------------- Small memoized subcomponents --------------------- */
+
+const HeaderField: React.FC<{ id?: string; label: string; icon?: React.ReactNode; children: React.ReactNode }> = React.memo(
+  ({ id, label, icon, children }) => (
+    <div>
+      <Label htmlFor={id} className="flex items-center gap-2">
+        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
+          {icon ?? <FiFile className="w-4 h-4" />}
+        </span>
+        <span className="font-medium">{label}</span>
+      </Label>
+      <div className="mt-2">{children}</div>
+    </div>
+  )
+);
+HeaderField.displayName = "HeaderField";
+
+/* Course input grid is memoized to prevent repeated re-renders when unrelated fields change */
+const CourseInputGrid: React.FC<{
+  sIdx: number;
+  cIdx: number;
+  shared: { courseNames: string[]; courseCodes: string[]; teacherNames: string[]; credits: number[] };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setFieldValue: (f: string, v: any) => void;
+  addCourseName: (v: string) => void;
+  addCourseCode: (v: string) => void;
+}> = React.memo(({ sIdx, cIdx, shared, setFieldValue, addCourseName, addCourseCode }) => {
+  const namePath = `semesters.${sIdx}.courses.${cIdx}.name`;
+  const codePath = `semesters.${sIdx}.courses.${cIdx}.code`;
+  const notesPath = `semesters.${sIdx}.courses.${cIdx}.notes`;
+  const courseIdPath = `semesters.${sIdx}.courses.${cIdx}.courseId`;
+
+  return (
+    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
+        <Label className="flex items-center gap-2">
+          <FiBook className="text-gray-500" />
+          <span className="font-medium">Course Name</span>
+        </Label>
+        <div className="mt-2">
+          <Field name={namePath}>
+            {({ field }: FieldProps<string>) => (
+              <Select
+                {...field}
+                aria-label="Course name"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFieldValue(namePath, v);
+                  if (v) addCourseName(v);
+                }}
+                className="w-full"
+              >
+                <option value="">— select / type —</option>
+                {shared.courseNames.map((cn) => (
+                  <option key={cn} value={cn}>
+                    {cn}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <Label className="flex items-center gap-2">
+          <FiHash className="text-gray-500" />
+          <span className="font-medium">Course Code</span>
+        </Label>
+        <div className="mt-2">
+          <Field name={codePath}>
+            {({ field }: FieldProps<string>) => (
+              <Select
+                {...field}
+                aria-label="Course code"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFieldValue(codePath, v);
+                  if (v) addCourseCode(v);
+                }}
+                className="w-full"
+              >
+                <option value="">— select / type —</option>
+                {shared.courseCodes.map((cc) => (
+                  <option key={cc} value={cc}>
+                    {cc}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <Label className="flex items-center gap-2">
+          <FiFile className="text-gray-500" />
+          <span className="font-medium">Course Notes</span>
+        </Label>
+        <Field name={notesPath}>
+          {({ field }: FieldProps<string>) => <Input {...field} placeholder="Optional notes about this course" className="mt-2" />}
+        </Field>
+      </div>
+
+      <div>
+        <Label className="flex items-center gap-2">
+          <FiFileText className="text-gray-500" />
+          <span className="font-medium">Course Reference ID</span>
+        </Label>
+        <Field name={courseIdPath}>
+          {({ field }: FieldProps<string>) => <Input {...field} placeholder="Optional courseRefId (catalog id)" className="mt-2" />}
+        </Field>
+      </div>
+    </div>
+  );
+});
+CourseInputGrid.displayName = "CourseInputGrid";
+
+const MarkDistributionEditor: React.FC<{ sIdx: number; cIdx: number }> = React.memo(({ sIdx, cIdx }) => {
+  const base = `semesters.${sIdx}.courses.${cIdx}.markDistribution`;
+
+  type MarkKey =
+    | "totalMarks"
+    | "mid"
+    | "final"
+    | "tt"
+    | "assignments"
+    | "attendance"
+    | "practical"
+    | "viva"
+    | "others";
+
+  type MarkField = [MarkKey, string];
+
+  const fields: MarkField[] = [
+    ["totalMarks", "Total"],
+    ["mid", "Mid"],
+    ["final", "Final"],
+    ["tt", "TT"],
+    ["assignments", "Assignments"],
+    ["attendance", "Attendance"],
+    ["practical", "Practical"],
+    ["viva", "Viva"],
+    ["others", "Others"],
+  ];
+
+  return (
+    <div className="mt-3 border rounded-lg p-3 bg-white">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white">
+            <FiHash className="w-3.5 h-3.5" />
+          </span>
+          <h5 className="text-sm font-semibold text-gray-900">Mark Distribution</h5>
+        </div>
+        <p className="text-xs text-gray-500">Optional — template for marks</p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {fields.map(([key, label]) => (
+          <Field key={String(key)} name={`${base}.${String(key)}`}>
+            {({ field }: FieldProps<number | undefined>) => (
+              <div>
+                <Label className="!mb-0">{label}</Label>
+                <Input {...field} type="number" placeholder={label} className="mt-2" aria-label={label} />
+              </div>
+            )}
+          </Field>
+        ))}
+      </div>
+    </div>
+  );
+});
+MarkDistributionEditor.displayName = "MarkDistributionEditor";
+
+/* ----------------------------- Main component ---------------------------- */
+
+export default function BatchFormNested(props: Props) {
+  const { initialValues = {}, submitLabel = "Save", submitting = false } = props;
+  const {
+    buildUpdatePayload,
+    buildCreatePayload,
+    isPlainRecordOfStrings,
+    isErrorsRecord,
+    isFieldErrors,
+    emptySemester,
+    emptyCourseAssignment,
+    emptyCoursePart,
+    emptyTeacher,
+    emptyExamDefinition,
+    emptyResultComponent,
+  } = useBatchForm();
+
+  // Build initial shared caches from initialValues (stable memo)
+  const initialShared = useMemo(
+    () => ({
+      courseNames: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .map((c) => c.name)
+            .filter((name): name is string => Boolean(name))
+        )
+      ),
+      courseCodes: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .map((c) => c.code)
+            .filter((code): code is string => Boolean(code))
+        )
+      ),
+      teacherNames: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .flatMap((c) => c.parts ?? [])
+            .flatMap((p) => p.teachers ?? [])
+            .map((t) => t.name)
+            .filter(Boolean)
+        )
+      ),
+      credits: Array.from(
+        new Set(
+          (initialValues.semesters ?? [])
+            .flatMap((s) => s.courses ?? [])
+            .flatMap((c) => c.parts ?? [])
+            .map((p) => p.credits)
+            .filter((v) => typeof v === "number")
+        )
+      ).sort((a: number, b: number) => a - b),
+    }),
+    [initialValues]
+  );
+
+  const [shared, setShared] = useState(initialShared);
+
+  // Stable adders
+  const addCourseName = useCallback((v: string) => {
+    if (!v) return;
+    setShared((s) => ({ ...s, courseNames: Array.from(new Set([v.trim(), ...s.courseNames])) }));
+  }, []);
+
+  const addCourseCode = useCallback((v: string) => {
+    if (!v) return;
+    setShared((s) => ({ ...s, courseCodes: Array.from(new Set([v.trim(), ...s.courseCodes])) }));
+  }, []);
+
+  const addTeacherName = useCallback((v: string) => {
+    if (!v) return;
+    setShared((s) => ({ ...s, teacherNames: Array.from(new Set([v.trim(), ...s.teacherNames])) }));
+  }, []);
+
+  const addCredit = useCallback((v: number) => {
+    if (!Number.isFinite(v)) return;
+    setShared((s) => ({ ...s, credits: Array.from(new Set([v, ...s.credits])).sort((a, b) => a - b) }));
+  }, []);
+
+  // Update / remove helpers
+  const updateShared = useCallback(<T,>(key: keyof typeof shared, idx: number, v: T) => {
+    setShared((s) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const arr = [...(s[key] as unknown as any[])];
+      arr[idx] = v;
+      const filtered = arr
+        .map((x) => (typeof x === "string" ? String(x).trim() : x))
+        .filter((x) => (typeof x === "string" ? Boolean(x) : x !== undefined && x !== null));
+      return { ...s, [key]: Array.from(new Set(filtered)) } as typeof shared;
+    });
+  }, []);
+
+  const removeShared = useCallback((key: keyof typeof shared, idx: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    setShared((s) => ({ ...s, [key]: (s[key] as any[]).filter((_, i) => i !== idx) }));
+  }, []);
+
+  // small controlled temp inputs for the shared-lists
+  const [tempCourseName, setTempCourseName] = useState("");
+  const [tempCourseCode, setTempCourseCode] = useState("");
+  const [tempTeacherName, setTempTeacherName] = useState("");
+  const [tempCredit, setTempCredit] = useState<number | "">("");
+
+  // Default Formik initial values — keep structure normalized and stable
+  const defaultValues: CohortFormValues = useMemo(() => {
+    const sems =
+      initialValues.semesters && initialValues.semesters.length > 0
+        ? initialValues.semesters.map((s, i) => ({
+          _uid: s._uid ?? uuidv4(),
+          name: s.name ?? `Semester ${i + 1}`,
+          index: s.index ?? i + 1,
+          type: s.type ?? CourseDelivery.THEORY,
+          startAt: s.startAt ?? "",
+          endAt: s.endAt ?? "",
+          notes: s.notes ?? "",
+          courses:
+            s.courses && s.courses.length
+              ? s.courses.map((c) => ({
+                _uid: c._uid ?? uuidv4(),
+                code: c.code ?? "",
+                name: c.name ?? "",
+                courseId: c.courseId ?? c.courseId ?? "",
+                markDistribution:
+                  c.markDistribution ?? {
+                    _uid: uuidv4(),
+                    totalMarks: undefined,
+                    mid: undefined,
+                    final: undefined,
+                    tt: undefined,
+                    assignments: undefined,
+                    attendance: undefined,
+                    practical: undefined,
+                    viva: undefined,
+                    others: undefined,
+                  },
+                parts:
+                  c.parts && c.parts.length
+                    ? c.parts.map((p) => ({
+                      _uid: p._uid ?? uuidv4(),
+                      courseType: p.courseType ?? CourseDelivery.THEORY,
+                      credits: p.credits ?? 3,
+                      teachers:
+                        p.teachers && p.teachers.length
+                          ? p.teachers.map((t) => ({ _uid: t._uid ?? uuidv4(), name: t.name ?? "", designation: t.designation ?? "", notes: t.notes ?? "" }))
+                          : [emptyTeacher()],
+                      examDefinitions:
+                        p.examDefinitions && p.examDefinitions.length
+                          ? p.examDefinitions.map((ed) => ({
+                            _uid: ed._uid ?? uuidv4(),
+                            examType: ed.examType ?? ExamKind.MID,
+                            condition: ed.condition ?? ExamCondition.REGULAR,
+                            totalMarks: typeof ed.totalMarks === "number" ? ed.totalMarks : undefined,
+                            components: ed.components?.map((c) => ({ _uid: c._uid ?? uuidv4(), name: c.name, maxMarks: c.maxMarks })) ?? [emptyResultComponent()],
+                          }))
+                          : [emptyExamDefinition()],
+                      notes: p.notes ?? "",
+                    }))
+                    : [emptyCoursePart()],
+              }))
+              : [emptyCourseAssignment()],
+        }))
+        : [emptySemester(1)];
+
+    return {
+      _uid: uuidv4(),
+      registrationPrefix: initialValues.registrationPrefix ?? "",
+      name: initialValues.name ?? "",
+      program: initialValues.program ?? "",
+      year: initialValues.year ?? "",
+      notes: initialValues.notes ?? "",
+      semesters: sems,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues]); // only re-evaluate when initialValues object identity changes
+
+  // submit handler (stable)
+  async function handleSubmit(values: CohortFormValues, formikHelpers: FormikHelpers<CohortFormValues>) {
+    const { setSubmitting, setErrors } = formikHelpers;
+    setSubmitting(true);
+    try {
+      if (props.mode === "update") {
+        const p = props as UpdateProps;
+        const payload = buildUpdatePayload(values, p.id);
+        await p.onSubmit(payload);
+      } else {
+        const p = props as CreateProps;
+        const payload = buildCreatePayload(values);
+        await p.onSubmit(payload);
+      }
+    } catch (err: unknown) {
+      // Map server errors to formik field errors using provided guards
+      const formErrors: Partial<Record<string, string>> = {};
+      const srv = (err as ServerErrorShape) as (ServerErrorShape | null);
+      if (srv) {
+        if (isFieldErrors(srv) && Array.isArray(srv.fieldErrors)) {
+          for (const item of srv.fieldErrors) {
+            if (item && typeof item.field === "string" && typeof item.message === "string") {
+              formErrors[item.field] = item.message;
+            }
+          }
+        } else if (isErrorsRecord(srv) && srv.errors && typeof srv.errors === "object") {
+          for (const [k, v] of Object.entries(srv.errors)) {
+            if (typeof v === "string") formErrors[k] = v;
+          }
+        } else if (isPlainRecordOfStrings(srv)) {
+          for (const [k, v] of Object.entries(srv as Record<string, string>)) {
+            formErrors[k] = v;
+          }
+        }
+      }
+      if (Object.keys(formErrors).length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setErrors(formErrors as any);
+      }
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // keep stable ref to setFieldValue inside deeply memoized components
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const setFieldValueRef = useRef<(f: string, v: any) => void>(() => { });
+  // Formik will assign actual setter via render prop (see below)
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/40">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-semibold text-gray-900 mb-1 tracking-tight">{props.mode === "update" ? "Update Batch" : "Create Batch"}</h1>
+          <p className="text-sm text-gray-600">Configure batch details, semesters, courses, and exam definitions</p>
+        </div>
+
+        <Formik<CohortFormValues> initialValues={defaultValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
+          {({ values, errors, touched, isSubmitting, resetForm, setFieldValue }) => {
+            // assign runtime setter to ref (so memoized children can call it without re-creating)
+            setFieldValueRef.current = setFieldValue;
+
+            return (
+              <Form key={values._uid} className="space-y-6" noValidate>
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl p-6 shadow-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="md:col-span-2">
+                      <Label htmlFor="name" className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
+                          <FiHash className="w-4 h-4" />
+                        </span>
+                        <span className="font-medium">Batch Name *</span>
+                      </Label>
+
+                      <Field name="name">
+                        {({ field }: FieldProps<string>) => (
+                          <div className="mt-2 relative">
+                            <Input {...field} id="name" placeholder="e.g., Summer-22" required className="pl-3" aria-required />
+                          </div>
+                        )}
+                      </Field>
+
+                      {errors.name && touched.name && (
+                        <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-rose-600 text-xs mt-2 font-medium">
+                          <FiAlertCircle className="w-3.5 h-3.5" />
+                          {String(errors.name)}
+                        </motion.div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="year" className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+                          <FiCalendar className="w-4 h-4" />
+                        </span>
+                        <span className="font-medium">Year</span>
+                      </Label>
+
+                      <Field name="year">
+                        {({ field }: FieldProps<string>) => (
+                          <div className="mt-2">
+                            <Input {...field} id="year" type="number" placeholder="2024" />
+                          </div>
+                        )}
+                      </Field>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="program" className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                          <FiTag className="w-4 h-4" />
+                        </span>
+                        <span className="font-medium">Program</span>
+                      </Label>
+                      <Field name="program">{({ field }: FieldProps<string>) => <Input {...field} id="program" placeholder="e.g., Computer Science & Engineering" />}</Field>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="notes" className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
+                          <FiInfo className="w-4 h-4" />
+                        </span>
+                        <span className="font-medium">Notes</span>
+                      </Label>
+                      <Field name="notes">
+                        {({ field }: FieldProps<string>) => (
+                          <div className="mt-2">
+                            <Textarea {...field} id="notes" rows={3} placeholder="Additional information about this batch..." />
+                          </div>
+                        )}
+                      </Field>
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <Label htmlFor="registrationPrefix" className="flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500 to-gray-700 text-white">
+                        <FiTag className="w-4 h-4" />
+                      </span>
+                      <span className="font-medium">Registration Prefix</span>
+                    </Label>
+                    <Field name="registrationPrefix">
+                      {({ field }: FieldProps<string>) => (
+                        <div className="mt-2">
+                          <Input {...field} id="registrationPrefix" placeholder="e.g., CSE-" />
+                        </div>
+                      )}
+                    </Field>
+                  </div>
+                </motion.div>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+                {/* Shared lists manager */}
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white">
+                        <FiUsers className="w-4 h-4" />
+                      </span>
+                      Shared lists
+                    </h2>
+                    <p className="text-sm text-gray-500">Manage reusable options for course names, codes, teachers and credits</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Course names */}
+                    <div className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="!mb-0">Course names</Label>
+                        <div className="flex items-center gap-2">
+                          <Input value={tempCourseName} onChange={(e) => setTempCourseName(e.target.value)} placeholder="Add course name" aria-label="Add course name" />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              addCourseName(tempCourseName);
+                              setTempCourseName("");
+                            }}
+                            aria-label="Add course name"
+                          >
+                            <FiPlus />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {shared.courseNames.length === 0 && <div className="text-xs text-gray-400">No course names yet</div>}
+                        {shared.courseNames.map((cn, i) => (
+                          <div key={cn + i} className="flex items-center gap-2">
+                            <Input value={cn} onChange={(e) => updateShared("courseNames", i, e.target.value)} aria-label={`Course name ${i + 1}`} />
+                            <Button type="button" variant="destructive" onClick={() => removeShared("courseNames", i)} className="!p-2" aria-label={`Remove course name ${i + 1}`}>
+                              <FiX />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Course codes */}
+                    <div className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="!mb-0">Course codes</Label>
+                        <div className="flex items-center gap-2">
+                          <Input value={tempCourseCode} onChange={(e) => setTempCourseCode(e.target.value)} placeholder="Add course code" aria-label="Add course code" />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              addCourseCode(tempCourseCode);
+                              setTempCourseCode("");
+                            }}
+                          >
+                            <FiPlus />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {shared.courseCodes.length === 0 && <div className="text-xs text-gray-400">No course codes yet</div>}
+                        {shared.courseCodes.map((cc, i) => (
+                          <div key={cc + i} className="flex items-center gap-2">
+                            <Input value={cc} onChange={(e) => updateShared("courseCodes", i, e.target.value)} aria-label={`Course code ${i + 1}`} />
+                            <Button type="button" variant="destructive" onClick={() => removeShared("courseCodes", i)} className="!p-2">
+                              <FiX />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Teacher names */}
+                    <div className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="!mb-0">Teacher names</Label>
+                        <div className="flex items-center gap-2">
+                          <Input value={tempTeacherName} onChange={(e) => setTempTeacherName(e.target.value)} placeholder="Add teacher name" />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              addTeacherName(tempTeacherName);
+                              setTempTeacherName("");
+                            }}
+                          >
+                            <FiPlus />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {shared.teacherNames.length === 0 && <div className="text-xs text-gray-400">No teachers yet</div>}
+                        {shared.teacherNames.map((tn, i) => (
+                          <div key={tn + i} className="flex items-center gap-2">
+                            <Input value={tn} onChange={(e) => updateShared("teacherNames", i, e.target.value)} />
+                            <Button type="button" variant="destructive" onClick={() => removeShared("teacherNames", i)} className="!p-2">
+                              <FiX />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Credits */}
+                    <div className="border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="!mb-0">Credits</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={tempCredit === "" ? "" : String(tempCredit)}
+                            onChange={(e) => setTempCredit(e.target.value === "" ? "" : Number(e.target.value))}
+                            placeholder="Add credit e.g. 3"
+                            type="number"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              if (tempCredit !== "") addCredit(Number(tempCredit));
+                              setTempCredit("");
+                            }}
+                          >
+                            <FiPlus />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        {shared.credits.length === 0 && <div className="text-xs text-gray-400">No credits yet</div>}
+                        {shared.credits.map((cr, i) => (
+                          <div key={String(cr) + "-" + i} className="flex items-center gap-2">
+                            <Input value={String(cr)} onChange={(e) => updateShared("credits", i, Number(e.target.value))} type="number" />
+                            <Button type="button" variant="destructive" onClick={() => removeShared("credits", i)} className="!p-2">
+                              <FiX />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+                {/* Semesters (deeply nested arrays) */}
+                <FieldArray name="semesters">
+                  {({ push, remove }) => (
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                            <FiCalendar className="w-4 h-4" />
+                          </span>
+                          Semesters
+                        </h2>
+
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => push(emptySemester(values.semesters.length + 1))}
+                          className="flex items-center gap-2"
+                        >
+                          <FiPlus className="w-4 h-4" /> Add Semester
+                        </Button>
+                      </div>
+
+                      <AnimatePresence mode="popLayout">
+                        {values.semesters.map((sem, sIdx) => (
+                          <motion.div key={sem._uid} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 12 }} className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                  {sIdx + 1}
+                                </div>
+                                <div>
+                                  <h3 className="text-base font-semibold text-gray-900">Semester {sIdx + 1}</h3>
+                                  <p className="text-xs text-gray-500 mt-0.5">{sem.courses.length} course(s)</p>
+                                </div>
+                              </div>
+
+                              {values.semesters.length > 1 && (
+                                <Button type="button" variant="destructive" onClick={() => remove(sIdx)} className="!p-2">
+                                  <FiX className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                              <div>
+                                <Label className="flex items-center gap-2">
+                                  <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                    <FiFile className="w-4 h-4 text-gray-600" />
+                                  </span>
+                                  <span className="font-medium">Name</span>
+                                </Label>
+                                <Field name={`semesters.${sIdx}.name`}>{({ field }: FieldProps<string>) => <Input {...field} placeholder="Semester name" className="mt-2" />}</Field>
+                              </div>
+
+                              <div>
+                                <Label className="flex items-center gap-2">
+                                  <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                    <FiHash className="w-4 h-4 text-gray-600" />
+                                  </span>
+                                  <span className="font-medium">Index</span>
+                                </Label>
+                                <Field name={`semesters.${sIdx}.index`}>{({ field }: FieldProps<number>) => <Input {...field} type="number" className="mt-2" />}</Field>
+                              </div>
+
+                              <div>
+                                <Label className="flex items-center gap-2">
+                                  <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                    <FiClock className="w-4 h-4 text-gray-600" />
+                                  </span>
+                                  <span className="font-medium">Start Date</span>
+                                </Label>
+                                <Field name={`semesters.${sIdx}.startAt`}>{({ field }: FieldProps<string>) => <Input {...field} type="date" className="mt-2" />}</Field>
+                              </div>
+
+                              <div>
+                                <Label className="flex items-center gap-2">
+                                  <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                    <FiClock className="w-4 h-4 text-gray-600" />
+                                  </span>
+                                  <span className="font-medium">End Date</span>
+                                </Label>
+                                <Field name={`semesters.${sIdx}.endAt`}>{({ field }: FieldProps<string>) => <Input {...field} type="date" className="mt-2" />}</Field>
+                              </div>
+                            </div>
+
+                            <div className="mb-4">
+                              <Label className="flex items-center gap-2">
+                                <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                  <FiInfo className="w-4 h-4 text-gray-600" />
+                                </span>
+                                <span className="font-medium">Notes</span>
+                              </Label>
+                              <Field name={`semesters.${sIdx}.notes`}>{({ field }: FieldProps<string>) => <Textarea {...field} rows={2} placeholder="Semester notes..." className="mt-2" />}</Field>
+                            </div>
+
+                            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-4" />
+
+                            {/* Courses */}
+                            <FieldArray name={`semesters.${sIdx}.courses`}>
+                              {({ push: pushCourse, remove: removeCourse }) => (
+                                <div className="space-y-4">
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                      <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                                        <FiBook className="w-3.5 h-3.5" />
+                                      </span>
+                                      Courses
+                                    </h4>
+
+                                    <Button type="button" variant="ghost" onClick={() => pushCourse(emptyCourseAssignment())} className="flex items-center gap-2">
+                                      <FiPlus className="w-3.5 h-3.5" /> Add Course
+                                    </Button>
+                                  </div>
+
+                                  {values.semesters[sIdx].courses.map((course, cIdx) => (
+                                    <div key={course._uid} className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-4 border border-gray-100">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <CourseInputGrid
+                                          sIdx={sIdx}
+                                          cIdx={cIdx}
+                                          shared={shared}
+                                          setFieldValue={(f, v) => setFieldValue(f, v)}
+                                          addCourseName={addCourseName}
+                                          addCourseCode={addCourseCode}
+                                        />
+
+                                        {values.semesters[sIdx].courses.length > 1 && (
+                                          <Button type="button" variant="destructive" onClick={() => removeCourse(cIdx)} className="!p-2 ml-3">
+                                            <FiX className="w-4 h-4" />
+                                          </Button>
+                                        )}
+                                      </div>
+
+                                      {/* Mark Distribution */}
+                                      <MarkDistributionEditor sIdx={sIdx} cIdx={cIdx} />
+
+                                      {/* Parts */}
+                                      <FieldArray name={`semesters.${sIdx}.courses.${cIdx}.parts`}>
+                                        {({ push: pushPart, remove: removePart }) => (
+                                          <div className="space-y-3 mt-3">
+                                            <div className="flex items-center justify-between">
+                                              <Label className="!mb-0">Course Parts</Label>
+                                              <Button type="button" variant="ghost" onClick={() => pushPart(emptyCoursePart())} className="!py-1 !px-2.5 text-xs flex items-center gap-2">
+                                                <FiPlus className="w-3 h-3" /> Add Part
+                                              </Button>
+                                            </div>
+
+                                            {values.semesters[sIdx].courses[cIdx].parts.map((part, pIdx) => (
+                                              <div key={part._uid} className="bg-white rounded-lg p-4 border border-gray-200">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                  <div className="flex-1">
+                                                    <Label className="flex items-center gap-2">
+                                                      <span className="inline-flex items-center justify-center w-7 h-7 rounded bg-gray-100">
+                                                        <FiTag className="w-4 h-4 text-gray-600" />
+                                                      </span>
+                                                      <span className="font-medium">Part Type</span>
+                                                    </Label>
+
+                                                    <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.courseType`}>
+                                                      {({ field }: FieldProps<string>) => (
+                                                        <Select {...field} className="mt-2">
+                                                          <option value={CourseDelivery.THEORY}>Theory</option>
+                                                          <option value={CourseDelivery.LAB}>Lab</option>
+                                                        </Select>
+                                                      )}
+                                                    </Field>
+                                                  </div>
+
+                                                  <div className="w-28">
+                                                    <Label className="flex items-center gap-2">
+                                                      <FiHash className="text-gray-500" />
+                                                      <span className="font-medium">Credits</span>
+                                                    </Label>
+
+                                                    <div className="mt-2">
+                                                      <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.credits`}>
+                                                        {({ field }: FieldProps<number>) => (
+                                                          <Select
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                              const v = Number(e.target.value);
+                                                              setFieldValue(`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.credits`, v);
+                                                              if (!shared.credits.includes(v)) addCredit(v);
+                                                            }}
+                                                            className="w-full"
+                                                          >
+                                                            <option value="">—</option>
+                                                            {shared.credits.map((cr) => (
+                                                              <option key={cr} value={cr}>
+                                                                {cr}
+                                                              </option>
+                                                            ))}
+                                                          </Select>
+                                                        )}
+                                                      </Field>
+                                                    </div>
+                                                  </div>
+
+                                                  {values.semesters[sIdx].courses[cIdx].parts.length > 1 && (
+                                                    <Button type="button" variant="destructive" onClick={() => removePart(pIdx)} className="!p-2 mt-6">
+                                                      <FiX className="w-4 h-4" />
+                                                    </Button>
+                                                  )}
+                                                </div>
+
+                                                <div className="mb-3">
+                                                  <Label className="flex items-center gap-2">
+                                                    <FiInfo className="text-gray-500" />
+                                                    <span className="font-medium">Part Notes</span>
+                                                  </Label>
+                                                  <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.notes`}>
+                                                    {({ field }: FieldProps<string>) => <Textarea {...field} rows={2} placeholder="Part notes..." className="mt-2" />}
+                                                  </Field>
+                                                </div>
+
+                                                <div className="h-px bg-gray-200 my-4" />
+
+                                                {/* Teachers */}
+                                                <FieldArray name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers`}>
+                                                  {({ push: pushTeacher, remove: removeTeacher }) => (
+                                                    <div className="mb-4">
+                                                      <div className="flex items-center justify-between mb-2">
+                                                        <Label className="!mb-0 flex items-center gap-2">
+                                                          <span className="w-6 h-6 rounded bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                                                            <FiUsers className="text-white w-3 h-3" />
+                                                          </span>
+                                                          Teachers
+                                                        </Label>
+                                                        <Button type="button" variant="ghost" onClick={() => pushTeacher(emptyTeacher())} className="!py-1 !px-2.5 text-xs flex items-center gap-2">
+                                                          <FiPlus className="w-3 h-3" /> Add
+                                                        </Button>
+                                                      </div>
+
+                                                      {values.semesters[sIdx].courses[cIdx].parts[pIdx].teachers.map((t, tIdx) => (
+                                                        <div key={t._uid} className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+                                                          <div className="flex gap-2">
+                                                            <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.name`}>
+                                                              {({ field }: FieldProps<string>) => (
+                                                                <Select
+                                                                  {...field}
+                                                                  onChange={(e) => {
+                                                                    const v = e.target.value;
+                                                                    setFieldValue(`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.name`, v);
+                                                                    if (v && !shared.teacherNames.includes(v)) addTeacherName(v);
+                                                                  }}
+                                                                >
+                                                                  <option value="">— select / type —</option>
+                                                                  {shared.teacherNames.map((tn) => (
+                                                                    <option key={tn} value={tn}>
+                                                                      {tn}
+                                                                    </option>
+                                                                  ))}
+                                                                </Select>
+                                                              )}
+                                                            </Field>
+                                                          </div>
+
+                                                          <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.designation`}>
+                                                            {({ field }: FieldProps<string>) => <Input {...field} placeholder="Designation" />}
+                                                          </Field>
+
+                                                          <div className="flex gap-2">
+                                                            <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.teachers.${tIdx}.notes`}>
+                                                              {({ field }: FieldProps<string>) => <Input {...field} placeholder="Notes" />}
+                                                            </Field>
+
+                                                            {values.semesters[sIdx].courses[cIdx].parts[pIdx].teachers.length > 1 && (
+                                                              <Button type="button" variant="destructive" onClick={() => removeTeacher(tIdx)} className="!p-2">
+                                                                <FiX className="w-4 h-4" />
+                                                              </Button>
+                                                            )}
+                                                          </div>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </FieldArray>
+
+                                                <div className="h-px bg-gray-200 my-4" />
+
+                                                {/* Exam Definitions */}
+                                                <FieldArray name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions`}>
+                                                  {({ push: pushExam, remove: removeExam }) => (
+                                                    <div>
+                                                      <div className="flex items-center justify-between mb-2">
+                                                        <Label className="!mb-0 flex items-center gap-2">
+                                                          <span className="w-6 h-6 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+                                                            <FiFileText className="text-white w-3 h-3" />
+                                                          </span>
+                                                          Exam Definitions
+                                                        </Label>
+                                                        <Button type="button" variant="ghost" onClick={() => pushExam(emptyExamDefinition())} className="!py-1 !px-2.5 text-xs flex items-center gap-2">
+                                                          <FiPlus className="w-3 h-3" /> Add
+                                                        </Button>
+                                                      </div>
+
+                                                      {values.semesters[sIdx].courses[cIdx].parts[pIdx].examDefinitions.map((ed, edIdx) => (
+                                                        <div key={ed._uid} className="bg-gradient-to-br from-gray-50 to-amber-50/30 rounded-lg p-3 mb-2 border border-gray-100">
+                                                          <div className="flex gap-2 mb-3 flex-wrap">
+                                                            <div className="flex-1 min-w-[120px]">
+                                                              <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.examType`}>
+                                                                {({ field }: FieldProps<string>) => (
+                                                                  <Select {...field}>
+                                                                    <option value={ExamKind.MID}>Mid</option>
+                                                                    <option value={ExamKind.FINAL}>Final</option>
+                                                                  </Select>
+                                                                )}
+                                                              </Field>
+                                                            </div>
+
+                                                            <div className="flex-1 min-w-[120px]">
+                                                              <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.condition`}>
+                                                                {({ field }: FieldProps<string>) => (
+                                                                  <Select {...field}>
+                                                                    <option value={ExamCondition.REGULAR}>Regular</option>
+                                                                    <option value={ExamCondition.MAKEUP}>Makeup</option>
+                                                                  </Select>
+                                                                )}
+                                                              </Field>
+                                                            </div>
+
+                                                            <div className="w-28">
+                                                              <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.totalMarks`}>
+                                                                {({ field }: FieldProps<number>) => <Input {...field} type="number" placeholder="Total" />}
+                                                              </Field>
+                                                            </div>
+
+                                                            {values.semesters[sIdx].courses[cIdx].parts[pIdx].examDefinitions.length > 1 && (
+                                                              <Button type="button" variant="destructive" onClick={() => removeExam(edIdx)} className="!p-2">
+                                                                <FiX className="w-4 h-4" />
+                                                              </Button>
+                                                            )}
+                                                          </div>
+
+                                                          <FieldArray name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.components`}>
+                                                            {({ push: pushComp, remove: removeComp }) => (
+                                                              <div className="space-y-2">
+                                                                {values.semesters[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx].components.map((comp, compIdx) => (
+                                                                  <div key={comp._uid} className="grid grid-cols-2 gap-2">
+                                                                    <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.components.${compIdx}.name`}>
+                                                                      {({ field }: FieldProps<string>) => (
+                                                                        <Select {...field}>
+                                                                          <option value={ComponentName.TT}>TT</option>
+                                                                          <option value={ComponentName.ASSIGNMENTS}>Assignments</option>
+                                                                          <option value={ComponentName.ATTENDANCE}>Attendance</option>
+                                                                          <option value={ComponentName.OTHERS}>Others</option>
+                                                                          <option value={ComponentName.PRACTICAL}>Practical</option>
+                                                                          <option value={ComponentName.VIVA}>Viva</option>
+                                                                        </Select>
+                                                                      )}
+                                                                    </Field>
+
+                                                                    <div className="flex gap-2">
+                                                                      <Field name={`semesters.${sIdx}.courses.${cIdx}.parts.${pIdx}.examDefinitions.${edIdx}.components.${compIdx}.maxMarks`}>
+                                                                        {({ field }: FieldProps<number>) => <Input {...field} type="number" placeholder="Max marks" />}
+                                                                      </Field>
+
+                                                                      {values.semesters[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx].components.length > 1 && (
+                                                                        <Button type="button" variant="destructive" onClick={() => removeComp(compIdx)} className="!p-2">
+                                                                          <FiX className="w-4 h-4" />
+                                                                        </Button>
+                                                                      )}
+                                                                    </div>
+                                                                  </div>
+                                                                ))}
+
+                                                                <Button type="button" variant="ghost" onClick={() => pushComp(emptyResultComponent())} className="w-full !py-1.5 text-xs flex items-center justify-center gap-2">
+                                                                  <FiPlus className="w-3 h-3" /> Add Component
+                                                                </Button>
+                                                              </div>
+                                                            )}
+                                                          </FieldArray>
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </FieldArray>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </FieldArray>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </FieldArray>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </FieldArray>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+                {/* Actions */}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="flex gap-3">
+                  <Button type="submit" disabled={isSubmitting || submitting} variant="primary" className="flex-1 !py-3 text-base font-semibold flex items-center justify-center gap-3" aria-disabled={isSubmitting || submitting}>
+                    <FiSave className="w-5 h-5" />
+                    {isSubmitting || submitting ? "Saving..." : submitLabel}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      resetForm();
+                      // optionally reset shared lists to initial snapshot
+                      setShared(initialShared);
+                    }}
+                    className="!py-3 flex items-center gap-2"
+                  >
+                    <FiRotateCcw className="w-5 h-5" />
+                    Reset
+                  </Button>
+                </motion.div>
+              </Form>
+            );
+          }}
+        </Formik>
+      </motion.div>
+    </div>
+  );
+}
