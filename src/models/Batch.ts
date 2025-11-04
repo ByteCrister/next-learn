@@ -133,7 +133,6 @@ export interface SemesterDoc {
 }
 
 export interface BatchDoc extends Document {
-    studentRegistration: string;
     name: string;
     program?: string;
     year?: number;
@@ -254,7 +253,6 @@ const SemesterSchema = new Schema<SemesterDoc>(
 
 const BatchSchema = new Schema<BatchDoc>(
     {
-        studentRegistration: { type: String, trim: true },
         name: { type: String, required: true, trim: true, index: true },
         program: { type: String, trim: true },
         year: { type: Number, index: true },
