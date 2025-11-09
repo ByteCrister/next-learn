@@ -2,6 +2,8 @@ import SubjectPage from "@/components/subjects-subject/SubjectPage";
 import { fetchSubjectById } from "@/utils/api/api.subjects";
 import { Metadata } from "next";
 
+export const revalidate = 60; // ISR: revalidate every 60 seconds
+
 export async function generateMetadata({ params }: { params: Promise<{ subjectId: string }> }): Promise<Metadata> {
   const { subjectId } = await params;
   const result = await fetchSubjectById(subjectId);

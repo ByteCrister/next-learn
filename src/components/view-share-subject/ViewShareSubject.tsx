@@ -24,11 +24,11 @@ const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
 };
 
-export default function ViewSubjectPage() {
+export default function ViewShareSubject() {
   const [data, setData] = React.useState<ViewData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"overview" | "roadmap" | "chapters">("overview");
+  const [activeTab, setActiveTab] = React.useState<"overview" | "roadmap" | "chapters" | "study-materials">("overview");
   const { setBreadcrumbs } = useBreadcrumbStore();
 
   const { slug } = useParams(); // slug will be "68977baa-0edaacbf-608660b5"

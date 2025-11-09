@@ -6,6 +6,8 @@ import { SubjectNote } from "@/types/types.subjectnote";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Calendar, Copy, Share2, Download, Printer, Clock, FileText, Hash } from "lucide-react";
 import { useState } from "react";
+import { ShareNoteButton } from "./ShareNoteButton";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface NoteViewDialogProps {
     isOpen: boolean;
@@ -25,12 +27,19 @@ export function NoteViewDialog({ isOpen, onClose, note }: NoteViewDialogProps) {
     };
 
     const handleShare = async () => {
-        if (navigator.share && note) {
+        if ('share' in navigator && note) {
             try {
+                const encodedSubjectId = encodeURIComponent(encodeId(note.subjectId));
+                const encodedNoteId = encodeURIComponent(encodeId(note._id));
+                const url = `${window.location.origin}/view-subject/notes/${encodedSubjectId}/${encodedNoteId}`;
+                const fullText = note.content.replace(/<[^>]*>/g, '');
+                const text = fullText.length > 100 ? fullText.substring(0, 100) + '...' : fullText;
                 await navigator.share({
                     title: note.title || "Note",
-                    text: note.content.replace(/<[^>]*>/g, ''),
+                    text: text,
+                    url: url,
                 });
+                console.log('Share event: native share', { subjectId: note.subjectId, noteId: note._id, url });
             } catch (err) {
                 console.log('Share failed:', err);
             }
@@ -174,7 +183,7 @@ ${note.content.replace(/<[^>]*>/g, '')}
                                                 className="flex items-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 cursor-pointer"
                                             >
                                                 <Share2 className="w-4 h-4" />
-                                                Share
+                                                
                                             </Button>
                                         </motion.div>
                                     )}

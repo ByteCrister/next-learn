@@ -150,24 +150,39 @@ export const useStudyMaterialHandlers = ({ subjectId, roadmapId }: UseStudyMater
     };
 
     const handleShare = async (material: StudyMaterial) => {
-        const shareUrl = material.urls?.[0] || window.location.href;
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: material.filename,
-                    text: material.description || 'Check out this study material!',
-                    url: shareUrl,
-                });
-            } catch (error) {
-                console.error('Error sharing:', error);
+        if (material.visibility !== "public") {
+            alert("Only public study materials can be shared.");
+            return;
+        }
+
+        try {
+            const { encodeId } = await import("@/utils/helpers/IdConversion");
+            const encodedSubjectId = encodeId(material.subjectId || "");
+            const encodedStudyMaterialId = encodeId(material._id);
+            const shareUrl = `${window.location.origin}/view-subject/study-material/${encodedSubjectId}/${encodedStudyMaterialId}`;
+            const title = `Check out this study material: ${material.filename}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title,
+                        url: shareUrl,
+                    });
+                    console.log('Share event: native share', { subjectId: material.subjectId, studyMaterialId: material._id, url: shareUrl });
+                } catch (error) {
+                    // User cancelled or error occurred, fall back to clipboard
+                    console.log('Native share failed, falling back to clipboard');
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert("Share link copied to clipboard!");
+                }
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                await navigator.clipboard.writeText(shareUrl);
+                alert("Share link copied to clipboard!");
             }
-        } else {
-            // Fallback: copy URL to clipboard
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                alert('Link copied to clipboard!');
-            }).catch(() => {
-                alert('Sharing not supported on this device.');
-            });
+        } catch (error) {
+            console.error('Error sharing:', error);
+            alert("Failed to copy share link.");
         }
     };
 

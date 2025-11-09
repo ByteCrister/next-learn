@@ -85,22 +85,24 @@ export default function ExternalLinkCard({ link, viewedExternalLinks, onView, on
                                     </TooltipTrigger>
                                     <TooltipContent>Edit Link</TooltipContent>
                                 </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-9 w-9 p-0 rounded-full hover:bg-purple-100 hover:text-purple-700 transition-colors cursor-pointer"
-                                                onClick={() => onShare(link)}
-                                                aria-label="Share link"
-                                            >
-                                                <Share className="h-4 w-4" />
-                                            </Button>
-                                        </motion.div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Share Link</TooltipContent>
-                                </Tooltip>
+                                {link.visibility === "public" && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-9 w-9 p-0 rounded-full hover:bg-purple-100 hover:text-purple-700 transition-colors cursor-pointer"
+                                                    onClick={() => onShare(link)}
+                                                    aria-label="Share link"
+                                                >
+                                                    <Share className="h-4 w-4" />
+                                                </Button>
+                                            </motion.div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Share Link</TooltipContent>
+                                    </Tooltip>
+                                )}
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">

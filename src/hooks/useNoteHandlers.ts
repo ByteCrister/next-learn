@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSubjectNoteStore } from "@/store/useSubjectNoteStore";
 import { SubjectNote } from "@/types/types.subjectnote";
+import { calculateReadingTime, calculateWordCount } from "@/utils/helpers/noteHelpers";
 
 interface UseNoteHandlersProps {
     subjectId: string;

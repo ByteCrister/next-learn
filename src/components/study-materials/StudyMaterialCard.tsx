@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { motion } from "framer-motion";
 import { FileType } from "@/types/types.studymaterials";
 import { ExternalLink, Edit, Trash, Eye, Lock, FileText, Presentation, Image as ImageIcon, File, Sparkles, Share } from "lucide-react";
+import { ShareStudyMaterialButton } from "./ShareStudyMaterialButton";
 
 interface StudyMaterialCardProps {
     material: any;
@@ -115,23 +116,19 @@ export default function StudyMaterialCard({ material, viewedMaterials, onView, o
                                     </TooltipTrigger>
                                     <TooltipContent>Edit</TooltipContent>
                                 </Tooltip>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 p-0 rounded-full hover:bg-green-50 cursor-pointer"
-                                                onClick={() => onShare(material)}
-                                                disabled={material.visibility !== "public"}
-                                                aria-label="Share material"
-                                            >
-                                                <Share className="h-4 w-4" />
-                                            </Button>
-                                        </motion.div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Share</TooltipContent>
-                                </Tooltip>
+                                {material.visibility === "public" && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+                                                <ShareStudyMaterialButton
+                                                    subjectId={material.subjectId}
+                                                    studyMaterialId={material._id}
+                                                />
+                                            </motion.div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Share</TooltipContent>
+                                    </Tooltip>
+                                )}
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">

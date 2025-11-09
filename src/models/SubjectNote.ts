@@ -35,6 +35,9 @@ const subjectNoteSchema = new Schema<ISubjectNote>(
     { timestamps: true }
 );
 
+// Add index on userId for faster queries
+subjectNoteSchema.index({ userId: 1 });
+
 export const SubjectNote: Model<ISubjectNote> =
     mongoose.models.SubjectNote ||
     mongoose.model<ISubjectNote>("SubjectNote", subjectNoteSchema);

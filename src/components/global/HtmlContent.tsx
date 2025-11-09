@@ -21,7 +21,7 @@ const HtmlContent: React.FC<HtmlContentProps> = ({ html, className }) => {
                 "[&>h3]:text-2xl [&>h3]:font-semibold [&>h3]:mt-8 [&>h3]:mb-3",
 
                 // Paragraphs
-                "[&>p]:leading-relaxed [&>p]:my-4",
+                "[&>p]:text-xl [&>p]:leading-relaxed [&>p]:my-4",
 
                 // Lists
                 "[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 marker:text-indigo-500",

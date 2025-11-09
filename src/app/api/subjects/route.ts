@@ -1,5 +1,6 @@
 // app/api/subjects/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { Subject } from "@/models/Subject";
 import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
@@ -7,13 +8,8 @@ import { SubjectNote } from "@/models/SubjectNote";
 import { ExternalLink } from "@/models/ExternalLink";
 import { StudyMaterial } from "@/models/StudyMaterial";
 
-export async function GET() {
-    const userId = await getUserIdFromSession();
-    if (!userId) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    try {
+const getSubjectsData = unstable_cache(
+    async (userId: string) => {
         await ConnectDB();
 
         // Get all subjects
@@ -26,17 +22,28 @@ export async function GET() {
             StudyMaterial.countDocuments({ userId }),
         ]);
 
-        return NextResponse.json(
-            {
-                subjects,
-                subjectCounts: {
-                    notes: notesCount,
-                    externalLinks: externalLinksCount,
-                    studyMaterials: studyMaterialsCount,
-                },
+        return {
+            subjects,
+            subjectCounts: {
+                notes: notesCount,
+                externalLinks: externalLinksCount,
+                studyMaterials: studyMaterialsCount,
             },
-            { status: 200 }
-        );
+        };
+    },
+    ["subjects-data"],
+    { revalidate: 60 } // Cache for 60 seconds
+);
+
+export async function GET() {
+    const userId = await getUserIdFromSession();
+    if (!userId) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const data = await getSubjectsData(userId);
+        return NextResponse.json(data, { status: 200 });
     } catch (error) {
         console.error("GET /api/subjects error:", error);
         return NextResponse.json(

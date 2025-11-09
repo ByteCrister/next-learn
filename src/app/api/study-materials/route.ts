@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         const subjectId = searchParams.get("subjectId");
         const roadmapId = searchParams.get("roadmapId");
 
-        const query: any = { userId };
+        const query: { userId: string; subjectId?: string; roadmapId?: string } = { userId };
         if (subjectId) query.subjectId = subjectId;
         if (roadmapId) query.roadmapId = roadmapId;
 

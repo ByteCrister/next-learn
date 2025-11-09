@@ -28,6 +28,7 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
         title: "",
         description: "",
         category: "Other" as LinkCategory,
+        visibility: "private" as "private" | "public",
     });
     const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -38,6 +39,7 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
                 title: editingLink.title,
                 description: editingLink.description || "",
                 category: editingLink.category,
+                visibility: editingLink.visibility || "private",
             });
         } else {
             setForm({
@@ -45,6 +47,7 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
                 title: "",
                 description: "",
                 category: "Other",
+                visibility: "private",
             });
         }
         setErrors({});
@@ -81,6 +84,7 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
             title: form.title.trim(),
             description: form.description.trim() || undefined,
             category: form.category,
+            visibility: form.visibility,
             subjectId: subjectId || undefined,
         });
         if (!editingLink) {
@@ -89,6 +93,7 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
                 title: "",
                 description: "",
                 category: "Other",
+                visibility: "private",
             });
         }
     };
@@ -226,6 +231,28 @@ export default function ExternalLinkForm({ open, onOpenChange, editingLink, subj
                                 rows={3}
                                 className="resize-none focus:border-blue-500"
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="visibility" className="flex items-center gap-2 text-sm font-medium">
+                                <Tag className="h-4 w-4 text-blue-600" />
+                                Visibility
+                            </Label>
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3, delay: 0.3 }}
+                            >
+                                <Select value={form.visibility} onValueChange={(value) => setForm({ ...form, visibility: value as "private" | "public" })}>
+                                    <SelectTrigger className="focus:border-blue-500 cursor-pointer">
+                                        <SelectValue placeholder="Select visibility" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="private" className="cursor-pointer">Private</SelectItem>
+                                        <SelectItem value="public" className="cursor-pointer">Public</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </motion.div>
                         </div>
                     </motion.div>
                     <DialogFooter className="mt-8 flex gap-3">

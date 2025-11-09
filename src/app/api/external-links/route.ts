@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const subjectId = searchParams.get("subjectId");
 
-        const query: any = { userId };
+        const query: { userId: string; subjectId?: string } = { userId };
         if (subjectId) query.subjectId = subjectId;
 
         const externalLinks = await ExternalLink.find(query).sort({ addedAt: -1 });
@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
             title,
             description,
             category,
+            visibility: "private", // Default to private
             isNew: true,
         });
 

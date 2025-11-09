@@ -15,12 +15,19 @@ const PUBLIC_ROUTES = [
     // /^\/terms$/,
     // /^\/privacy$/,
     /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
+    /^\/view-subject\/notes\/[^/]+\/[^/]+$/,   // dynamic view-subject/notes/:subjectId/:noteId
+    /^\/view-subject\/study-material\/[^/]+\/[^/]+$/,   // dynamic view-subject/study-material/:subjectId/:studyMaterialId
+    /^\/view-subject\/external-link\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-link/:subjectId/:externalLinkId
+    /^\/view-subject\/external-links\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-links/:subjectId/:externalLinkId
 ];
 
 // Public API routes (accessible with or without login)
 const PUBLIC_APIS = [
     /^\/api\/view\/subject$/,    // GET /api/view/subject
-    /^\/api\/view\/note$/,       // GET /api/view/note
+    /^\/api\/view\/notes$/,      // GET /api/view/notes
+    /^\/api\/view\/study-materials$/,  // GET /api/view/study-materials
+    /^\/api\/view\/study-material$/,   // GET /api/view/study-material
+    /^\/api\/view\/external-link$/,   // GET /api/view/external-link
     // /^\/api\/make-admin$/,       // POST /api/make-admin
 ];
 

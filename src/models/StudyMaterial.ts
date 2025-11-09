@@ -34,6 +34,9 @@ const studyMaterialSchema = new Schema<IStudyMaterial>(
     { timestamps: false }
 );
 
+// Add index on userId for faster queries
+studyMaterialSchema.index({ userId: 1 });
+
 if (mongoose.models.StudyMaterial) {
     delete mongoose.models.StudyMaterial;
 }

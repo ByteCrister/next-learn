@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 import { useExternalLinkStore } from "@/store/useExternalLinkStore";
 import { IExternalLink, LinkCategory } from "@/models/ExternalLink";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface UseExternalLinkHandlersProps {
     subjectId?: string;
+}
+
+interface EditFormType {
+    title: string;
+    url: string;
+    description: string;
+    category: string;
+    visibility: "public" | "private";
 }
 
 export const useExternalLinkHandlers = ({ subjectId }: UseExternalLinkHandlersProps) => {
@@ -128,7 +137,10 @@ export const useExternalLinkHandlers = ({ subjectId }: UseExternalLinkHandlersPr
     };
 
     const handleShare = async (link: IExternalLink) => {
-        const shareUrl = link.url;
+        // Use the ShareExternalLinkButton component logic with encoded IDs
+        const encodedSubjectId = encodeURIComponent(encodeId(subjectId || ''));
+        const encodedExternalLinkId = encodeURIComponent(encodeId(link._id as string));
+        const shareUrl = `${window.location.origin}/view-subject/external-links/${encodedSubjectId}/${encodedExternalLinkId}`;
         if (navigator.share) {
             try {
                 await navigator.share({

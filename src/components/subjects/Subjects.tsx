@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useSubjectStore } from "@/store/useSubjectsStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SubjectCard } from "./SubjectCard";
 import { Pagination } from "./Pagination";
 import { useSubjectsSearch } from "@/hooks/useSubjectsSearch";
 import { BsBook, BsFileEarmarkText, BsLink45Deg } from "react-icons/bs";
-import SearchBar from "./SearchBar";
-import { SortSelect } from "./SortSelect";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
-import AddSubjectModal from "./AddSubjectModal";
 import { StatCard } from "./StatCard";
 import FullSubjectsSkeleton from "./SubjectsSkeleton";
+
+// Lazy load components
+const SubjectCard = lazy(() => import("./SubjectCard").then(module => ({ default: module.SubjectCard })));
+const SearchBar = lazy(() => import("./SearchBar"));
+const SortSelect = lazy(() => import("./SortSelect").then(module => ({ default: module.SortSelect })));
+const AddSubjectModal = lazy(() => import("./AddSubjectModal"));
 
 type SortOption = "alpha-asc" | "alpha-desc" | "newest" | "oldest";
 
@@ -131,13 +133,19 @@ export default function Subjects() {
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
         {/* Search */}
-        <SearchBar value={searchTerm} onChange={setSearchTerm} onClear={() => setSearchTerm('')} />
+        <Suspense fallback={<div>Loading search...</div>}>
+          <SearchBar value={searchTerm} onChange={setSearchTerm} onClear={() => setSearchTerm('')} />
+        </Suspense>
 
         {/* Sort */}
-        <SortSelect value={sortOption} options={SORT_OPTIONS} onChange={(v) => setSortOption(v)} />
+        <Suspense fallback={<div>Loading sort...</div>}>
+          <SortSelect value={sortOption} options={SORT_OPTIONS} onChange={(v: SortOption) => setSortOption(v)} />
+        </Suspense>
 
         {/* Add Button */}
-        <AddSubjectModal />
+        <Suspense fallback={<div>Loading add button...</div>}>
+          <AddSubjectModal />
+        </Suspense>
       </div>
 
       {/* Subject Grid */}
@@ -160,11 +168,12 @@ export default function Subjects() {
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <AnimatePresence>
             {pageItems.map((subject, idx) => (
-              <SubjectCard
-                key={subject._id}
-                subject={subject}
-                index={idx + (currentPage - 1) * ITEMS_PER_PAGE}
-              />
+              <Suspense key={subject._id} fallback={<Skeleton className="h-48 rounded-2xl bg-gradient-to-br from-white/40 to-white/10 animate-pulse" />}>
+                <SubjectCard
+                  subject={subject}
+                  index={idx + (currentPage - 1) * ITEMS_PER_PAGE}
+                />
+              </Suspense>
             ))}
           </AnimatePresence>
         </motion.div>

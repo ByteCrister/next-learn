@@ -19,5 +19,8 @@ const subjectSchema = new Schema<ISubject>(
     { timestamps: true }
 );
 
+// Add index on userId for faster queries
+subjectSchema.index({ userId: 1 });
+
 export const Subject: Model<ISubject> =
     mongoose.models.Subject || mongoose.model<ISubject>("Subject", subjectSchema);

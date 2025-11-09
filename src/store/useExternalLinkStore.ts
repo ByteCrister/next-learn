@@ -10,6 +10,7 @@ export interface ExternalLinkInput {
     title: string;
     description?: string;
     category: string;
+    visibility?: "private" | "public";
 }
 import { useSubjectStore } from "./useSubjectsStore";
 import { toast } from "react-toastify";
