@@ -25,6 +25,7 @@ import SubjectPageSkeleton from "./SubjectPageSkeleton";
 import ShareButton from "./ShareButton";
 import { encodeId } from "@/utils/helpers/IdConversion";
 
+
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const {
         selectedSubject,

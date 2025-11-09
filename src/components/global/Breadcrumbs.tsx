@@ -31,7 +31,7 @@ const Breadcrumbs = () => {
           const isLast = idx === breadcrumbs.length - 1;
 
           return (
-            <li key={crumb.href} className="flex items-center">
+            <li key={`${crumb.href}-${idx}`} className="flex items-center">
               {!isLast ? (
                 <>
                   <Link

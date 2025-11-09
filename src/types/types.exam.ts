@@ -163,4 +163,4 @@ export type GetExamsResponse = ExamDTO[];
 /** Response from GET /api/exams/[examId] */
 export type GetExamResponse = ExamDTO;
 
-export type SubmitResult = Omit<ExamResultDTO, "score">;
+export type SubmitResult = Omit<ExamResultDTO, "score">

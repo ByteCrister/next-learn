@@ -8,6 +8,9 @@ export interface IChapter {
     _id?: Types.ObjectId;
     title: string;
     content: TipTapJSON;
+    materials?: any[]; // optional for now
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 /** Top-level CourseRoadmap */
@@ -24,14 +27,14 @@ export interface ICourseRoadmap extends Document {
 const ChapterSchema = new Schema<IChapter>({
     title: { type: String, required: true },
     content: { type: Schema.Types.Mixed },
-}, { _id: true });
+}, { _id: true, timestamps: true });
 
 const CourseRoadmapSchema = new Schema<ICourseRoadmap>({
     title: { type: String, required: true },
     description: { type: String, default: "" },
     roadmap: { type: Schema.Types.Mixed },
     subjectId: { type: Schema.Types.ObjectId, required: true, ref: "Subject" },
-    chapters: { type: [ChapterSchema], default: [] },
+    chapters: [{ type: Schema.Types.ObjectId, ref: "Chapter" }],
 });
 
 /** Export the model */

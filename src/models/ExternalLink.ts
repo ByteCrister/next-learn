@@ -29,10 +29,12 @@ export interface IExternalLink extends Document {
     title: string;
     description?: string;
     category: LinkCategory;
+    visibility: "private" | "public";
     addedAt: Date;
+    isNew: boolean;
 }
 
-const externalLinkSchema = new Schema<IExternalLink>(
+const externalLinkSchema = new Schema(
     {
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
@@ -64,10 +66,15 @@ const externalLinkSchema = new Schema<IExternalLink>(
             ],
             default: "Other",
         },
+        visibility: { type: String, enum: ["private", "public"], default: "private" },
         addedAt: { type: Date, default: () => new Date() },
+        isNew: { type: Boolean, default: true },
     },
-    { timestamps: false }
+    { timestamps: false, suppressReservedKeysWarning: true }
 );
+
+// Add index on userId for faster queries
+externalLinkSchema.index({ userId: 1 });
 
 export const ExternalLink: Model<IExternalLink> =
     mongoose.models.ExternalLink ||

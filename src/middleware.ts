@@ -20,6 +20,12 @@ const PUBLIC_ROUTES = [
   /^\/view-routine\/.+/,
   /^\/view-result\/.+/,
   /^\/join-exam\/.+/,
+
+  /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
+  /^\/view-subject\/notes\/[^/]+\/[^/]+$/,   // dynamic view-subject/notes/:subjectId/:noteId
+  /^\/view-subject\/study-material\/[^/]+\/[^/]+$/,   // dynamic view-subject/study-material/:subjectId/:studyMaterialId
+  /^\/view-subject\/external-link\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-link/:subjectId/:externalLinkId
+  /^\/view-subject\/external-links\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-links/:subjectId/:externalLinkId
 ];
 
 // Public API routes (accessible with or without login)
@@ -29,6 +35,11 @@ const PUBLIC_APIS = [
   /^\/api\/routines\/view$/, // GET /api/view-routine
   /^\/api\/results\/view-result$/, // GET /api/view-routine
   /^\/api\/exams\/.+/, // GET /api/exams/check
+
+  /^\/api\/view\/notes$/,      // GET /api/view/notes
+  /^\/api\/view\/study-materials$/,  // GET /api/view/study-materials
+  /^\/api\/view\/study-material$/,   // GET /api/view/study-material
+  /^\/api\/view\/external-link$/,   // GET /api/view/external-link
   // /^\/api\/make-admin$/,       // POST /api/make-admin
 ];
 

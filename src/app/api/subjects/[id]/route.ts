@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ISubject, Subject } from "@/models/Subject";
 import { StudyMaterial } from "@/models/StudyMaterial";
-import { ClassNote } from "@/models/ClassNote";
+import { SubjectNote } from "@/models/SubjectNote";
 import ConnectDB from "@/config/ConnectDB";
-import { CourseRoadmap, IChapter, ICourseRoadmap } from "@/models/CourseRoadmap";
+import { CourseRoadmap, ICourseRoadmap } from "@/models/CourseRoadmap";
+import { Chapter } from "@/models/Chapter";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 import { ExternalLink } from "@/models/ExternalLink";
 import { Types } from "mongoose";
@@ -33,30 +34,32 @@ export async function GET(
             return NextResponse.json({ message: "Not found" }, { status: 404 });
         }
 
-        // Count related items inline
-        const [studyMaterials, notes, externalLinks] = await Promise.all([
-            StudyMaterial.countDocuments({ subjectId: subjectDoc._id }),
-            ClassNote.countDocuments({ subjectId: subjectDoc._id }),
-            ExternalLink.countDocuments({ subjectId: subjectDoc._id }),
-        ]);
-
         // Fetch roadmap
         const roadmapDoc = await CourseRoadmap.findOne({ subjectId: subjectDoc._id })
             .select("title description roadmap subjectId chapters")
-            .lean<ICourseRoadmap & { chapters: IChapter[] }>();
+            .lean<ICourseRoadmap>();
 
+        // Count related items inline
+        const [studyMaterials, notes, externalLinks, chapters] = await Promise.all([
+            StudyMaterial.countDocuments({ subjectId: subjectDoc._id }),
+            SubjectNote.countDocuments({ subjectId: subjectDoc._id }),
+            ExternalLink.countDocuments({ subjectId: subjectDoc._id }),
+            roadmapDoc ? Chapter.countDocuments({ roadmapId: roadmapDoc._id }) : Promise.resolve(0),
+        ]);
+
+        // Fetch chapters for roadmap if needed
         const roadmap = roadmapDoc
             ? {
                 ...roadmapDoc,
-                chapters: (roadmapDoc.chapters ?? []).map((chapter) => ({
-                    _id: chapter._id?.toString(),
-                    title: chapter.title,
-                    content: chapter.content
-                })),
+                chapters: await Chapter.find({ roadmapId: roadmapDoc._id }).sort({ createdAt: 1 }).lean().then(chapters =>
+                    chapters.map((chapter) => ({
+                        _id: chapter._id?.toString(),
+                        title: chapter.title,
+                        content: chapter.content
+                    }))
+                ),
             }
             : null;
-
-        const chapters = roadmapDoc ? (roadmapDoc.chapters ?? []).length : 0;
 
         // Build typed Subject
         const subject: SubjectTypes = {
@@ -131,11 +134,15 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
             return NextResponse.json({ message: "Not found" }, { status: 404 });
         }
 
+        // Get roadmap IDs first
+        const roadmapIds = await CourseRoadmap.find({ subjectId: id }).distinct('_id');
+
         // Cascade deletes
         await Promise.all([
             StudyMaterial.deleteMany({ subjectId: id }),
             CourseRoadmap.deleteMany({ subjectId: id }),
-            ClassNote.deleteMany({ subjectId: id }),
+            SubjectNote.deleteMany({ subjectId: id }),
+            Chapter.deleteMany({ roadmapId: { $in: roadmapIds } }),
         ]);
 
         return NextResponse.json(

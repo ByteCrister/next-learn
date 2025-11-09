@@ -7,8 +7,8 @@ export interface IStudyMaterial extends Document {
     subjectId?: Types.ObjectId;
     roadmapId?: Types.ObjectId;
     filename: string;
-    url: string;
-    fileType: FileType;
+    urls: string[];
+    fileTypes: FileType[];
     tags: string[];
     description?: string;
     visibility: "private" | "public";
@@ -21,12 +21,11 @@ const studyMaterialSchema = new Schema<IStudyMaterial>(
         subjectId: { type: Schema.Types.ObjectId, ref: "Subject" },
         roadmapId: { type: Schema.Types.ObjectId, ref: "CourseRoadmap" },
         filename: { type: String, required: true },
-        url: { type: String, required: true },
-        fileType: {
+        urls: { type: [String], required: true },
+        fileTypes: [{
             type: String,
             enum: ["pdf", "ppt", "image", "other"],
-            default: "other",
-        },
+        }],
         tags: { type: [String], default: [] },
         description: { type: String },
         visibility: { type: String, enum: ["private", "public"], default: "private" },
@@ -35,6 +34,12 @@ const studyMaterialSchema = new Schema<IStudyMaterial>(
     { timestamps: false }
 );
 
+// Add index on userId for faster queries
+studyMaterialSchema.index({ userId: 1 });
+
+if (mongoose.models.StudyMaterial) {
+    delete mongoose.models.StudyMaterial;
+}
+
 export const StudyMaterial: Model<IStudyMaterial> =
-    mongoose.models.StudyMaterial ||
     mongoose.model<IStudyMaterial>("StudyMaterial", studyMaterialSchema);

@@ -146,11 +146,11 @@ export default function Header() {
               ))}
               
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                <Button 
+                <Button
                   onClick={handleClick}
                   className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  Get Started <Sparkles className="ml-2 w-4 h-4 opacity-80" />
+                  {user ? 'Dashboard' : 'Get Started'} <Sparkles className="ml-2 w-4 h-4 opacity-80" />
                 </Button>
               </motion.div>
             </div>

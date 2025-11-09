@@ -7,6 +7,8 @@ export interface TStudyMaterial {
 export interface TChapter {
     _id?: string;
     title: string;
+    description?: string;
     content: string;
     materials: TStudyMaterial[];
+    image?: string;
 }

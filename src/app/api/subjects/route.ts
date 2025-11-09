@@ -4,7 +4,7 @@ import { Subject } from "@/models/Subject";
 import ConnectDB from "@/config/ConnectDB";
 import mongoose from "mongoose";
 import { getUserIdFromSession } from "@/utils/helpers/session";
-import { ClassNote } from "@/models/ClassNote";
+import { SubjectNote } from "@/models/SubjectNote";
 import { ExternalLink } from "@/models/ExternalLink";
 import { StudyMaterial } from "@/models/StudyMaterial";
 import { decodeId } from "@/utils/helpers/IdConversion";
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
         // get counts in parallel
         const [notesCount, externalLinksCount, studyMaterialsCount] = await Promise.all([
-            ClassNote.countDocuments({ userId }),
+            SubjectNote.countDocuments({ userId }),
             ExternalLink.countDocuments({ userId }),
             StudyMaterial.countDocuments({ userId }),
         ]);

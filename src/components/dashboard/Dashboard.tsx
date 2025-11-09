@@ -105,7 +105,7 @@ export default function DashboardPage() {
   const overviewCards = [
     { icon: <Map size={20} />, label: 'Subjects', value: subjectsCount, palette: palettes[0], route: '/subjects' },
     { icon: <FileText size={20} />, label: 'Routines', value: routineCount, palette: palettes[2], route: '/routines' },
-    { icon: <Calendar size={20} />, label: 'Upcoming', value: events.length, palette: palettes[3], route: '/events' },
+    { icon: <Calendar size={20} />, label: 'Events', value: events.length, palette: palettes[3], route: '/events' },
     { icon: <Zap size={20} />, label: 'Exams', value: examCount, palette: palettes[1], route: '/exams' },
   ];
 
