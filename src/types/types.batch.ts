@@ -1,6 +1,4 @@
 // types.batch.ts
-// Frontend / UI types for Next.js + TypeScript + Zustand (use plain string IDs for ObjectId)
-
 export type ID = string;
 
 /* ------------------------------- Enums ---------------------------------- */
@@ -63,12 +61,12 @@ export type ExamDefinition = {
 
 /** Individual recorded marks component (actual marks for a student) */
 export type ResultComponent = {
-  name: RESULT_COMPONENT_NAME;
-  marks?: number;
-  maxMarks?: number;
-  notes?: string;
-  createdAt?: string;
-  updatedAt?: string;
+    name: RESULT_COMPONENT_NAME;
+    marks?: number;
+    maxMarks?: number;
+    notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
 };
 
 export type CourseResult = {
@@ -128,6 +126,7 @@ export type Batch = {
     name: string; // e.g., "Summer-22"
     program?: string;
     year?: number;
+    registrationID: string;
     semesters: Semester[];
     notes?: string;
     createdBy?: ID;
@@ -144,6 +143,7 @@ export type CreateBatchPayload = {
     name: string;
     program?: string;
     year?: number;
+    registrationID: string;
     notes?: string;
     // optionally pre-seed semesters / courses for UI creation flows
     semesters?: Array<{
@@ -181,7 +181,8 @@ export type CreateBatchPayload = {
 export type UpdateBatchPayload = Partial<{
     name: string;
     program: string | null;
-    year: number | null;
+    year: number | null
+    registrationID: string;
     notes: string | null;
     // For nested edits, prefer dedicated endpoints; allow full replacement arrays when needed:
     semesters?: Semester[] | null; // full replacement of semesters array or explicit null to clear
@@ -252,20 +253,7 @@ export type BatchesState = {
     reset: () => void;
 };
 
-/* --------------------------- Utility / View types ----------------------- */
-
 /** Minimal summary used on /batches list cards */
 export type BatchCard = Pick<Batch, "_id" | "name" | "program" | "year" | "createdAt"> & {
     semesterCount: number;
 };
-
-/* ---------------------------- Notes for frontend ------------------------ */
-
-/*
- - Use ID (string) everywhere in the frontend; convert to/from ObjectId server-side.
- - Prefer dedicated endpoints for nested edits (add semester, add course, update student summary)
-   rather than sending full nested arrays for small changes.
- - StudentSummary exists inside CoursePart.studentSummaries to allow fast UI reads.
- - Use the Zustand store shape BatchesState to implement the client store for /batches page.
- - API responses should match the response types above (ListBatchesResponse, GetBatchResponse).
-*/

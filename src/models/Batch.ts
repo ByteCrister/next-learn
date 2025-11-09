@@ -136,6 +136,7 @@ export interface BatchDoc extends Document {
     name: string;
     program?: string;
     year?: number;
+    registrationID: string;
     semesters: SemesterDoc[];
     notes?: string;
     createdBy?: ObjId; // ref User
@@ -256,6 +257,12 @@ const BatchSchema = new Schema<BatchDoc>(
         name: { type: String, required: true, trim: true, index: true },
         program: { type: String, trim: true },
         year: { type: Number, index: true },
+        registrationID: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+        },
         semesters: { type: [SemesterSchema], default: [] },
         notes: { type: String },
         createdBy: { type: Schema.Types.ObjectId, ref: "User" },

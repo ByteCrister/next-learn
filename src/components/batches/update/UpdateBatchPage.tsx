@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
-import BatchFormNested from "@/components/batches/BatchFormNested";
+import BatchFormNested from "@/components/batches/batch-form/BatchFormNested";
 import { toast } from "react-toastify";
 import { UpdateBatchPayload } from "@/types/types.batch";
 import { encodeId } from "@/utils/helpers/IdConversion";
@@ -28,6 +28,7 @@ export default function UpdateBatchPage({ batchId }: { batchId: string }) {
         name: currentBatch.name,
         program: currentBatch.program ?? "",
         year: currentBatch.year ? String(currentBatch.year) : "",
+        registrationID: currentBatch.registrationID ? String(currentBatch.registrationID) : "",
         notes: currentBatch.notes ?? "",
         semesters: currentBatch.semesters.map((s) => ({
             _uid: s._id ?? uuidv4(),
@@ -52,7 +53,7 @@ export default function UpdateBatchPage({ batchId }: { batchId: string }) {
                         _uid: ed._id ?? uuidv4(),
                         examType: ed.examType,
                         condition: ed.condition,
-                        totalMarks: ed.totalMarks,
+                        totalMarks: typeof ed.totalMarks === "number" ? ed.totalMarks : null,
                         components: (ed.components ?? []).map((comp) => ({ _uid: uuidv4(), name: comp.name, maxMarks: comp.maxMarks })),
                     })),
                 })),

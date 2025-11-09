@@ -1,3 +1,4 @@
+// G:\Projects\next-learn\src\lib\batch-validators.ts
 import { COURSE_TYPE, EXAM_TYPE, EXAM_TYPE_CONDITION, RESULT_COMPONENT_NAME } from "@/models/Batch";
 import { Types } from "mongoose";
 

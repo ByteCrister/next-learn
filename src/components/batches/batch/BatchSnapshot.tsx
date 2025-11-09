@@ -15,6 +15,7 @@ import {
     FiAward,
     FiTrendingUp,
     FiCalendar,
+    FiHash,
 } from "react-icons/fi";
 
 import { useBatchesStore } from "@/store/useBatchesStore";
@@ -208,6 +209,11 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
                                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10">
                                             <FiLayers className="text-blue-300" />
                                             <span className="text-slate-200">{batch.semesters?.length ?? 0} Semesters</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10">
+                                            <FiHash className="text-blue-300" />
+                                            <span className="text-slate-200">{batch.registrationID ?? "Registration ID not set"}</span>
                                         </div>
                                     </div>
                                 </motion.div>

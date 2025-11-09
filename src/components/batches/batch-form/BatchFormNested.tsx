@@ -18,6 +18,7 @@ import {
   FiTag,
   FiClock,
   FiInfo,
+  FiKey,
 } from "react-icons/fi";
 import {
   COURSE_TYPE,
@@ -26,7 +27,7 @@ import {
   RESULT_COMPONENT_NAME,
 } from "@/types/types.batch";
 import { validationSchema } from "@/utils/auth/BatchValidation";
-import { Button, Input, Label, Select, Textarea } from "./modern-ui-components";
+import { Button, Input, Label, Select, Textarea } from "../modern-ui-components";
 import useBatchForm, {
   BatchNestedFormValues,
   CreateProps,
@@ -35,19 +36,7 @@ import useBatchForm, {
   UpdateProps,
 } from "@/hooks/useBatchForm";
 import { v4 as uuidv4 } from "uuid";
-
-/**
- * BatchFormNested
- *
- * - Uses useFormik for stable handlers and explicit control
- * - Shared lists are managed locally and kept separate from formik state
- * - Handlers are memoized with useCallback
- *
- * Key changes:
- * - validateOnChange: true
- * - Use getIn(errors,touched) to render nested validation messages
- * - setFieldTouched whenever setFieldValue is used in custom handlers
- */
+import { fromInputDate, toInputDate } from "@/utils/helpers/batch-form";
 
 export default function BatchFormNested(props: Props) {
   const { initialValues = {}, submitLabel = "Save", submitting = false } = props;
@@ -70,60 +59,59 @@ export default function BatchFormNested(props: Props) {
     const seedSemesters =
       initialValues.semesters && initialValues.semesters.length > 0
         ? initialValues.semesters.map((s, i) => ({
-            _uid: s._uid ?? uuidv4(),
-            name: s.name ?? `Semester ${i + 1}`,
-            index: s.index ?? i + 1,
-            type: s.type ?? COURSE_TYPE.THEORY,
-            startAt: s.startAt ?? "",
-            endAt: s.endAt ?? "",
-            notes: s.notes ?? "",
-            courses:
-              s.courses && s.courses.length
-                ? s.courses.map((c) => ({
-                    _uid: c._uid ?? uuidv4(),
-                    code: c.code ?? "",
-                    name: c.name ?? "",
-                    courseId: c.courseId ?? "",
-                    parts:
-                      c.parts && c.parts.length
-                        ? c.parts.map((p) => ({
-                            _uid: p._uid ?? uuidv4(),
-                            courseType: p.courseType ?? COURSE_TYPE.THEORY,
-                            credits: p.credits ?? 3,
-                            teachers:
-                              p.teachers && p.teachers.length
-                                ? p.teachers.map((t) => ({
-                                    _uid: t._uid ?? uuidv4(),
-                                    name: t.name ?? "",
-                                    designation: t.designation ?? "",
-                                    notes: t.notes ?? "",
-                                  }))
-                                : [emptyTeacher()],
-                            examDefinitions:
-                              p.examDefinitions && p.examDefinitions.length
-                                ? p.examDefinitions.map((ed) => ({
-                                    _uid: ed._uid ?? uuidv4(),
-                                    examType: ed.examType ?? EXAM_TYPE.MID,
-                                    condition:
-                                      ed.condition ?? EXAM_TYPE_CONDITION.REGULAR,
-                                    totalMarks:
-                                      typeof ed.totalMarks === "number"
-                                        ? ed.totalMarks
-                                        : undefined,
-                                    components:
-                                      ed.components?.map((c) => ({
-                                        _uid: c._uid ?? uuidv4(),
-                                        name: c.name,
-                                        maxMarks: c.maxMarks,
-                                      })) ?? [emptyResultComponent()],
-                                  }))
-                                : [emptyExamDefinition()],
-                            notes: p.notes ?? "",
+          _uid: s._uid ?? uuidv4(),
+          name: s.name ?? `Semester ${i + 1}`,
+          index: s.index ?? i + 1,
+          startAt: s.startAt ?? "",
+          endAt: s.endAt ?? "",
+          notes: s.notes ?? "",
+          courses:
+            s.courses && s.courses.length
+              ? s.courses.map((c) => ({
+                _uid: c._uid ?? uuidv4(),
+                code: c.code ?? "",
+                name: c.name ?? "",
+                courseId: c.courseId ?? "",
+                parts:
+                  c.parts && c.parts.length
+                    ? c.parts.map((p) => ({
+                      _uid: p._uid ?? uuidv4(),
+                      courseType: p.courseType ?? COURSE_TYPE.THEORY,
+                      credits: p.credits ?? 3,
+                      teachers:
+                        p.teachers && p.teachers.length
+                          ? p.teachers.map((t) => ({
+                            _uid: t._uid ?? uuidv4(),
+                            name: t.name ?? "",
+                            designation: t.designation ?? "",
+                            notes: t.notes ?? "",
                           }))
-                        : [emptyCoursePart()],
-                  }))
-                : [emptyCourseAssignment()],
-          }))
+                          : [emptyTeacher()],
+                      examDefinitions:
+                        p.examDefinitions && p.examDefinitions.length
+                          ? p.examDefinitions.map((ed) => ({
+                            _uid: ed._uid ?? uuidv4(),
+                            examType: ed.examType ?? EXAM_TYPE.MID,
+                            condition:
+                              ed.condition ?? EXAM_TYPE_CONDITION.REGULAR,
+                            totalMarks:
+                              typeof ed.totalMarks === "number"
+                                ? ed.totalMarks
+                                : null,
+                            components:
+                              ed.components?.map((c) => ({
+                                _uid: c._uid ?? uuidv4(),
+                                name: c.name,
+                                maxMarks: c.maxMarks,
+                              })) ?? [emptyResultComponent()],
+                          }))
+                          : [emptyExamDefinition()],
+                      notes: p.notes ?? "",
+                    }))
+                    : [emptyCoursePart()],
+              }))
+              : [emptyCourseAssignment()],
+        }))
         : [emptySemester(1)];
 
     return {
@@ -131,6 +119,7 @@ export default function BatchFormNested(props: Props) {
       name: initialValues.name ?? "",
       program: initialValues.program ?? "",
       year: initialValues.year ?? "",
+      registrationID: initialValues.registrationID ?? "",
       notes: initialValues.notes ?? "",
       semesters: seedSemesters,
     };
@@ -377,8 +366,13 @@ export default function BatchFormNested(props: Props) {
 
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           {/* Header Card */}
-          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl p-6 shadow-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 shadow-sm"
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Batch Name */}
               <div className="md:col-span-2">
                 <Label htmlFor="name" className="flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white">
@@ -388,12 +382,19 @@ export default function BatchFormNested(props: Props) {
                 </Label>
 
                 <div className="mt-2 relative">
-                  <Input {...getFieldProps("name")} id="name" placeholder="e.g., Summer-22" required className="pl-3" />
+                  <Input
+                    {...getFieldProps("name")}
+                    id="name"
+                    placeholder="e.g., Summer-22"
+                    required
+                    className="pl-3"
+                  />
                 </div>
 
                 {renderFieldError("name")}
               </div>
 
+              {/* Year */}
               <div>
                 <Label htmlFor="year" className="flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white">
@@ -410,7 +411,27 @@ export default function BatchFormNested(props: Props) {
               </div>
             </div>
 
+            {/* Registration Number */}
             <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="registration_number" className="flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white">
+                    <FiKey className="w-4 h-4" />
+                  </span>
+                  <span className="font-medium">Registration ID *</span>
+                </Label>
+                <div className="mt-2">
+                  <Input
+                    {...getFieldProps("registrationID")}
+                    id="registrationID"
+                    placeholder="e.g., REG-2024-001"
+                    required
+                  />
+                </div>
+                {renderFieldError("registrationID")}
+              </div>
+
+              {/* Program */}
               <div>
                 <Label htmlFor="program" className="flex items-center gap-2">
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
@@ -419,25 +440,36 @@ export default function BatchFormNested(props: Props) {
                   <span className="font-medium">Program</span>
                 </Label>
                 <div className="mt-2">
-                  <Input {...getFieldProps("program")} id="program" placeholder="e.g., Computer Science & Engineering" />
+                  <Input
+                    {...getFieldProps("program")}
+                    id="program"
+                    placeholder="e.g., Computer Science & Engineering"
+                  />
                 </div>
                 {renderFieldError("program")}
               </div>
+            </div>
 
-              <div>
-                <Label htmlFor="notes" className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-                    <FiInfo className="w-4 h-4" />
-                  </span>
-                  <span className="font-medium">Notes</span>
-                </Label>
-                <div className="mt-2">
-                  <Textarea {...getFieldProps("notes")} id="notes" rows={3} placeholder="Additional information about this batch..." />
-                </div>
-                {renderFieldError("notes")}
+            {/* Notes */}
+            <div className="mt-5">
+              <Label htmlFor="notes" className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
+                  <FiInfo className="w-4 h-4" />
+                </span>
+                <span className="font-medium">Notes</span>
+              </Label>
+              <div className="mt-2">
+                <Textarea
+                  {...getFieldProps("notes")}
+                  id="notes"
+                  rows={3}
+                  placeholder="Additional information about this batch..."
+                />
               </div>
+              {renderFieldError("notes")}
             </div>
           </motion.div>
+
 
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
 
@@ -690,8 +722,13 @@ export default function BatchFormNested(props: Props) {
 
                       <div className="mt-2">
                         <Input
-                          {...getFieldProps(`semesters.${sIdx}.startAt`)}
+                          name={`semesters.${sIdx}.startAt`}
                           type="date"
+                          value={toInputDate(values.semesters[sIdx].startAt) ?? ""}
+                          onChange={(e) => {
+                            const iso = fromInputDate(e.target.value);
+                            setFieldValue(`semesters.${sIdx}.startAt`, iso ?? "");
+                          }}
                           onBlur={() => setFieldTouched(`semesters.${sIdx}.startAt`, true, false)}
                         />
                       </div>
@@ -709,9 +746,14 @@ export default function BatchFormNested(props: Props) {
 
                       <div className="mt-2">
                         <Input
-                          {...getFieldProps(`semesters.${sIdx}.endAt`)}
+                          name={`semesters.${sIdx}.endAt`}
                           type="date"
-                          onBlur={() => setFieldTouched(`semesters.${sIdx}.endAt`, true, false)}
+                          value={toInputDate(values.semesters[sIdx].endAt) ?? ""}
+                          onChange={(e) => {
+                            const iso = fromInputDate(e.target.value);
+                            setFieldValue(`semesters.${sIdx}.endAt`, iso ?? "");
+                          }}
+                          onBlur={() => setFieldTouched(`semesters.${sIdx}.startAt`, true, false)}
                         />
                       </div>
 
@@ -1153,29 +1195,29 @@ export default function BatchFormNested(props: Props) {
                                                       />
                                                       {((values.semesters[sIdx].courses[cIdx].parts[pIdx].examDefinitions ?? [])[edIdx]
                                                         ?.components?.length ?? 0) > 1 && (
-                                                        <Button
-                                                          type="button"
-                                                          variant="destructive"
-                                                          onClick={() => {
-                                                            const next = [...values.semesters];
-                                                            const comps =
-                                                              next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx].components.filter(
-                                                                (_: unknown, i: number) => i !== compIdx
-                                                              );
-                                                            next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx] = {
-                                                              ...next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx],
-                                                              components: comps,
-                                                            };
-                                                            setFieldValue("semesters", next);
-                                                            // touch examDefinition components & total to re-run validation
-                                                            setFieldTouched(`${edBase}.components`, true, false);
-                                                            setFieldTouched(`${edBase}.totalMarks`, true, false);
-                                                          }}
-                                                          className="!p-2"
-                                                        >
-                                                          <FiX className="w-4 h-4" />
-                                                        </Button>
-                                                      )}
+                                                          <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            onClick={() => {
+                                                              const next = [...values.semesters];
+                                                              const comps =
+                                                                next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx].components.filter(
+                                                                  (_: unknown, i: number) => i !== compIdx
+                                                                );
+                                                              next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx] = {
+                                                                ...next[sIdx].courses[cIdx].parts[pIdx].examDefinitions[edIdx],
+                                                                components: comps,
+                                                              };
+                                                              setFieldValue("semesters", next);
+                                                              // touch examDefinition components & total to re-run validation
+                                                              setFieldTouched(`${edBase}.components`, true, false);
+                                                              setFieldTouched(`${edBase}.totalMarks`, true, false);
+                                                            }}
+                                                            className="!p-2"
+                                                          >
+                                                            <FiX className="w-4 h-4" />
+                                                          </Button>
+                                                        )}
                                                     </div>
 
                                                     {renderFieldError(`${compBase}.maxMarks`)}

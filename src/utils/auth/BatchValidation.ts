@@ -23,9 +23,9 @@ const resultComponentSchema: yup.ObjectSchema<ResultComponentDef> = yup
             .required("Component name is required"),
         maxMarks: yup
             .number()
-            .typeError("Max marks must be a number")
-            .required("Max marks required")
-            .min(0, "Max marks cannot be negative"),
+            .typeError("Marks must be a number")
+            .required("Marks required")
+            .min(0, "Marks cannot be negative"),
         notes: yup.string().optional(),
         createdAt: yup.string().optional(),
         updatedAt: yup.string().optional(),
@@ -47,24 +47,14 @@ const examDefinitionSchema: yup.ObjectSchema<ExamDefinition> = yup
         totalMarks: yup
             .number()
             .transform((val, orig) => (orig === "" ? undefined : val))
-            .typeError("Total marks must be a number")
-            .min(0, "Total marks cannot be negative")
+            .typeError("Marks must be a number")
+            .min(0, "Marks cannot be negative")
             .optional(),
         components: yup
             .array()
             .of(resultComponentSchema)
             .required()
-            .min(1, "At least one result component is required")
-            .test(
-                "sum-leq-total",
-                "Sum of component marks cannot exceed total",
-                function (components) {
-                    const total = this.parent.totalMarks;
-                    if (!Array.isArray(components) || total == null) return true;
-                    const sum = components.reduce((acc, c) => acc + (c.maxMarks ?? 0), 0);
-                    return sum <= total;
-                }
-            ),
+            .min(1, "At least one result component is required"),
         createdAt: yup.string().optional(),
         updatedAt: yup.string().optional(),
     })
@@ -156,13 +146,13 @@ const semesterSchema: yup.ObjectSchema<Semester> = yup
         startAt: yup
             .string()
             .transform((v) => (v === "" ? undefined : v))
-            .optional()
+            .required("Semester startAt required")
             .test("is-valid", "Invalid start date", (v) => !v || !Number.isNaN(new Date(v).getTime())),
         endAt: yup
             .string()
             .transform((v) => (v === "" ? undefined : v))
-            .optional()
             .test("is-valid", "Invalid end date", (v) => !v || !Number.isNaN(new Date(v).getTime()))
+            .required("Semester endAt required")
             .test("after-start", "End must be same or after start", function (end) {
                 const start = this.parent.startAt;
                 if (!start || !end) return true;
@@ -192,6 +182,7 @@ export const validationSchema: yup.ObjectSchema<
                 const y = new Date().getFullYear();
                 return val >= 1900 && val <= y + 5;
             }),
+        registrationID: yup.string().trim().required("Registration ID is required").max(50, "Registration ID too long"),
         notes: yup.string().optional(),
         semesters: yup.array().of(semesterSchema).required().min(1),
         createdBy: yup.string().optional(),

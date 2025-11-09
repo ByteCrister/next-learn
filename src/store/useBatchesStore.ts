@@ -105,7 +105,6 @@ export const useBatchesStore = create<BatchesState>((set) => {
             const cached = itemCache.get(id);
             if (cached) {
                 set({ currentBatch: cached, loading: false, error: null });
-                console.log(JSON.stringify(cached));
                 return;
             }
 

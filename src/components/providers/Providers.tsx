@@ -10,13 +10,14 @@ import { useDashboardStore } from '@/store/useDashboardStore'
 import { usePathname } from 'next/navigation'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
+import LoadingPage from '../global/LoadingPage'
 
 interface ProvidersProps {
   children: ReactNode
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  const { user, fetchUser } = useDashboardStore()
+  const { user, isUserFetching, fetchUser } = useDashboardStore()
   const pathname = usePathname()
 
   const PUBLIC_PAGES = new Set(["/", "/features", "/how-to-use", "/about"])
@@ -27,8 +28,11 @@ export default function Providers({ children }: ProvidersProps) {
       if (!user) await fetchUser()
     }
     fetchUserData()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  if (isUserFetching)
+    return <LoadingPage />
 
   const PageLayout = ({ children }: { children: ReactNode }) => (
     <>

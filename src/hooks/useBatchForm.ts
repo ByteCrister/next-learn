@@ -30,8 +30,9 @@ export type Props = CreateProps | UpdateProps;
 export type BatchNestedFormValues = {
   _uid: string;
   name: string;
-  program?: string;
-  year?: string;
+  program: string;
+  year: string;
+  registrationID: string;
   notes?: string;
   semesters: SemesterInput[];
 };
@@ -51,7 +52,7 @@ type ExamDefinitionInput = {
   _uid: string;
   examType: EXAM_TYPE;
   condition: EXAM_TYPE_CONDITION;
-  totalMarks?: number | null;
+  totalMarks: number | null;
   components: ResultComponentDefInput[];
 };
 type CoursePartInput = {
@@ -64,9 +65,9 @@ type CoursePartInput = {
 };
 type CourseAssignmentInput = {
   _uid: string;
-  code?: string;
-  name?: string;
-  courseId?: string;
+  code: string;
+  name: string;
+  courseId: string;
   parts: CoursePartInput[];
   notes?: string;
 };
@@ -74,9 +75,8 @@ type SemesterInput = {
   _uid: string;
   name: string;
   index: number;
-  type?: COURSE_TYPE;
-  startAt?: string;
-  endAt?: string;
+  startAt: string;
+  endAt: string;
   notes?: string;
   courses: CourseAssignmentInput[];
 };
@@ -172,16 +172,29 @@ export default function useBatchForm() {
   function buildCreatePayload(
     values: BatchNestedFormValues
   ): CreateBatchPayload {
-    console.log("buildCreatePayload start", values);
     try {
+      const name = String(values.name ?? "").trim();
+
+      const registrationID = String(values.registrationID ?? "").trim();
+
+      if (!name) {
+        throw new Error("Batch name is required");
+      }
+      if (!registrationID) {
+        throw new Error("Registration ID is required");
+      }
+
       const payload: CreateBatchPayload = {
-        name: String(values.name ?? "").trim(),
+        name,
+        registrationID,
       };
 
       if (values.program && String(values.program).trim() !== "")
         payload.program = String(values.program).trim();
+
       if (values.year && String(values.year).trim() !== "")
         payload.year = Number(String(values.year).trim());
+
       if (values.notes && String(values.notes).trim() !== "")
         payload.notes = String(values.notes).trim();
 
@@ -219,7 +232,6 @@ export default function useBatchForm() {
         })),
       }));
 
-      console.log("buildCreatePayload: ready", payload);
       return payload;
     } catch (err) {
       console.error("buildCreatePayload threw", err);
@@ -235,6 +247,7 @@ export default function useBatchForm() {
     const update: UpdateBatchPayload = { _id: id };
 
     update.name = base.name;
+    update.registrationID = base.registrationID;
     update.program = typeof base.program !== "undefined" ? base.program : null;
     update.year = typeof base.year !== "undefined" ? base.year : null;
     update.notes = typeof base.notes !== "undefined" ? base.notes : null;
@@ -242,54 +255,54 @@ export default function useBatchForm() {
     update.semesters =
       typeof base.semesters !== "undefined"
         ? (base.semesters || []).map((s) => ({
-            name: String(s.name ?? "").trim(),
-            index: Number(s.index ?? 1),
-            startAt: s.startAt ?? undefined,
-            endAt: s.endAt ?? undefined,
-            notes:
-              typeof s.notes !== "undefined"
-                ? String(s.notes ?? "").trim()
-                : undefined,
-            courses:
-              (s.courses || []).map((c) => ({
-                courseId: c.courseId ?? undefined,
-                code: c.code?.trim() || undefined,
-                name: c.name?.trim() || undefined,
-                notes:
-                  typeof c.notes !== "undefined"
-                    ? String(c.notes ?? "").trim()
-                    : undefined,
-                parts:
-                  (c.parts || []).map((p) => ({
-                    courseType: p.courseType ?? COURSE_TYPE.THEORY,
-                    credits: Number(p.credits ?? 0),
-                    notes:
-                      typeof p.notes !== "undefined"
-                        ? String(p.notes ?? "").trim()
-                        : undefined,
-                    teachers:
-                      (p.teachers || []).map((t) => ({
-                        name: String(t.name ?? "").trim(),
-                        designation: t.designation?.trim() || undefined,
-                        notes: t.notes?.trim() || undefined,
-                      })) || [],
-                    examDefinitions:
-                      (p.examDefinitions || []).map((ed) => ({
-                        examType: ed.examType,
-                        condition: ed.condition,
-                        totalMarks:
-                          typeof ed.totalMarks === "number"
-                            ? ed.totalMarks
-                            : undefined,
-                        components:
-                          (ed.components || []).map((comp) => ({
-                            name: comp.name,
-                            maxMarks: Number(comp.maxMarks ?? 0),
-                          })) || [],
-                      })) || [],
-                  })) || [],
-              })) || [],
-          }))
+          name: String(s.name ?? "").trim(),
+          index: Number(s.index ?? 1),
+          startAt: s.startAt ?? undefined,
+          endAt: s.endAt ?? undefined,
+          notes:
+            typeof s.notes !== "undefined"
+              ? String(s.notes ?? "").trim()
+              : undefined,
+          courses:
+            (s.courses || []).map((c) => ({
+              courseId: c.courseId ?? undefined,
+              code: c.code?.trim() || undefined,
+              name: c.name?.trim() || undefined,
+              notes:
+                typeof c.notes !== "undefined"
+                  ? String(c.notes ?? "").trim()
+                  : undefined,
+              parts:
+                (c.parts || []).map((p) => ({
+                  courseType: p.courseType ?? COURSE_TYPE.THEORY,
+                  credits: Number(p.credits ?? 0),
+                  notes:
+                    typeof p.notes !== "undefined"
+                      ? String(p.notes ?? "").trim()
+                      : undefined,
+                  teachers:
+                    (p.teachers || []).map((t) => ({
+                      name: String(t.name ?? "").trim(),
+                      designation: t.designation?.trim() || undefined,
+                      notes: t.notes?.trim() || undefined,
+                    })) || [],
+                  examDefinitions:
+                    (p.examDefinitions || []).map((ed) => ({
+                      examType: ed.examType,
+                      condition: ed.condition,
+                      totalMarks:
+                        typeof ed.totalMarks === "number"
+                          ? ed.totalMarks
+                          : undefined,
+                      components:
+                        (ed.components || []).map((comp) => ({
+                          name: comp.name,
+                          maxMarks: Number(comp.maxMarks ?? 0),
+                        })) || [],
+                    })) || [],
+                })) || [],
+            })) || [],
+        }))
         : undefined;
 
     return update;
