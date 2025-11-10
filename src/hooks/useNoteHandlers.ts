@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSubjectNoteStore } from "@/store/useSubjectNoteStore";
 import { SubjectNote } from "@/types/types.subjectnote";
-import { calculateReadingTime, calculateWordCount } from "@/utils/helpers/noteHelpers";
 
 interface UseNoteHandlersProps {
     subjectId: string;
@@ -9,6 +8,7 @@ interface UseNoteHandlersProps {
 
 export const useNoteHandlers = ({ subjectId }: UseNoteHandlersProps) => {
     const { notes, loadingNotes, fetchNotesBySubjectId, setSelectedNote, currentPage, totalPages, setCurrentPage } = useSubjectNoteStore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const safeNotes = notes || [];
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [isViewOpen, setIsViewOpen] = useState(false);
@@ -31,7 +31,7 @@ export const useNoteHandlers = ({ subjectId }: UseNoteHandlersProps) => {
 
     // Filter and sort notes
     const filteredAndSortedNotes = useMemo(() => {
-        let filtered = safeNotes.filter(note =>
+        const filtered = safeNotes.filter(note =>
             note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             note.content?.replace(/<[^>]*>/g, '').toLowerCase().includes(searchQuery.toLowerCase())
         );

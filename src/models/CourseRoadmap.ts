@@ -8,6 +8,7 @@ export interface IChapter {
     _id?: Types.ObjectId;
     title: string;
     content: TipTapJSON;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     materials?: any[]; // optional for now
     createdAt?: Date;
     updatedAt?: Date;
@@ -21,13 +22,6 @@ export interface ICourseRoadmap extends Document {
     subjectId: Types.ObjectId;
     chapters: IChapter[];
 }
-
-/** Schemas */
-
-const ChapterSchema = new Schema<IChapter>({
-    title: { type: String, required: true },
-    content: { type: Schema.Types.Mixed },
-}, { _id: true, timestamps: true });
 
 const CourseRoadmapSchema = new Schema<ICourseRoadmap>({
     title: { type: String, required: true },

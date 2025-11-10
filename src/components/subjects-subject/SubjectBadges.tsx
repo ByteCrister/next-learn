@@ -6,7 +6,6 @@ import Link from 'next/link';
 import {
     BookOpen as SubjectIcon,
     User as UserIcon,
-    ClipboardList as TaskIcon,
     ListOrdered as ChaptersIcon,
     ExternalLink as ExternalLinkIcon,
 } from 'lucide-react';

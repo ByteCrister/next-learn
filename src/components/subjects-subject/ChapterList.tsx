@@ -314,7 +314,7 @@ export default function ChapterList({ roadmapId }: ChapterListProps) {
                                                 <AlertDialogHeader>
                                                     <AlertDialogTitle>Delete Chapter</AlertDialogTitle>
                                                     <AlertDialogDescription>
-                                                        Are you sure you want to delete "{chapters.find(ch => ch._id === chapterToDelete)?.title}"?
+                                                        Are you sure you want to delete &quot;{chapters.find(ch => ch._id === chapterToDelete)?.title}&quot;?
                                                         This action cannot be undone and will permanently remove the chapter and all its content.
                                                     </AlertDialogDescription>
                                                 </AlertDialogHeader>

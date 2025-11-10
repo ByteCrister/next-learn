@@ -16,6 +16,7 @@ interface ExternalLinkCardProps {
     onEdit: (link: IExternalLink) => void;
     onShare: (link: IExternalLink) => void;
     onDelete: (id: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     buttonVariants: any;
     index: number;
 }
@@ -121,7 +122,7 @@ export default function ExternalLinkCard({ link, viewedExternalLinks, onView, on
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Delete Link</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            Are you sure you want to permanently delete "{link.title}"? This action cannot be undone.
+                                                            Are you sure you want to permanently delete &quot;{link.title}&quot;? This action cannot be undone.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>

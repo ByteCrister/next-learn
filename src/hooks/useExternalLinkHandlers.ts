@@ -7,13 +7,6 @@ interface UseExternalLinkHandlersProps {
     subjectId?: string;
 }
 
-interface EditFormType {
-    title: string;
-    url: string;
-    description: string;
-    category: string;
-    visibility: "public" | "private";
-}
 
 export const useExternalLinkHandlers = ({ subjectId }: UseExternalLinkHandlersProps) => {
     const { externalLinks, loading, fetchExternalLinks, editExternalLink, deleteExternalLink, markAsViewed } = useExternalLinkStore();
@@ -165,6 +158,7 @@ export const useExternalLinkHandlers = ({ subjectId }: UseExternalLinkHandlersPr
         await deleteExternalLink(id);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleFormSubmit = async (linkData: any) => {
         if (editingLink) {
             await editExternalLink((editingLink._id as string), linkData);

@@ -5,32 +5,30 @@ import Routine, { IRoutine } from '@/models/Routine';
 import ConnectDB from '@/config/ConnectDB';
 import { RoutineResponseDto } from '@/types/types.routine';
 
-/**
- * Map a single Mongoose Routine document to RoutineResponseDto
- */
-export function mapRoutineToDto(routine: IRoutine): RoutineResponseDto {
-    return {
-        id: (routine._id as Types.ObjectId).toString(),
-        userId: routine.userId.toString(),
-        shareId: routine.shareId,
-        title: routine.title,
-        description: routine.description,
-        days: routine.days.map(d => ({
-            dayOfWeek: d.dayOfWeek,
-            slots: d.slots.map(s => ({
-                startTime: s.startTime,
-                endTime: s.endTime,
-                subject: s.subject,
-                teacher: s.teacher,
-                room: s.room,
-            })),
-        })),
-        createdAt: routine.createdAt.toISOString(),
-        updatedAt: routine.updatedAt.toISOString(),
-    };
-}
-
 export async function GET(req: NextRequest) {
+
+    function mapRoutineToDto(routine: IRoutine): RoutineResponseDto {
+        return {
+            id: (routine._id as Types.ObjectId).toString(),
+            userId: routine.userId.toString(),
+            shareId: routine.shareId,
+            title: routine.title,
+            description: routine.description,
+            days: routine.days.map(d => ({
+                dayOfWeek: d.dayOfWeek,
+                slots: d.slots.map(s => ({
+                    startTime: s.startTime,
+                    endTime: s.endTime,
+                    subject: s.subject,
+                    teacher: s.teacher,
+                    room: s.room,
+                })),
+            })),
+            createdAt: routine.createdAt.toISOString(),
+            updatedAt: routine.updatedAt.toISOString(),
+        };
+    }
+
     try {
         await ConnectDB();
 

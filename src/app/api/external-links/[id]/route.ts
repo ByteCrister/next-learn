@@ -3,9 +3,15 @@ import { ExternalLink } from "@/models/ExternalLink";
 import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 
+type ContextType = {
+    params: {
+        id: string;
+    };
+};
+
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -14,7 +20,7 @@ export async function GET(
 
     try {
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
 
         const externalLink = await ExternalLink.findOne({ _id: id, userId });
         if (!externalLink) {
@@ -36,7 +42,7 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -58,7 +64,8 @@ export async function PUT(
         }
 
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
+
         const updatedExternalLink = await ExternalLink.findOneAndUpdate(
             { _id: id, userId },
             updates,
@@ -84,7 +91,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -93,7 +100,7 @@ export async function DELETE(
 
     try {
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
 
         const deletedExternalLink = await ExternalLink.findOneAndDelete({ _id: id, userId });
         if (!deletedExternalLink) {

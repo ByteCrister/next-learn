@@ -4,7 +4,7 @@ import { authOptions } from "@/utils/auth/authOptions";
 import connectDB from "@/config/ConnectDB";
 import { SubjectNote } from "@/models/SubjectNote";
 import { Subject } from "@/models/Subject";
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 
 export async function PUT(
     request: NextRequest,

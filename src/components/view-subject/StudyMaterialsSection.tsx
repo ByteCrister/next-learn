@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Share2, FileText, Download, Calendar } from "lucide-react";
 import { getViewStudyMaterials } from "@/utils/api/api.view";
 import { toast } from "react-toastify";
-import { encodeId } from "@/utils/helpers/IdConversion";
 import { ShareStudyMaterialButton } from "@/components/study-materials/ShareStudyMaterialButton";
 import { ShareExternalLinkButton } from "@/components/external-links/ShareExternalLinkButton";
 
@@ -47,6 +46,7 @@ export default function StudyMaterialsSection({ subject }: { subject: SubjectDTO
           setStudyMaterials(result.studyMaterials);
           setExternalLinks(result.externalLinks);
         }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error("Something went wrong while fetching study materials.");
         setStudyMaterials([]);

@@ -32,7 +32,7 @@ interface ChapterStore {
 }
 
 export const useChapterStore = create<ChapterStore>()(
-    devtools((set, get) => ({
+    devtools((set) => ({
         chapters: [],
         isFetching: false,
         loadingCrud: false,

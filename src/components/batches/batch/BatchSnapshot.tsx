@@ -6,7 +6,6 @@ import { motion, Variants } from "framer-motion";
 import {
     FiUser,
     FiBook,
-    FiClipboard,
     FiTrash2,
     FiEdit,
     FiStar,
@@ -41,13 +40,11 @@ import DeleteBatchAlert from "./DeleteBatchAlert";
 import { encodeId } from "@/utils/helpers/IdConversion";
 import BatchSnapshotSkeleton from "./BatchSnapshotSkeleton";
 import useBatchSnapshot from "@/hooks/useBatchSnapshot";
-import { exportBatchPdf } from "./exportBatchPdf";
 
 type StudentMeta = { name?: string; roll?: string } | undefined;
 
 type Props = {
     batchId: string;
-    studentId: string;
     studentLookup?: Record<string, StudentMeta>;
 };
 
@@ -82,7 +79,7 @@ const itemVariants: Variants = {
 };
 
 
-export default function BatchSnapshot({ batchId, studentId, studentLookup }: Props) {
+export default function BatchSnapshot({ batchId }: Props) {
     const router = useRouter();
     const { fetchBatchById, deleteBatch, currentBatch, loading, error } = useBatchesStore();
     const [localError, setLocalError] = useState<string | null>(null);
@@ -110,8 +107,8 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
 
     const computed = useMemo(() => {
         if (!batch) return null;
-        return computeBatchForStudent(batch, studentId);
-    }, [batch, computeBatchForStudent, studentId]);
+        return computeBatchForStudent(batch);
+    }, [batch, computeBatchForStudent]);
 
     if (loading && !batch) {
         return <BatchSnapshotSkeleton />;
@@ -149,20 +146,6 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
         }
     }
 
-    function getStudentLabel(sid: string, index: number) {
-        if (studentLookup && studentLookup[sid]) {
-            const meta = studentLookup[sid];
-            if (meta?.name) return meta.name;
-            if (meta?.roll) return `Roll ${meta.roll}`;
-        }
-        if (typeof sid === "string" && sid.length >= 6) {
-            return `S-${sid.slice(-6)}`;
-        }
-        return `Student #${index + 1}`;
-    }
-
-    const studentLabel = getStudentLabel(studentId, 0);
-
     return (
         <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
             {/* Hero Section */}
@@ -194,9 +177,6 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
                                     <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-white mb-2">
                                         {batch.name}
                                     </h1>
-                                    <p className="text-xl text-blue-200 font-medium mb-4">
-                                        {studentLabel}
-                                    </p>
                                     <div className="flex flex-wrap items-center gap-3 text-sm">
                                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10">
                                             <FiBook className="text-blue-300" />
@@ -232,15 +212,6 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
                                     >
                                         <FiEdit className="text-slate-700" />
                                         <span>Edit Batch</span>
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.03, y: -2 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 backdrop-blur-sm text-white text-sm font-medium border border-white/20 hover:bg-white/20 transition-colors"
-                                        onClick={() => exportBatchPdf({ batch, computed, studentLabel, studentId })}
-                                    >
-                                        <FiClipboard />
-                                        <span>Export Data</span>
                                     </motion.button>
 
                                     <DeleteBatchAlert onConfirm={handleDeleteConfirmed} batchName={batch.name}>
@@ -314,7 +285,6 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
                             <CardContent className="relative space-y-4">
                                 <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
                                     <div className="text-sm font-medium text-slate-600">Name</div>
-                                    <div className="text-base font-semibold text-slate-900">{studentLabel}</div>
                                 </div>
 
                                 <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100">
@@ -423,7 +393,7 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
 
                                     {(batch.semesters || []).map((s) => {
                                         const semObj = computed.semSummaries.find((sm) => (sm.sem._id ?? sm.sem.index) === (s._id ?? s.index));
-                                        const semComputed = semObj?.computed ?? computeSemesterForStudent(s, studentId);
+                                        const semComputed = semObj?.computed ?? computeSemesterForStudent(s);
 
                                         return (
                                             <TabsContent key={s._id ?? s.index} value={String(s.index)} className="space-y-6">
@@ -501,7 +471,7 @@ export default function BatchSnapshot({ batchId, studentId, studentLookup }: Pro
                                                                                 </h4>
                                                                                 <div className="space-y-3">
                                                                                     {(course.parts || []).map((p, partIdx) => {
-                                                                                        const summary = summarizePartForStudent(p, studentId);
+                                                                                        const summary = summarizePartForStudent(p);
                                                                                         return (
                                                                                             <motion.div
                                                                                                 key={p._id ?? `${p.courseType}-${p.credits}`}

@@ -36,13 +36,11 @@ const useBatchSnapshot = () => {
 
     function findResultForStudent(
         results: CourseResult[] | undefined,
-        studentId: string,
         examType: string
     ): CourseResult | undefined {
         if (!Array.isArray(results)) return undefined;
         return results.find(
             (r) =>
-                String(r?.student ?? "") === String(studentId) &&
                 r.examType === examType
         );
     }
@@ -144,11 +142,11 @@ const useBatchSnapshot = () => {
     }
 
     /* main summarizer implementing requested rules */
-    function summarizePartForStudent(part: CoursePart, studentId: string) {
+    function summarizePartForStudent(part: CoursePart) {
         const examDefMap = buildExamDefMap(part);
 
-        const midResult = findResultForStudent(part.results, studentId, "mid");
-        const finalResult = findResultForStudent(part.results, studentId, "final");
+        const midResult = findResultForStudent(part.results, "mid");
+        const finalResult = findResultForStudent(part.results, "final");
 
         const midSum = sumComponentsForResult(
             midResult?.components,
@@ -266,12 +264,12 @@ const useBatchSnapshot = () => {
     }
 
     /* Semester computation */
-    function computeSemesterForStudent(semester: Semester, studentId: string) {
+    function computeSemesterForStudent(semester: Semester) {
         const partsSummary: ReturnType<typeof summarizePartForStudent>[] = [];
 
         for (const course of semester.courses || []) {
             for (const p of course.parts || []) {
-                partsSummary.push(summarizePartForStudent(p, studentId));
+                partsSummary.push(summarizePartForStudent(p));
             }
         }
 
@@ -302,10 +300,10 @@ const useBatchSnapshot = () => {
     }
 
     /* Batch computation */
-    function computeBatchForStudent(batch: Batch, studentId: string) {
+    function computeBatchForStudent(batch: Batch) {
         const semSummaries = (batch.semesters || []).map((sem) => ({
             sem,
-            computed: computeSemesterForStudent(sem, studentId),
+            computed: computeSemesterForStudent(sem),
         }));
 
         let sumWeightedSemCgpa = 0;

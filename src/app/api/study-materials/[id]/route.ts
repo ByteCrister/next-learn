@@ -3,9 +3,15 @@ import { StudyMaterial } from "@/models/StudyMaterial";
 import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 
+type ContextType = {
+    params: {
+        id: string;
+    };
+};
+
 export async function GET(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -14,7 +20,7 @@ export async function GET(
 
     try {
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
 
         const studyMaterial = await StudyMaterial.findOne({ _id: id, userId });
         if (!studyMaterial) {
@@ -36,7 +42,7 @@ export async function GET(
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -47,7 +53,7 @@ export async function PUT(
         const updates = await request.json();
 
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
         const updatedStudyMaterial = await StudyMaterial.findOneAndUpdate(
             { _id: id, userId },
             updates,
@@ -73,7 +79,7 @@ export async function PUT(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    context: unknown
 ) {
     const userId = await getUserIdFromSession();
     if (!userId) {
@@ -82,7 +88,7 @@ export async function DELETE(
 
     try {
         await ConnectDB();
-        const { id } = await params;
+        const { id } = (context as ContextType).params;
 
         const deletedStudyMaterial = await StudyMaterial.findOneAndDelete({ _id: id, userId });
         if (!deletedStudyMaterial) {

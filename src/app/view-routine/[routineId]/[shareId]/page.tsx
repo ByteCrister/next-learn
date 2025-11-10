@@ -2,10 +2,10 @@ import ViewRoutine from "@/components/view-routine/ViewRoutine";
 import { decodeId } from "@/utils/helpers/IdConversion";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         routineId: string;
         shareId: string;
-    };
+    }>;
 }
 
 const page = async ({ params }: PageProps) => {

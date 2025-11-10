@@ -223,7 +223,7 @@ export default function ChapterEditor({ roadmapId, chapterId, mode = 'edit' }: C
                                     <div>
                                         <h2 className="text-lg md:text-xl font-semibold">Chapter Content</h2>
                                         <p className="text-indigo-100 text-sm">
-                                            {contents.length} section{contents.length > 1 ? 's' : ''} • {chapters.find(ch => ch._id === chapterId)?.createdAt ? new Date(chapters.find(ch => ch._id === chapterId)?.createdAt!).toLocaleDateString() : 'N/A'}
+                                            {contents.length} section{contents.length > 1 ? 's' : ''} • {chapters.find(ch => ch._id === chapterId)?.createdAt ? new Date(chapters.find(ch => ch._id === chapterId)?.createdAt??"").toLocaleDateString() : 'N/A'}
                                         </p>
                                     </div>
                                 </div>

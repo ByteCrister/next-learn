@@ -12,16 +12,21 @@ import { ExternalLink } from "@/models/ExternalLink";
 import { Types } from "mongoose";
 import { Subject as SubjectTypes } from "@/types/types.subjects";
 
+type ContextType = {
+    params: {
+        id: string;
+    };
+};
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: unknown
 ) {
-    
+
     try {
         await ConnectDB();
-        
-        const { id } = await params;
+
+        const { id } = (context as ContextType).params;
         const sId = decodeURIComponent(id);
         const userId = await getUserIdFromSession();
         if (!userId) {
@@ -90,9 +95,9 @@ export async function GET(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    context: unknown
 ) {
-    const { id } = await params;
+    const { id } = (context as ContextType).params;
     const userId = await getUserIdFromSession();
 
     try {
@@ -118,9 +123,12 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+    request: NextRequest,
+    context: unknown
+) {
     const userId = await getUserIdFromSession();
-    const { id } = await params;
+    const { id } = (context as ContextType).params;
 
     try {
         await ConnectDB();

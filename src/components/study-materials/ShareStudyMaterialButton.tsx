@@ -37,6 +37,7 @@ export function ShareStudyMaterialButton({ subjectId, studyMaterialId }: ShareSt
                     url,
                 });
                 console.log('Share event: native share', { subjectId, studyMaterialId, url });
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (error) {
                 // User cancelled or error occurred, fall back to clipboard
                 console.log('Native share failed, falling back to clipboard');
