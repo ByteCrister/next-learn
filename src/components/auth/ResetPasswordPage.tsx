@@ -30,6 +30,8 @@ import {
   CardContent,
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { signIn } from 'next-auth/react'
+import { errorMessages } from './SignInPage'
 
 export default function ResetPasswordPage() {
   const [step, setStep] = useState<'email' | 'otp' | 'reset' | 'success'>('email')
@@ -73,6 +75,20 @@ export default function ResetPasswordPage() {
       try {
         await apiResetPassword({ email, newPassword: values.newPassword })
         toast.success('Password reset successful')
+        const res = await signIn("credentials", {
+          redirect: false,
+          callbackUrl: "/dashboard",
+          email: email,
+          password: values.newPassword,
+          remember: true,
+        });
+        if (res?.error) {
+          const msg = res.error ?? errorMessages[res.error] ?? errorMessages.default;
+          toast.warning(msg);
+        } else {
+          toast.success("Welcome back!");
+          window.location.href = '/dashboard';
+        }
         setStep('success')
       } catch (err) {
         toast.error(getMessage(err as ApiError))
@@ -93,10 +109,10 @@ export default function ResetPasswordPage() {
     if (!email) return toast.error('Enter a valid email')
     setLoading((l) => ({ ...l, request: true }))
     try {
-      await apiRequestOTP({ email })
+      const { otpExpiresAt } = await apiRequestOTP({ email })
       toast.success('OTP sent to your inbox')
       setStep('otp')
-      setTimer(180)
+      setTimer(Math.max(0, Math.floor((new Date(otpExpiresAt).getTime() - Date.now()) / 1000)))
       setResendCooldown(30)
     } catch (err) {
       toast.error(getMessage(err as ApiError))
@@ -105,18 +121,25 @@ export default function ResetPasswordPage() {
     }
   }
 
-  const handleOtpChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    idx: number
-  ) => {
-    const val = e.target.value.replace(/[^0-9]/g, '')
-    if (!val) return
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+    const val = e.target.value.replace(/[^0-9]/g, '') // allow only digits
     const next = otp.split('')
-    next[idx] = val[0]
+
+    next[idx] = val[0] || '' // set digit or empty string
     const newOtp = next.join('')
     setOtp(newOtp)
-    // auto‐focus next
-    if (idx < 5) inputsRef.current[idx + 1]?.focus()
+
+    // auto-focus next input only if a digit was entered
+    if (val && idx < 5) inputsRef.current[idx + 1]?.focus()
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
+    if (e.key === 'Backspace' && !otp[idx] && idx > 0) {
+      inputsRef.current[idx - 1]?.focus()
+      const next = otp.split('')
+      next[idx - 1] = ''
+      setOtp(next.join(''))
+    }
   }
 
   const handleVerifyOTP = async () => {
@@ -147,9 +170,9 @@ export default function ResetPasswordPage() {
   const handleResendOTP = async () => {
     setLoading((l) => ({ ...l, resend: true }))
     try {
-      await apiResendOTP({ email })
+      const { otpExpiresAt } = await apiResendOTP({ email })
       toast.info('OTP resent')
-      setTimer(180)
+      setTimer(Math.max(0, Math.floor((new Date(otpExpiresAt).getTime() - Date.now()) / 1000)))
       setResendCooldown(30)
     } catch {
       toast.error('Please wait before resending.')
@@ -224,6 +247,7 @@ export default function ResetPasswordPage() {
                       maxLength={1}
                       value={otp[idx] || ''}
                       onChange={(e) => handleOtpChange(e, idx)}
+                      onKeyDown={(e) => handleKeyDown(e, idx)}
                       className="w-12 h-12 text-center border rounded focus:ring-2 border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500"
                       whileFocus={{ scale: 1.1 }}
                       transition={{ type: 'spring', stiffness: 300 }}
@@ -319,20 +343,6 @@ export default function ResetPasswordPage() {
                   </Button>
                 </motion.div>
               </form>
-            )}
-
-            {step === 'success' && (
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-center text-green-600 dark:text-green-400">
-                  Your password has been reset. You can now log in with your new credentials.
-                </p>
-                <Button
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-                  onClick={() => (window.location.href = '/next-learn-user-auth')}
-                >
-                  Go to Login
-                </Button>
-              </div>
             )}
           </CardContent>
         </Card>

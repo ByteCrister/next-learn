@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Formik, FormikHelpers } from "formik";
 import { Loader2 } from "lucide-react";
@@ -19,20 +19,23 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-
+import { MdEmail, MdLock } from "react-icons/md"
+import { RiUserSettingsLine } from "react-icons/ri"
+import { SiNextdotjs } from "react-icons/si"
+import { Inter } from "next/font/google"  // Google Font
+import { FaSignInAlt } from "react-icons/fa" // Sign In icon
 import {
   SignInFormValues,
   signInValidationSchema,
 } from "@/utils/auth/SignInValidation";
-
-const errorMessages: Record<string, string> = {
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "700"] })
+export const errorMessages: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
   OAuthSignin: "Error in OAuth sign in.",
   default: "Something went wrong. Please try again.",
 };
 
 export default function SignInPage() {
-  const router = useRouter();
   const params = useSearchParams();
   const oauthError = params.get("error");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -51,10 +54,11 @@ export default function SignInPage() {
     formikHelpers.setSubmitting(true);
 
     const res = await signIn("credentials", {
-      redirect: false,
       email: values.email,
       password: values.password,
       remember: values.remember,
+      callbackUrl: "/dashboard",
+      redirect: false,
     });
 
     formikHelpers.setSubmitting(false);
@@ -64,16 +68,19 @@ export default function SignInPage() {
       toast.warning(msg);
     } else {
       toast.success("Welcome back!");
-      router.push("/");
+      window.location.href = res?.url ?? "/dashboard";
     }
   };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const res = await signIn("google", { callbackUrl: "/", redirect: false });
+    const res = await signIn("google", { redirect: false, callbackUrl: "/dashboard", });
     if (res?.error) {
       toast.error(`Sign-in failed: ${res.error}`);
-      setIsGoogleLoading(false);
+    }
+    setIsGoogleLoading(false);
+    if (res?.ok) {
+      window.location.href = "/dashboard";
     }
   };
 
@@ -81,31 +88,36 @@ export default function SignInPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex min-h-screen items-center justify-center 
-             bg-gradient-to-br from-blue-100 to-indigo-50 
-             dark:from-gray-950 dark:to-gray-900 
-             p-6 sm:p-12 transition-colors duration-500"
+      className={`flex min-h-screen items-center justify-center 
+    bg-gradient-to-br from-blue-100 to-indigo-50 
+    dark:from-gray-950 dark:to-gray-900 
+    p-4 sm:p-6 md:p-8 transition-colors duration-500 ${inter.className}`}
     >
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-lg"
+        className="w-full max-w-md"
       >
-        <Card className="w-full border border-gray-200 dark:border-gray-800 
-                     bg-white dark:bg-gray-900 shadow-2xl 
-                     rounded-3xl transition-colors p-8 sm:p-10">
+        <Card className="bg-white dark:bg-gray-800 shadow-lg border border-indigo-200 dark:border-gray-700 rounded-2xl">
 
-          <CardHeader className="pb-1 text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
-              Welcome Back
+          {/* Header */}
+          <CardHeader className="pb-4 text-center">
+            <CardTitle
+              className="flex items-center justify-center gap-2 text-3xl font-bold 
+                     bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text 
+                     text-transparent tracking-tight"
+            >
+              <SiNextdotjs className="text-indigo-500 dark:text-indigo-400" size={30} />
+              NextLearn
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-gray-600 dark:text-gray-400 mt-2">
               Sign in to your account with email or Google
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 space-y-6">
+            {/* Formik Form */}
             <Formik
               initialValues={{ email: "", password: "", remember: false }}
               validationSchema={signInValidationSchema}
@@ -123,11 +135,12 @@ export default function SignInPage() {
               }) => (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Email */}
-                  <div>
+                  <div className="space-y-1.5">
                     <label
                       htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
+                      <MdEmail className="text-indigo-500" size={18} />
                       Email
                     </label>
                     <Input
@@ -142,16 +155,17 @@ export default function SignInPage() {
                       className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     {touched.email && errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                      <p className="text-sm text-red-500">{errors.email}</p>
                     )}
                   </div>
 
                   {/* Password */}
-                  <div>
+                  <div className="space-y-1.5">
                     <label
                       htmlFor="password"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
+                      <MdLock className="text-indigo-500" size={18} />
                       Password
                     </label>
                     <Input
@@ -166,24 +180,24 @@ export default function SignInPage() {
                       className="dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
                     />
                     {touched.password && errors.password && (
-                      <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                      <p className="text-sm text-red-500">{errors.password}</p>
                     )}
                   </div>
 
                   {/* Remember Me */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2">
                     <Checkbox
                       id="remember"
                       name="remember"
+                      variant="professionalBlue"
                       checked={values.remember}
-                      onCheckedChange={(checked) =>
-                        setFieldValue("remember", checked)
-                      }
+                      onCheckedChange={(checked) => setFieldValue("remember", checked)}
                     />
                     <label
                       htmlFor="remember"
-                      className="text-sm text-gray-700 dark:text-gray-300 select-none"
+                      className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 select-none"
                     >
+                      <RiUserSettingsLine className="text-indigo-500" size={18} />
                       Remember me
                     </label>
                   </div>
@@ -192,14 +206,15 @@ export default function SignInPage() {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       type="submit"
-                      className="w-full flex items-center justify-center 
-                                 bg-gradient-to-r from-indigo-600 to-blue-500 
-                                 hover:from-indigo-700 hover:to-blue-600 
-                                 text-white font-medium
-                                 dark:from-indigo-500 dark:to-blue-400"
+                      className="w-full flex items-center justify-center py-3 
+                             bg-gradient-to-r from-indigo-600 to-blue-500 
+                             hover:from-indigo-700 hover:to-blue-600 
+                             text-white font-medium shadow-lg hover:shadow-xl
+                             dark:from-indigo-500 dark:to-blue-400 transition-all"
                       disabled={isSubmitting}
                     >
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {!isSubmitting && <FaSignInAlt className="mr-2 h-5 w-5" />}
                       {isSubmitting ? "Signing in..." : "Sign In"}
                     </Button>
                   </motion.div>
@@ -208,7 +223,7 @@ export default function SignInPage() {
             </Formik>
 
             {/* Divider */}
-            <div className="flex items-center my-6">
+            <div className="flex items-center">
               <div className="flex-grow border-t border-gray-200 dark:border-gray-700"></div>
               <span className="mx-4 text-sm text-gray-400 dark:text-gray-500 whitespace-nowrap">
                 or continue with
@@ -220,10 +235,10 @@ export default function SignInPage() {
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button
                 variant="outline"
-                className="w-full flex items-center justify-center 
-                           border-gray-300 dark:border-gray-700 
-                           bg-white dark:bg-gray-800 hover:bg-gray-50 
-                           dark:hover:bg-gray-700 transition"
+                className="w-full flex items-center justify-center gap-2 py-3
+                       border-gray-300 dark:border-gray-700 
+                       bg-white dark:bg-gray-800 hover:bg-gray-50 
+                       dark:hover:bg-gray-700 transition"
                 onClick={handleGoogleSignIn}
                 disabled={isGoogleLoading}
               >
@@ -231,6 +246,7 @@ export default function SignInPage() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <span className="mr-2 h-5 w-5">
+                    {/* Google Icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3" fill="none">
                       <path fill="#4285F4" d="M533.5 278.4c0-17.8-1.6-35-4.7-51.7H272v97.9h146.9c-6.4 34.6-25.9 63.9-55.4 83.5v69.2h89.6c52.4-48.3 82.4-119.4 82.4-198.9z" />
                       <path fill="#34A853" d="M272 544.3c74.1 0 136.2-24.5 181.6-66.5l-89.6-69.2c-24.8 16.7-56.5 26.4-92 26.4-70.8 0-130.8-47.8-152.4-112.2H28.5v70.6C73.7 484.9 167.5 544.3 272 544.3z" />
@@ -239,23 +255,35 @@ export default function SignInPage() {
                     </svg>
                   </span>
                 )}
-                <span>Sign in with Google</span>
+                <span>Sign or Create account</span>
               </Button>
             </motion.div>
 
-            {/* Forgot Password */}
-            <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-              Forgot Password?{" "}
-              <Link
-                href="/next-learn-user-reset-pass"
-                className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Reset
-              </Link>
+            {/* Links */}
+            <div className="space-y-2 text-center text-sm">
+              <p className="text-gray-500 dark:text-gray-400">
+                Forgot Password?{" "}
+                <Link
+                  href="/reset-password"
+                  className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Reset
+                </Link>
+              </p>
+              <p className="text-gray-500 dark:text-gray-400">
+                Don&apos;t have an account?{" "}
+                <Link
+                  href="/signup"
+                  className="font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+                >
+                  Sign Up
+                </Link>
+              </p>
             </div>
           </CardContent>
         </Card>
       </motion.div>
     </motion.div>
+
   );
 }

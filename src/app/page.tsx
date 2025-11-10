@@ -1,9 +1,7 @@
-import LogoutButton from "@/components/auth/LogoutButton";
+import Home from "@/components/landing/Home";
 
-export default function Home() {
+export default function page() {
   return (
-    <>
-    <LogoutButton />
-    </>
+    <Home />
   );
 }

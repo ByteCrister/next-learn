@@ -2,52 +2,102 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PUBLIC_FILE = /\.(.*)$/; // regex for static files
+// Guest-only pages (cannot be visited if signed in)
+const AUTH_ONLY_ROUTES = [/^\/signin$/, /^\/signup$/, /^\/reset-password$/];
 
-const AUTH_PAGES = ["/next-learn-user-auth", "/next-learn-user-reset-pass"]; // your public routes
+// Public pages (accessible with or without login)
+const PUBLIC_ROUTES = [
+  /^\/$/, // home
+  /^\/about$/,
+  /^\/features$/,
+  /^\/how-to-use$/,
+  // /^\/contact$/,
+  // /^\/terms$/,
+  // /^\/privacy$/,
+
+  // allow any nested dynamic paths (including slashes)
+  /^\/view-subject\/.+/,
+  /^\/view-routine\/.+/,
+  /^\/view-result\/.+/,
+  /^\/join-exam\/.+/,
+
+  /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
+  /^\/view-subject\/notes\/[^/]+\/[^/]+$/,   // dynamic view-subject/notes/:subjectId/:noteId
+  /^\/view-subject\/study-material\/[^/]+\/[^/]+$/,   // dynamic view-subject/study-material/:subjectId/:studyMaterialId
+  /^\/view-subject\/external-link\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-link/:subjectId/:externalLinkId
+  /^\/view-subject\/external-links\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-links/:subjectId/:externalLinkId
+];
+
+// Public API routes (accessible with or without login)
+const PUBLIC_APIS = [
+  /^\/api\/view\/subject$/, // GET /api/view/subject
+  /^\/api\/view\/note$/, // GET /api/view/note
+  /^\/api\/routines\/view$/, // GET /api/view-routine
+  /^\/api\/results\/view-result$/, // GET /api/view-routine
+  /^\/api\/exams\/.+/, // GET /api/exams/check
+
+  /^\/api\/view\/notes$/,      // GET /api/view/notes
+  /^\/api\/view\/study-materials$/,  // GET /api/view/study-materials
+  /^\/api\/view\/study-material$/,   // GET /api/view/study-material
+  /^\/api\/view\/external-link$/,   // GET /api/view/external-link
+  // /^\/api\/make-admin$/,       // POST /api/make-admin
+];
+
+const isPublicFile = (pathname: string) =>
+  pathname.startsWith("/_next/") ||
+  pathname.startsWith("/api/auth") || // keep auth endpoints open
+  pathname === "/favicon.ico" ||
+  /\.(.*)$/.test(pathname);
 
 export async function middleware(req: NextRequest) {
-    // Avoid checking static files (images, fonts, etc)
-    if (
-        PUBLIC_FILE.test(req.nextUrl.pathname) ||
-        req.nextUrl.pathname.startsWith("/_next") // next.js internals
-    ) {
-        return NextResponse.next();
-    }
+  const { pathname } = req.nextUrl;
 
-    // Allow NextAuth API routes to pass through without auth check
-    if (req.nextUrl.pathname.startsWith("/api/auth")) {
-        return NextResponse.next();
-    }
-
-    // Get token from cookie using NextAuth JWT helper
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-    // If user is not signed in and tries to access protected route, redirect to login page
-    if (!token && !AUTH_PAGES.includes(req.nextUrl.pathname)) {
-        const loginUrl = new URL("/next-learn-user-auth", req.url);
-        loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
-        return NextResponse.redirect(loginUrl);
-    }
-
-    // If user is signed in and tries to visit login page, redirect to home
-    if (token && AUTH_PAGES.includes(req.nextUrl.pathname)) {
-        return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // Otherwise let them pass
+  // 1. Allow static files & Next.js internals
+  if (isPublicFile(pathname)) {
     return NextResponse.next();
+  }
+
+  // 2. Allow public API routes without authentication
+  if (PUBLIC_APIS.some((rx) => rx.test(pathname))) {
+    return NextResponse.next();
+  }
+
+  // 3. Get token to check auth status
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  // Special case: Block /api/make-admin unless role = admin
+  if (pathname.startsWith("/api/make-admin")) {
+    if (!token || token.role !== "admin") {
+      return NextResponse.json(
+        { success: false, message: "Forbidden: Admins only" },
+        { status: 403 }
+      );
+    }
+  }
+
+  // 4. Authenticated users visiting guest-only pages → redirect to home
+  if (token && AUTH_ONLY_ROUTES.some((rx) => rx.test(pathname))) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  // 5. If unauthenticated and route is not public → redirect to signin
+  const isProtectedRoute =
+    !AUTH_ONLY_ROUTES.some((rx) => rx.test(pathname)) &&
+    !PUBLIC_ROUTES.some((rx) => rx.test(pathname));
+
+  if (!token && isProtectedRoute) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/signin";
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
 }
 
-// Define the routes this middleware should run on
 export const config = {
-    matcher: [
-        /*
-          Run middleware on all routes except:
-          - static files
-          - api/auth routes (NextAuth)
-          - public routes defined above (like login)
-        */
-        "/((?!_next/static|_next/image|favicon.ico).*)",
-    ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

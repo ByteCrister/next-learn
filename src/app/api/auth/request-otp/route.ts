@@ -3,7 +3,7 @@ import ConnectDB from "@/config/ConnectDB";
 import { User } from "@/models/User";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
-import { getOtpHTML } from "@/utils/html/getOtpHTML";
+import { HTMLContent } from "@/utils/html/html.reset.password.otp";
 import { SendEmail } from "@/config/NodeEmailer";
 
 export async function POST(req: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
         const { email } = await req.json();
         if (typeof email !== "string" || !email.trim()) {
             return NextResponse.json(
-                { error: "A valid email is required" },
+                { message: "A valid email is required" },
                 { status: 400 }
             );
         }
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         const user = await User.findOne({ email });
         if (!user) {
             return NextResponse.json(
-                { error: "User with that email not found" },
+                { message: "There is no user exist with the email." },
                 { status: 404 }
             );
         }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             now - user.lastOTPSentAt.getTime() < 30 * 1000
         ) {
             return NextResponse.json(
-                { error: "Please wait 30s before requesting a new OTP" },
+                { message: "Please wait 30s before requesting a new OTP" },
                 { status: 429 }
             );
         }
@@ -44,20 +44,20 @@ export async function POST(req: NextRequest) {
         // 5) generate + save OTP
         const otp = crypto.randomInt(100000, 999999).toString();
         user.resetPasswordOTP = await bcrypt.hash(otp, 10);
-        user.resetPasswordOTPExpires = new Date(now + 3 * 60 * 1000); // 3m
+        user.resetPasswordOTPExpires = new Date(now + 1 * 60 * 1000 + 5000); // 1m + 5s buffer
         user.resetPasswordOTPAttempts = 0;
         user.lastOTPSentAt = new Date(now);
         await user.save();
 
         // 6) send email
         const subject = "Your password reset code";
-        await SendEmail(email, subject, getOtpHTML(otp));
+        await SendEmail(email, subject, HTMLContent(otp));
 
-        return NextResponse.json({ success: true, message: "OTP sent" });
+        return NextResponse.json({ success: true, message: "OTP sent", otpExpiresAt: user.resetPasswordOTPExpires });
     } catch (err) {
-        console.error("POST /api/auth/request-otp error:", err);
+        console.log("POST /api/auth/request-otp message:", err);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { message: "Internal server message" },
             { status: 500 }
         );
     }
