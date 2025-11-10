@@ -97,7 +97,7 @@ export default function BatchFormNested(props: Props) {
                             totalMarks:
                               typeof ed.totalMarks === "number"
                                 ? ed.totalMarks
-                                : null,
+                                : 0,
                             components:
                               ed.components?.map((c) => ({
                                 _uid: c._uid ?? uuidv4(),
