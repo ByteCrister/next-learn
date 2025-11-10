@@ -94,8 +94,8 @@ export const useDashboardStore = create<DashboardState>()(
                         },
                     });
                 }
-            } catch (err) {
-                console.log((err as Error)?.message ?? "Can't fetch the user");
+            } catch{
+
             } finally {
                 set({ isUserFetching: false });
             }
