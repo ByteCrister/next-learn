@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { ExternalLink, FileText, Presentation, Image as ImageIcon, File } from "lucide-react";
 
 interface ViewStudyMaterialDialogProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     viewingMaterial: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setViewingMaterial: (material: any) => void;
 }
 

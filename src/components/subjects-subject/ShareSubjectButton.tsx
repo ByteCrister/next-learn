@@ -2,11 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-} from '@/components/ui/tooltip';
 import { Share2, Twitter, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';

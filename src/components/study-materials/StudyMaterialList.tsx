@@ -109,6 +109,7 @@ export default function StudyMaterialList({
 
     useEffect(() => {
         setCurrentPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm, visibilityFilter, fileTypeFilter, sortBy, sortOrder, viewMode]);
 
     const itemsPerPage = viewMode === "list" ? 3 : 6;
@@ -149,7 +150,7 @@ export default function StudyMaterialList({
                         <p className="text-gray-500">Start by uploading your first resource to build your study collection!</p>
                     </motion.div>
                 ) : (
-                    paginatedMaterials.map((material, index) => (
+                    paginatedMaterials.map((material) => (
                         <StudyMaterialCard
                             key={material._id}
                             material={material}

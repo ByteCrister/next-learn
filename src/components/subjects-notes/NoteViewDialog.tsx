@@ -4,9 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { SubjectNote } from "@/types/types.subjectnote";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Calendar, Copy, Share2, Download, Printer, Clock, FileText, Hash } from "lucide-react";
+import { Calendar, Copy, Share2, Clock, FileText, Hash } from "lucide-react";
 import { useState } from "react";
-import { ShareNoteButton } from "./ShareNoteButton";
 import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface NoteViewDialogProps {
@@ -46,54 +45,6 @@ export function NoteViewDialog({ isOpen, onClose, note }: NoteViewDialogProps) {
         }
     };
 
-    const handlePrint = () => {
-        const printWindow = window.open('', '_blank');
-        if (printWindow && note) {
-            printWindow.document.write(`
-                <html>
-                    <head><title>${note.title || 'Note'}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-                        .content { max-width: 800px; margin: 0 auto; }
-                        h1 { color: #333; }
-                        .metadata { color: #666; margin-bottom: 20px; }
-                    </style>
-                    </head>
-                    <body>
-                        <div class="content">
-                            <h1>${note.title || 'Untitled Note'}</h1>
-                            <div class="metadata">
-                                Created: ${new Date(note.createdAt).toLocaleString()}
-                                ${note.updatedAt ? ` | Updated: ${new Date(note.updatedAt).toLocaleString()}` : ''}
-                            </div>
-                            <div class="note-content">${note.content.replace(/<[^>]*>/g, '')}</div>
-                        </div>
-                    </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.print();
-        }
-    };
-
-    const handleDownload = () => {
-        if (note) {
-            const blob = new Blob([`
-# ${note.title || 'Untitled Note'}
-
-Created: ${new Date(note.createdAt).toLocaleString()}
-${note.updatedAt ? `Updated: ${new Date(note.updatedAt).toLocaleString()}` : ''}
-
-${note.content.replace(/<[^>]*>/g, '')}
-            `], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${note.title || 'note'}.md`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    };
 
     // Calculate word count
     const wordCount = note?.content ? note.content.replace(/<[^>]*>/g, '').trim().split(/\s+/).length : 0;

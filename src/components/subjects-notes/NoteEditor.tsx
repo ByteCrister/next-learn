@@ -86,6 +86,7 @@ export function NoteEditor({ subjectId, isOpen, onClose }: NoteEditorProps) {
             } else {
                 setSaveStatus('error');
             }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             setSaveStatus('error');
         }

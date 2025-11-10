@@ -133,6 +133,7 @@ export const useStudyMaterialHandlers = ({ subjectId, roadmapId }: UseStudyMater
             setEditingMaterial(null);
             setSelectedEditFile(null);
             fetchStudyMaterials(subjectId, roadmapId);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             // Handle error silently or with toast if needed
         } finally {
@@ -169,6 +170,7 @@ export const useStudyMaterialHandlers = ({ subjectId, roadmapId }: UseStudyMater
                         url: shareUrl,
                     });
                     console.log('Share event: native share', { subjectId: material.subjectId, studyMaterialId: material._id, url: shareUrl });
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (error) {
                     // User cancelled or error occurred, fall back to clipboard
                     console.log('Native share failed, falling back to clipboard');

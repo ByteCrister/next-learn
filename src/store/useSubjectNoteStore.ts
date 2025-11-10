@@ -7,8 +7,6 @@ import { SubjectNote, SubjectNoteInput } from "@/types/types.subjectnote";
 import { useSubjectStore } from "./useSubjectsStore";
 import { getNotesBySubjectId, createNote, updateNote, deleteNote } from "@/utils/api/api.subjectnotes";
 
-type countFieldTypes = 'notes';
-
 interface SubjectNoteStore {
     notes: SubjectNote[];
     selectedNote: SubjectNote | null;

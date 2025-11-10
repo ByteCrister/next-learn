@@ -3,11 +3,11 @@ import ClientExamRunner from "@/components/join-exam/ClientExamRunner";
 import { restoreOriginalObjectId } from "@/utils/helpers/restoreOriginalObjectId";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         slug: string; // "createdBy-join-examId"
         participantId: string;
         examCode: string;
-    };
+    }>;
 }
 
 const Page = async ({ params }: PageProps) => {

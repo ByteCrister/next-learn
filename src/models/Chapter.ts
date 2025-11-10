@@ -7,6 +7,7 @@ export type TipTapJSON = JSONContent;
 export interface IChapter extends Document {
     title: string;
     content: TipTapJSON;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     materials?: any[];
     roadmapId: Types.ObjectId;
     createdAt?: Date;

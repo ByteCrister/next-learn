@@ -7,16 +7,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { FileType } from "@/types/types.studymaterials";
-import { ExternalLink, Edit, Trash, Eye, Lock, FileText, Presentation, Image as ImageIcon, File, Sparkles, Share } from "lucide-react";
+import { ExternalLink, Edit, Trash, Eye, Lock, FileText, Presentation, Image as ImageIcon, File, Sparkles } from "lucide-react";
 import { ShareStudyMaterialButton } from "./ShareStudyMaterialButton";
 
 interface StudyMaterialCardProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     material: any;
     viewedMaterials: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onView: (material: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onEdit: (material: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onShare: (material: any) => void;
     onDelete: (id: string) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     buttonVariants: any;
 }
 
@@ -48,6 +53,7 @@ const getFileTypeTheme = (fileType: FileType) => {
     }
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function StudyMaterialCard({ material, viewedMaterials, onView, onEdit, onShare, onDelete, buttonVariants }: StudyMaterialCardProps) {
     return (
         <motion.div
@@ -147,7 +153,7 @@ export default function StudyMaterialCard({ material, viewedMaterials, onView, o
                                                     <AlertDialogHeader>
                                                         <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
                                                         <AlertDialogDescription>
-                                                            Are you sure you want to delete "{material.filename}"? This action cannot be undone.
+                                                            Are you sure you want to delete &quot;{material.filename}&quot;? This action cannot be undone.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
                                                     <AlertDialogFooter>

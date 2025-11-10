@@ -6,6 +6,12 @@ import ConnectDB from "@/config/ConnectDB";
 import { getUserIdFromSession } from "@/utils/helpers/session";
 import ExamResultModel from "@/models/ExamResultModel";
 
+type ContextType = {
+    params: {
+        examId: string;
+    };
+};
+
 async function ensureOwner(examId: string, userId: string) {
     if (!mongoose.isValidObjectId(examId)) {
         throw new Error("Invalid examId");
@@ -18,11 +24,11 @@ async function ensureOwner(examId: string, userId: string) {
 // * get a specific exam with the results
 export async function GET(
     _req: NextRequest,
-    { params }: { params: { examId: string } }
+    context: unknown
 ) {
     try {
         await ConnectDB();
-        const { examId } = await params;
+        const { examId } = (context as ContextType).params;;
         const userId = await getUserIdFromSession();
         const exam = await ensureOwner(examId, userId);
 
@@ -50,13 +56,13 @@ export async function GET(
 // * update a specific exams format/validation/questions/answers etc
 export async function PATCH(
     req: NextRequest,
-    { params }: { params: { examId: string } }
+    context: unknown
 ) {
     try {
         await ConnectDB();
         const userId = await getUserIdFromSession();
         const updates = await req.json();
-        const { examId } = await params;
+        const { examId } = (context as ContextType).params;
 
         const updated = await ExamModel.findOneAndUpdate(
             { _id: examId, createdBy: userId },
@@ -77,13 +83,13 @@ export async function PATCH(
 // * delete any specific question that created by that user
 export async function DELETE(
     _req: NextRequest,
-    { params }: { params: { examId: string } }
+    context: unknown
 ) {
     try {
         await ConnectDB();
         const userId = await getUserIdFromSession();
         const deleted = await ExamModel.findOneAndDelete({
-            _id: params.examId,
+            _id: (context as ContextType).params.examId,
             createdBy: userId,
         }).lean();
 

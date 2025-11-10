@@ -9,9 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Hash, Link, File, FileText, Presentation, Image as ImageIcon, X, Check, Loader2, Eye, Lock } from "lucide-react";
 
 interface EditStudyMaterialDialogProps {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editingMaterial: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setEditingMaterial: (material: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     editForm: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setEditForm: (form: any) => void;
     editError: string | null;
     isSaving: boolean;

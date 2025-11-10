@@ -8,6 +8,7 @@ interface ExternalLinkPaginationControlsProps {
     totalPages: number;
     getPageNumbers: () => (number | string)[];
     setCurrentPage: (page: number) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     buttonVariants: any;
 }
 

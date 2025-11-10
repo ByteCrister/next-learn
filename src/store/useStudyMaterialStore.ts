@@ -17,7 +17,7 @@ interface StudyMaterialStore {
 }
 
 export const useStudyMaterialStore = create<StudyMaterialStore>()(
-    devtools((set, get) => ({
+    devtools((set) => ({
         studyMaterials: [],
         loading: false,
         loadingCrud: false,

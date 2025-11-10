@@ -86,7 +86,6 @@ export interface ResultComponent {
 
 export interface CourseResult {
     _id?: ObjId;
-    student?: ObjId;
     examType: ExamType;
     condition: EXAM_TYPE_CONDITION;
     components: ResultComponent[];
@@ -198,7 +197,6 @@ const ResultComponentSchema = new Schema<ResultComponent>(
 
 const CourseResultSchema = new Schema<CourseResult>(
     {
-        student: { type: Schema.Types.ObjectId, index: true },
         examType: { type: String, required: true, enum: Object.values(EXAM_TYPE) },
         condition: { type: String, required: true, enum: Object.values(EXAM_TYPE_CONDITION) },
         components: { type: [ResultComponentSchema], default: [] },

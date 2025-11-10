@@ -71,7 +71,6 @@ export type ResultComponent = {
 
 export type CourseResult = {
     _id?: ID;
-    student?: ID;
     examType: EXAM_TYPE;
     condition: EXAM_TYPE_CONDITION;
     components: ResultComponent[];

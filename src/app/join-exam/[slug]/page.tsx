@@ -3,7 +3,7 @@
 import JoinExamPage from "@/components/join-exam/JoinExamPage";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export default async function page({ params }: Props) {
