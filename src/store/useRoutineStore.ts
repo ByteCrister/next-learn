@@ -25,11 +25,15 @@ interface RoutineState {
 
     lastFetched: number | null // timestamp for caching
 
+    fetchingById: Record<string, boolean>;
+
     /** Last error message, or null if no error */
     error: string | null
 
     /** Fetch all routines for the signed-in user */
     fetchRoutines: (force?: boolean, searchedId?: string) => Promise<void>
+
+    fetchById: (id: string, force?: boolean) => Promise<RoutineResponseDto | undefined>
 
     /** Create a new routine on the server and update state */
     createRoutine: (payload: CreateRoutineDto) => Promise<void>
@@ -81,6 +85,7 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
     routines: [],
     isFetching: false,
     isMutating: false,
+    fetchingById: {},
     lastFetched: null,
     error: null,
 
@@ -176,6 +181,60 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
         }
     },
 
+    /**
+  * Fetch a single routine by id.
+  * - If present in cache and force !== true, return cached item.
+  * - Otherwise call GET /routines/:id, insert/replace the routine in cache, and return it.
+  */
+    fetchById: async (id, force = false) => {
+        const { routines, fetchingById } = get();
+        if (!id) return undefined;
+
+        // Avoid duplicate fetch for same id
+        if (fetchingById[id]) return undefined;
+
+        // Check cache first
+        if (!force) {
+            const cached = routines.find((r) => r.id === id);
+            if (cached) return cached;
+        }
+
+        // Mark this ID as fetching
+        set((state) => ({
+            fetchingById: { ...state.fetchingById, [id]: true },
+        }));
+
+        try {
+            const result = await get().handleApi(
+                () => api.get<{ data: RoutineResponseDto }>(`${MAIN_ROOT}/${encodeURIComponent(id)}`),
+                { loadingType: 'fetching', errorMsg: `Failed to fetch routine ${id}` }
+            );
+
+            const routine = result?.data.data;
+            if (routine) {
+                set((state) => {
+                    const existsIdx = state.routines.findIndex((r) => r.id === routine.id);
+                    if (existsIdx === -1) {
+                        return { routines: [routine, ...state.routines] };
+                    } else {
+                        const copy = [...state.routines];
+                        copy[existsIdx] = routine;
+                        return { routines: copy };
+                    }
+                });
+                return routine;
+            }
+        } finally {
+            // Always clear fetching flag for this id
+            set((state) => {
+                const copy = { ...state.fetchingById };
+                delete copy[id];
+                return { fetchingById: copy };
+            });
+        }
+
+        return undefined;
+    },
 
     createRoutine: async (payload) => {
         const result = await get().handleApi(

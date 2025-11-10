@@ -8,13 +8,12 @@ import { paginate } from "@/utils/helpers/routinePagination";
 import RoutineToolbar from "./RoutineToolbar";
 import RoutineSkeleton from "./RoutineSkeleton";
 import RoutineList from "./RoutineList";
-import RoutineFormModal from "./RoutineFormModal";
 import { useRoutineSearch } from "@/hooks/useRoutineSearch";
 import { FiAlertTriangle } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
-import { useSearchParams } from "next/navigation";
-import { decodeId } from "@/utils/helpers/IdConversion";
+import { useRouter, useSearchParams } from "next/navigation";
+import { decodeId, encodeId } from "@/utils/helpers/IdConversion";
 
 type SortKey = "name" | "createdAt" | "updatedAt" | "searched";
 type SortDir = "asc" | "desc";
@@ -23,6 +22,7 @@ const PAGE_SIZE = 8;
 
 export default function RoutinePage() {
     // Searching parameters
+    const router = useRouter();
     const searchParams = useSearchParams();
     const searchedParam = searchParams?.get("searched") ?? null;
     const [searchedId, setSearchedId] = useState<string | null>(null);
@@ -30,9 +30,6 @@ export default function RoutinePage() {
     const [sortKey, setSortKey] = useState<SortKey>("updatedAt");
     const [sortDir, setSortDir] = useState<SortDir>("desc");
     const [page, setPage] = useState(1);
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editing, setEditing] = useState<RoutineResponseDto | null>(null);
 
     const { fetchRoutines, routines, isFetching, isMutating, error } = useRoutineStore();
     const { query, results, onSearch } = useRoutineSearch({ routines });
@@ -83,13 +80,11 @@ export default function RoutinePage() {
     }, [query, sortKey, sortDir]);
 
     const onAddNew = () => {
-        setEditing(null);
-        setModalOpen(true);
+        router.push(`/routines/create`);
     };
 
     const onEdit = (r: RoutineResponseDto) => {
-        setEditing(r);
-        setModalOpen(true);
+        router.push(`/routines/${encodeId(encodeURIComponent(r.id))}/update`);
     };
 
     return (
@@ -135,12 +130,6 @@ export default function RoutinePage() {
                     />
                 </motion.div>
             )}
-
-            <RoutineFormModal
-                open={modalOpen}
-                onOpenChange={setModalOpen}
-                editing={editing}
-            />
 
             {error ? (
                 <motion.div

@@ -1,3 +1,5 @@
+// types.routine.ts
+
 /** Single time slot in a day, used in both requests and responses */
 export interface SlotDto {
     /** Class start time in "HH:MM" format */
