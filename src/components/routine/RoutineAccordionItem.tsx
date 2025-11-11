@@ -55,8 +55,8 @@ export default function RoutineAccordionItem({
     return (
         <AccordionItem value={routine.id} className="px-2">
             <AccordionTrigger className="py-4 hover:no-underline">
-                <div className="flex w-full items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
+                <div className="flex w-full items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-3 min-w-0">
                         {/* left ring indicator when searched */}
                         <div className="flex-shrink-0">
                             <motion.div
@@ -64,28 +64,34 @@ export default function RoutineAccordionItem({
                                 animate={{ scale: isSearchedMatch ? 1 : 0 }}
                                 transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                                 className={`
-                                  rounded-full p-0.5
-                                  ${isSearchedMatch ? 'ring-2 ring-indigo-400/60' : 'opacity-0'}
-                                `}
+            rounded-full p-0.5
+            ${isSearchedMatch ? 'ring-2 ring-indigo-400/60' : 'opacity-0'}
+          `}
                                 aria-hidden
                             >
                                 <div className="w-3 h-3 rounded-full bg-indigo-600 shadow-sm" />
                             </motion.div>
                         </div>
 
-                        <div className="text-left">
-                            <div className="font-medium">{routine.title}</div>
-                            <div className="text-xs text-muted-foreground">
+                        <div className="text-left min-w-0">
+                            <div className="font-medium truncate">{routine.title}</div>
+                            <div className="text-xs text-muted-foreground truncate">
                                 {routine.description || 'No description'}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{totalSlots} slots</Badge>
-                        <Badge variant="outline">
-                            Updated {new Date(routine.updatedAt).toLocaleDateString()}
-                        </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* hide non-critical badges on very small screens to avoid wrapping */}
+                        <div className="hidden xs:flex sm:flex md:flex lg:flex">
+                            <Badge variant="secondary" className="text-xs">{totalSlots} slots</Badge>
+                        </div>
+
+                        <div className="hidden sm:inline-block">
+                            <Badge variant="outline" className="text-xs">
+                                Updated {new Date(routine.updatedAt).toLocaleDateString()}
+                            </Badge>
+                        </div>
 
                         <motion.div
                             onClick={(e) => {

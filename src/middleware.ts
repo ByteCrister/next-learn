@@ -2,73 +2,55 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// Guest-only pages (cannot be visited if signed in)
 const AUTH_ONLY_ROUTES = [/^\/signin$/, /^\/signup$/, /^\/reset-password$/];
 
-// Public pages (accessible with or without login)
 const PUBLIC_ROUTES = [
-  /^\/$/, // home
-  /^\/about$/,
-  /^\/features$/,
-  /^\/how-to-use$/,
-  // /^\/contact$/,
-  // /^\/terms$/,
-  // /^\/privacy$/,
-
-  // allow any nested dynamic paths (including slashes)
-  /^\/view-subject\/.+/,
-  /^\/view-routine\/.+/,
-  /^\/view-result\/.+/,
-  /^\/join-exam\/.+/,
-
-  /^\/view-subject\/[^/]+$/,   // dynamic view-subject/:id
-  /^\/view-subject\/notes\/[^/]+\/[^/]+$/,   // dynamic view-subject/notes/:subjectId/:noteId
-  /^\/view-subject\/study-material\/[^/]+\/[^/]+$/,   // dynamic view-subject/study-material/:subjectId/:studyMaterialId
-  /^\/view-subject\/external-link\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-link/:subjectId/:externalLinkId
-  /^\/view-subject\/external-links\/[^/]+\/[^/]+$/,   // dynamic view-subject/external-links/:subjectId/:externalLinkId
+  /^\/$/, /^\/about$/, /^\/features$/, /^\/how-to-use$/,
+  /^\/view-subject\/.+/, /^\/view-routine\/.+/, /^\/view-result\/.+/, /^\/join-exam\/.+/,
+  /^\/view-subject\/[^/]+$/,
+  /^\/view-subject\/notes\/[^/]+\/[^/]+$/,
+  /^\/view-subject\/study-material\/[^/]+\/[^/]+$/,
+  /^\/view-subject\/external-link\/[^/]+\/[^/]+$/,
+  /^\/view-subject\/external-links\/[^/]+\/[^/]+$/,
 ];
 
-// Public API routes (accessible with or without login)
 const PUBLIC_APIS = [
-  /^\/api\/view\/subject$/, // GET /api/view/subject
-  /^\/api\/view\/note$/, // GET /api/view/note
-  /^\/api\/routines\/view$/, // GET /api/view-routine
-  /^\/api\/results\/view-result$/, // GET /api/view-routine
-  /^\/api\/exams\/.+/, // GET /api/exams/check
-
-  /^\/api\/view\/notes$/,      // GET /api/view/notes
-  /^\/api\/view\/study-materials$/,  // GET /api/view/study-materials
-  /^\/api\/view\/study-material$/,   // GET /api/view/study-material
-  /^\/api\/view\/external-link$/,   // GET /api/view/external-link
-  // /^\/api\/make-admin$/,       // POST /api/make-admin
+  /^\/api\/view\/subject$/, /^\/api\/view\/note$/, /^\/api\/routines\/view$/,
+  /^\/api\/results\/view-result$/, /^\/api\/exams\/.+/,
+  /^\/api\/view\/notes$/, /^\/api\/view\/study-materials$/,
+  /^\/api\/view\/study-material$/, /^\/api\/view\/external-link$/,
 ];
 
 const isPublicFile = (pathname: string) =>
   pathname.startsWith("/_next/") ||
-  pathname.startsWith("/api/auth") || // keep auth endpoints open
+  pathname.startsWith("/api/auth") ||
   pathname === "/favicon.ico" ||
   /\.(.*)$/.test(pathname);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 1. Allow static files & Next.js internals
+  // Allow sitemap & robots
+  if (pathname === "/sitemap.xml" || pathname === "/robots.txt") {
+    return NextResponse.next();
+  }
+
+  // Allow static & auth files
   if (isPublicFile(pathname)) {
     return NextResponse.next();
   }
 
-  // 2. Allow public API routes without authentication
+  // Allow public API routes
   if (PUBLIC_APIS.some((rx) => rx.test(pathname))) {
     return NextResponse.next();
   }
 
-  // 3. Get token to check auth status
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
   });
 
-  // Special case: Block /api/make-admin unless role = admin
+  // Restrict admin route
   if (pathname.startsWith("/api/make-admin")) {
     if (!token || token.role !== "admin") {
       return NextResponse.json(
@@ -78,17 +60,17 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // 4. Authenticated users visiting guest-only pages → redirect to home
+  // Redirect signed-in users away from guest-only pages
   if (token && AUTH_ONLY_ROUTES.some((rx) => rx.test(pathname))) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // 5. If unauthenticated and route is not public → redirect to signin
-  const isProtectedRoute =
+  // Redirect unauthenticated users away from protected routes
+  const isProtected =
     !AUTH_ONLY_ROUTES.some((rx) => rx.test(pathname)) &&
     !PUBLIC_ROUTES.some((rx) => rx.test(pathname));
 
-  if (!token && isProtectedRoute) {
+  if (!token && isProtected) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/signin";
     loginUrl.searchParams.set("callbackUrl", pathname);
@@ -100,6 +82,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };

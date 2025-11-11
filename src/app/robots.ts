@@ -1,12 +1,9 @@
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
+    const domain = process.env.NEXT_PUBLIC_DOMAIN ?? "https://next-learn-nu-olive.vercel.app";
     return {
-        rules: {
-            userAgent: '*',
-            allow: '/',
-            //   disallow: ['/private'],
-        },
-        sitemap: `${process.env.NEXT_PUBLIC_DOMAIN}/sitemap.xml`,
-    }
+        rules: [{ userAgent: "*", allow: "/" }],
+        sitemap: `${domain}/sitemap.xml`,
+    };
 }

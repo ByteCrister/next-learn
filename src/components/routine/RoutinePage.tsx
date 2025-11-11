@@ -88,7 +88,7 @@ export default function RoutinePage() {
     };
 
     return (
-        <section className="mx-auto max-w-6xl p-6">
+        <section className="mx-auto max-w-6xl">
             <motion.h1
                 className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent"
                 initial={{ opacity: 0, y: -8 }}
