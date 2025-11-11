@@ -174,7 +174,7 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6 font-sans antialiased text-slate-800">
+    <main className="max-w-4xl mx-auto font-sans antialiased text-slate-800">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className="space-y-6">
         <header className="flex items-start gap-4">
           <div className="rounded-md bg-indigo-50 p-2 flex items-center justify-center">
@@ -199,8 +199,8 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
             </Button>
           </div>
         </header>
-            {/* Inline Preset Manager (small) */}
-            <PresetManager routeKey={routeKey} initialKind="subject" />
+        {/* Inline Preset Manager (small) */}
+        <PresetManager routeKey={routeKey} initialKind="subject" />
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
@@ -342,27 +342,60 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
           )}
         </div>
 
-        {/* Bottom sticky action area — Add day + primary submit for convenience */}
-        <div className="bottom-6 z-40 mx-auto max-w-4xl">
-          <div className="flex items-center justify-between gap-4 bg-white/80 backdrop-blur-md border border-slate-100 rounded-lg px-4 py-3 shadow-lg">
-            <div className="flex items-center gap-3">
-              <Button type="button" variant="ghost" onClick={() => onCancel?.()} className="px-3 py-2">
-                Cancel
-              </Button>
+        {/* Bottom action area — Add day + primary submit for convenience (responsive, non-sticky, no overflow) */}
+        <div className="mx-auto max-w-4xl px-4">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white/80 backdrop-blur-md border border-slate-100 rounded-lg px-4 py-3 shadow-lg">
+            {/* left group: actions and helper text */}
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 min-w-0">
+              <div className="flex shrink-0 items-center gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onCancel?.()}
+                  className="px-3 py-2"
+                >
+                  Cancel
+                </Button>
 
-              <Button type="button" variant="outline" onClick={addDay} disabled={days.length >= 7} className="flex items-center gap-2 px-3 py-2">
-                <FiPlus /> Add day
-              </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addDay}
+                  disabled={days.length >= 7}
+                  className="flex items-center gap-2 px-3 py-2"
+                >
+                  <FiPlus /> Add day
+                </Button>
+              </div>
 
-              <div className="text-sm text-slate-500">You can add up to 7 days</div>
+              <div className="mt-1 text-sm text-slate-500 sm:mt-0 sm:ml-2 truncate">
+                You can add up to 7 days
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="text-sm text-slate-500 mr-2">Preview</div>
+            {/* right group: preview + submit */}
+            <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end min-w-0">
+              <div className="hidden sm:flex items-center gap-3 text-sm text-slate-500 mr-2 whitespace-nowrap">
+                Preview
+              </div>
 
-              <Button onClick={onSubmit} disabled={!canSubmit || isMutating} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
-                <FiChevronRight /> {isEdit ? 'Save changes' : 'Create routine'}
-              </Button>
+              <div className="flex w-full gap-3 sm:w-auto sm:gap-3 items-center min-w-0">
+                {/* compact preview label for very small screens */}
+                <div className="flex items-center sm:hidden text-sm text-slate-500 whitespace-nowrap">
+                  Preview
+                </div>
+
+                <div className="w-full sm:w-auto min-w-0">
+                  <Button
+                    onClick={onSubmit}
+                    disabled={!canSubmit || isMutating}
+                    className="flex w-full max-w-full items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 sm:w-auto"
+                  >
+                    <FiChevronRight />
+                    <span className="truncate">{isEdit ? 'Save changes' : 'Create routine'}</span>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

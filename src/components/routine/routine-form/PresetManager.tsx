@@ -125,7 +125,7 @@ export function PresetManager({
           </motion.div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {kindOptions.map((k) => (
             <motion.div key={k} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Button

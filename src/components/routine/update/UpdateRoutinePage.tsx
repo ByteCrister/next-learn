@@ -37,17 +37,19 @@ export default function UpdateRoutinePage({ routineId }: { routineId: string }) 
                 if (mounted) setLoading(false)
             })
 
+        return () => {
+            mounted = false
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [routineId])
+
+    useEffect(() => {
         setBreadcrumbs([
             { label: "Home", href: "/" },
             { label: "Routines", href: "/routines" },
             { label: `${editing?.title}`, href: `/routines/${encodeId(encodeURIComponent(editing?.id ?? ""))}/update` },
         ]);
-
-        return () => {
-            mounted = false
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [routineId])
+    }, [editing?.id, editing?.title, setBreadcrumbs]);
 
     const handleCancel = () => {
         router.push('/routines')

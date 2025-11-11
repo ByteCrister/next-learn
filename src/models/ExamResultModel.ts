@@ -17,6 +17,8 @@ export interface IExamResult extends Document {
     totalQuestions: number;         // Snapshot at attempt time
     answers: IAnswer[];             // Participant's submitted answers
     status: "in-progress" | "submitted" | "late" | "expired";
+    isResultSent?: boolean;
+    resultSentAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -46,6 +48,8 @@ const ExamResultSchema = new Schema<IExamResult>(
             enum: ["in-progress", "submitted", "late", "expired"],
             default: "in-progress",
         },
+        isResultSent: { type: Boolean, default: false },
+        resultSentAt: { type: Date },
     },
     { timestamps: true }
 );

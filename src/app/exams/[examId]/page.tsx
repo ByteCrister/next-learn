@@ -1,8 +1,14 @@
 import ExamDetails from "@/components/exams/ExamDetails"
-
-const page = () => {
+import { decodeId } from "@/utils/helpers/IdConversion";
+interface PageProps {
+  params: Promise<{
+    examId: string;
+  }>;
+}
+const page = async ({ params }: PageProps) => {
+  const { examId } = await params;
   return (
-    <ExamDetails />
+    <ExamDetails examId={decodeId(decodeURIComponent(examId))} />
   )
 }
 

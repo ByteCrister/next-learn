@@ -56,6 +56,8 @@ export interface ExamResultDTO {
   startedAt: string; // ISO date string
   endedAt: string; // ISO date string
   answers: AnswerDTO[]; // newly added field
+  isResultSent?: boolean;
+  resultSentAt?: string;
 }
 
 /** An exam returned from GET /api/exams or GET /api/exams/[examId] */
@@ -149,6 +151,28 @@ interface Time {
 
   /** True if the exam time has fully expired (main + late window) */
   isExpired: boolean;
+}
+
+export type ParticipantSendStatus = "ok" | "error";
+
+export interface ParticipantSendResult {
+  participantId: string;
+  status: ParticipantSendStatus;
+  message?: string;
+  score?: number;
+  totalQuestions?: number;
+  percent?: number;
+  // server may return ISO string; accept Date for robustness
+  resultSentAt?: string | Date | null;
+  participantEmail?: string;
+  startedAt?: string | Date;
+  endedAt?: string | Date;
+  answers?: unknown[]; // optional, rarely returned; normalize before merging
+}
+
+export interface SendResultsResponse {
+  message: string;
+  results: ParticipantSendResult[];
 }
 
 /** Complete timing info for an exam, or null if exam data is not available */

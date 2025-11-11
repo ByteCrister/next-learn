@@ -39,7 +39,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { decodeId } from "@/utils/helpers/IdConversion";
+import { decodeId, encodeId } from "@/utils/helpers/IdConversion";
 
 type SortKey = "title" | "subjectCode" | "examCode" | "searched";
 type SortDir = "asc" | "desc";
@@ -373,7 +373,7 @@ export default function ExamsPage() {
                 >
                   <ExamCard
                     exam={exam}
-                    onClick={() => router.push(`/exams/${exam._id}`)}
+                    onClick={() => router.push(`/exams/${encodeId(encodeURIComponent(exam._id))}`)}
                     index={idx}
                     isSearched={searchedId === exam._id}
                   />

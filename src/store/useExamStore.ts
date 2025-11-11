@@ -15,7 +15,12 @@ import type {
   ExamDTO,
   ExamResultDTO,
   Question,
+  SendResultsResponse,
+  ParticipantSendResult,
+  AnswerDTO,
 } from "@/types/types.exam";
+import extractErrorData from "@/utils/helpers/extractErrorData";
+import api from "@/utils/api/api.client";
 
 interface ExamStoreState {
   exams: ExamOverviewCard[];
@@ -40,6 +45,7 @@ interface ExamStoreState {
     question: Question
   ) => Promise<void>;
   deleteQuestion: (examId: string, questionIndex: number) => Promise<void>;
+  sendResults: (examId: string, participants: string[]) => Promise<void>;
   clearCache: () => void;
 }
 
@@ -320,6 +326,124 @@ export const useExamStore = create<ExamStoreState>()(
       });
 
       toast.success(res.message);
+    },
+
+    sendResults: async (examId: string, participants: string[]) => {
+      if (!examId) {
+        toast.error("Missing examId");
+        return;
+      }
+      if (!Array.isArray(participants) || participants.length === 0) {
+        toast.error("No participants provided");
+        return;
+      }
+
+      set((s) => {
+        s.loading = true;
+        s.message = null;
+      });
+
+      try {
+        const resp = await api.put<SendResultsResponse>(
+          `/exams/${encodeURIComponent(examId)}/send-result`,
+          { participants }
+        );
+
+        const data = resp?.data;
+        if (!data || !Array.isArray(data.results)) {
+          const msg = "Invalid response from server";
+          toast.error(msg);
+          set((s) => {
+            s.loading = false;
+            s.message = msg;
+          });
+          return;
+        }
+
+        // Merge server results into resultsByExamId[examId]
+        set((s) => {
+          const existing = s.resultsByExamId[examId] ?? [];
+          const map = new Map<string, ExamResultDTO>();
+          for (const r of existing) map.set(r.participantId, r);
+
+          for (const pr of data.results as ParticipantSendResult[]) {
+            const pid = pr.participantId;
+            const cur = map.get(pid);
+
+            // normalize resultSentAt to ISO string when present
+            const resultSentAtISO =
+              pr.resultSentAt instanceof Date
+                ? pr.resultSentAt.toISOString()
+                : typeof pr.resultSentAt === "string"
+                ? pr.resultSentAt
+                : pr.resultSentAt == null
+                ? undefined
+                : String(pr.resultSentAt);
+
+            // build merged ExamResultDTO (favor server fields; fallback to cached)
+            const merged: ExamResultDTO = {
+              _id: cur?._id ?? `${examId}:${pid}`,
+              participantId: pid,
+              participantEmail:
+                cur?.participantEmail ?? pr.participantEmail ?? "",
+              status:
+                pr.status === "ok"
+                  ? "submitted"
+                  : pr.status === "error"
+                  ? cur?.status ?? "in-progress"
+                  : cur?.status ?? "submitted",
+              score: typeof pr.score === "number" ? pr.score : cur?.score ?? 0,
+              startedAt:
+                cur?.startedAt ??
+                (pr.startedAt
+                  ? String(pr.startedAt)
+                  : new Date().toISOString()),
+              endedAt:
+                cur?.endedAt ??
+                (pr.endedAt ? String(pr.endedAt) : new Date().toISOString()),
+              answers: Array.isArray(pr.answers)
+                ? (pr.answers as AnswerDTO[])
+                : cur?.answers ?? [],
+              isResultSent: true,
+              resultSentAt: resultSentAtISO ?? cur?.resultSentAt,
+            };
+
+            map.set(pid, merged);
+          }
+
+          // reconstruct array: preserve existing order, append new
+          const updated: ExamResultDTO[] = [];
+          const added = new Set<string>();
+          for (const e of existing) {
+            const m = map.get(e.participantId);
+            if (m) {
+              updated.push(m);
+              added.add(m.participantId);
+            }
+          }
+          for (const [pid, val] of map.entries()) {
+            if (!added.has(pid)) updated.push(val);
+          }
+
+          s.resultsByExamId[examId] = updated;
+        });
+
+        toast.success(data.message || "Results processed");
+        set((s) => {
+          s.loading = false;
+          s.message = data.message ?? null;
+        });
+
+        return;
+      } catch (err: unknown) {
+        const parsed = extractErrorData(err);
+        toast.error(parsed.message || "Failed to send results");
+        set((s) => {
+          s.loading = false;
+          s.message = parsed.message ?? "Failed to send results";
+        });
+        return;
+      }
     },
 
     // Clear all caches
