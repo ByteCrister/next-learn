@@ -1,17 +1,17 @@
 
-import ChaptersPage from "@/components/chapters/ChaptersPage";
+import ChapterPage from "@/components/chapters/chapter-by-id/ChapterPage";
 import { decodeId } from "@/utils/helpers/IdConversion";
 
 const page = async ({ params }: { params: Promise<{ subjectId: string; chapterId: string }> }) => {
     const {
         subjectId,
-        // chapterId 
+        chapterId 
     } = await params;
 
     return (
-        <ChaptersPage
+        <ChapterPage
             subjectId={decodeId(decodeURIComponent(subjectId))}
-        // chapterId={decodeId(decodeURIComponent(chapterId))} 
+            chapterId={decodeId(decodeURIComponent(chapterId))}
         />
     )
 }

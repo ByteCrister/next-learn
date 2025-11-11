@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Plus, Edit, Trash2, X, Check, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, BookOpen, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
     AlertDialog,
@@ -21,15 +20,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface ChapterListProps {
     roadmapId: string;
+    subjectId: string;
 }
 
-export default function ChapterList({ roadmapId }: ChapterListProps) {
+export default function ChapterList({ roadmapId, subjectId }: ChapterListProps) {
     const { chapters, isFetching, fetchChaptersByRoadmapId, createChapter, loadingCrud, deleteChapter } = useChapterStore();
-    const params = useParams();
-    const subjectId = params.subjectId as string;
     const [isAddingChapter, setIsAddingChapter] = useState(false);
     const [newChapterTitle, setNewChapterTitle] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
@@ -285,14 +284,14 @@ export default function ChapterList({ roadmapId }: ChapterListProps) {
                                         </div>
                                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                         <Link
-                                            href={`/subjects/${subjectId}/chapters/${chapter._id}?mode=view`}
+                                            href={`/subjects/${encodeId(encodeURIComponent(subjectId))}/chapters/${encodeId(encodeURIComponent(chapter._id))}?mode=view`}
                                             className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 hover:scale-105 shadow-md"
                                         >
                                             <Eye className="h-3 w-3" />
                                             
                                         </Link>
                                         <Link
-                                            href={`/subjects/${subjectId}/chapters/${chapter._id}`}
+                                            href={`/subjects/${encodeId(encodeURIComponent(subjectId))}/chapters/${encodeId(encodeURIComponent(chapter._id))}`}
                                             className="inline-flex items-center gap-1 px-3 py-1 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all duration-200 hover:scale-105 shadow-md"
                                         >
                                             <Edit className="h-3 w-3" />

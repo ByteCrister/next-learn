@@ -110,7 +110,7 @@ export default function ChaptersPage({ subjectId }: { subjectId: string }) {
 
     return (
         <div className="min-h-screen p-8 bg-gradient-to-br from-indigo-50 to-white">
-            <ChapterList roadmapId={roadmapId} />
+            <ChapterList roadmapId={roadmapId} subjectId={subjectId} />
         </div>
     );
 }
