@@ -5,7 +5,7 @@ function escapeXml(s: string) {
 
 export async function GET() {
     const NEXT_PUBLIC_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "https://next-learn-nu-olive.vercel.app";
-    const routes = ["/", "/features", "/about", "/how-to-use"];
+    const routes = ["", "/features", "/about", "/how-to-use"];
     const now = new Date().toISOString();
 
     const urlEntries = routes
