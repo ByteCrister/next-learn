@@ -31,7 +31,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow sitemap & robots
-  if (pathname === "/sitemap.xml" || pathname === "/robots.ts") {
+  if (pathname === "/sitemap.xml" || pathname === "/robots.txt") {
     return NextResponse.next();
   }
 
@@ -82,6 +82,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.ts|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };
