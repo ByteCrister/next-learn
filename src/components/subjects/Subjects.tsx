@@ -138,7 +138,7 @@ export default function Subjects() {
   if (loadingSubjects) return <FullSubjectsSkeleton />
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-white p-6 sm:p-8 lg:p-12">
+    <section className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Header */}
       <header className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl p-4 shadow-xl mb-8">
         <BsBook className="text-3xl" aria-hidden="true" />
