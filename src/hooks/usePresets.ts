@@ -31,6 +31,12 @@ type Store = {
 
 const globalRouteStores = new Map<string, Store>()
 
+// --- ADDED: small in-module event broadcaster so multiple hook instances sync ---
+const globalPresetsEvents = new EventTarget()
+// event name
+const PRESETS_CHANGED = 'presets:changed'
+// ---------------------------------------------------------------------------
+
 export function usePresets(routeKey = '__default__', initialItems?: PresetItem[]) {
     const keyRef = useRef(routeKey)
 
@@ -73,10 +79,31 @@ export function usePresets(routeKey = '__default__', initialItems?: PresetItem[]
         keyRef.current = routeKey
     }, [routeKey])
 
+    // --- modified writeBack: dispatch a global event after updating the Map ---
     const writeBack = useCallback((next: Store) => {
         globalRouteStores.set(keyRef.current, { active: [...next.active], deleted: [...next.deleted] })
         setState({ active: [...next.active], deleted: [...next.deleted] })
+        try {
+            globalPresetsEvents.dispatchEvent(new CustomEvent(PRESETS_CHANGED, { detail: keyRef.current }))
+        } catch {
+            // ignore if CustomEvent isn't supported in some environments (very rare)
+        }
     }, [])
+    // -----------------------------------------------------------------------
+
+    // --- ADDED: listen for global change events and sync when routeKey matches ---
+    useEffect(() => {
+        const onChange = (e: Event) => {
+            const ev = e as CustomEvent<string>
+            const changedKey = ev?.detail
+            if (!changedKey || changedKey !== keyRef.current) return
+            const store = globalRouteStores.get(keyRef.current) ?? { active: [], deleted: [] }
+            setState({ active: [...store.active], deleted: [...store.deleted] })
+        }
+        globalPresetsEvents.addEventListener(PRESETS_CHANGED, onChange as EventListener)
+        return () => globalPresetsEvents.removeEventListener(PRESETS_CHANGED, onChange as EventListener)
+    }, [])
+    // -----------------------------------------------------------------------
 
     const add = useCallback(
         (kind: PresetKind, label: string, meta?: string) => {
