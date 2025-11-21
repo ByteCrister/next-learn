@@ -9,7 +9,7 @@ const sora = Sora({ subsets: ['latin'], variable: '--font-sora' })
 
 export const metadata: Metadata = {
   title: {
-    default: "Next Learn - Study Planner & Roadmap Management",
+    default: "NextLearn - Study Planner & Roadmap Management",
     template: "%s | Next Learn"
   },
   description:

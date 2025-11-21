@@ -2,7 +2,7 @@ import About from '@/components/about/About';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'About Us - Next-Learn Platform',
+    title: 'About Us - NextLearn Platform',
     description: 'Learn about Next-Learn mission, vision, and our commitment to making quality education accessible to everyone through innovative technology.',
     keywords: 'about next-learn, education mission, learning platform, educational technology, online learning',
     openGraph: {

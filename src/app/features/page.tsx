@@ -2,7 +2,7 @@ import Features from '@/components/features/Features';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Features - Next-Learn Platform',
+    title: 'Features - NextLearn Platform',
     description: 'Discover powerful features of Next-Learn including interactive learning tools, personalized roadmaps, study materials, and collaborative learning experiences.',
     keywords: 'learning features, educational tools, study platform, interactive learning, personalized education',
     openGraph: {
