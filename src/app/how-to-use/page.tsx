@@ -2,7 +2,7 @@ import HowToUse from '@/components/how-to-use/HowToUse';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'How to Use - NextLearn Platform',
+  title: 'How to Use - Next-Learn Platform',
   description: 'Step-by-step guide to get started with Next-Learn. Learn how to create an account, navigate courses, track progress, and maximize your learning experience.',
   keywords: 'how to use next-learn, getting started guide, tutorial, learning platform guide, user guide',
   openGraph: {
