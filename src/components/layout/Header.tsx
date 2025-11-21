@@ -13,7 +13,6 @@ import {
   LayoutGrid as IconGrid,
   Info as IconInfo,
   BookOpen as IconBookOpen,
-  icons,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardStore } from "@/store/useDashboardStore";

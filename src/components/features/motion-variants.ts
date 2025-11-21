@@ -1,4 +1,6 @@
 // Motion variants
+"use client";
+
 export const fadeUp = {
   initial: { opacity: 0, y: 32 },
   animate: { opacity: 1, y: 0 }

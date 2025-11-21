@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { Accordion } from "@/components/ui/accordion";
 import { BookOpen, Pen, Palette, RotateCcw, Target, Calendar, Sparkles, Image, Link, Code, Bookmark, Folder, Shield, User, Map, FileText } from "lucide-react";
@@ -176,6 +178,7 @@ export default function LearningSection() {
                             <div className="grid sm:grid-cols-2 gap-8">
                                 <FeatureList
                                     items={[
+                                        // eslint-disable-next-line jsx-a11y/alt-text
                                         { label: "Media embeds", detail: "Images, videos, and diagrams", icon: <Image className="w-4 h-4" /> },
                                         { label: "Smart linking", detail: "Internal and external references", icon: <Link className="w-4 h-4" /> },
                                         { label: "Code & math", detail: "Syntax highlighting and LaTeX", icon: <Code className="w-4 h-4" /> },

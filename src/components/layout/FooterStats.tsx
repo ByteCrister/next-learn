@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Users, Sparkles, TrendingUp, MapPin } from "lucide-react";
@@ -35,7 +37,7 @@ const FooterStats = () => {
             viewport={{ once: true }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
         >
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
                 <motion.div
                     key={stat.label}
                     variants={itemVariants}

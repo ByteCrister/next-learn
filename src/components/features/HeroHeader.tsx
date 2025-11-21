@@ -1,11 +1,13 @@
+"use client";
+
 import { motion, useMotionValue, useTransform, Variants } from "framer-motion";
 import { Sparkles, Zap, Accessibility, Smartphone, Palette, Star } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const fadeUp: Variants = {
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 }
-};
+// const fadeUp: Variants = {
+//   initial: { opacity: 0, y: 30 },
+//   animate: { opacity: 1, y: 0 }
+// };
 
 const staggerChildren: Variants = {
   animate: {
@@ -35,8 +37,29 @@ export default function HeroHeader() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const gradientX = useTransform(mouseX, [0, window.innerWidth], [-20, 20]);
-  const gradientY = useTransform(mouseY, [0, window.innerHeight], [-20, 20]);
+  const [screenSize, setScreenSize] = useState({ w: 0, h: 0 });
+
+  // Fix: window only inside useEffect
+  useEffect(() => {
+    setScreenSize({
+      w: window.innerWidth,
+      h: window.innerHeight,
+    });
+
+    const handleResize = () => {
+      setScreenSize({
+        w: window.innerWidth,
+        h: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Create transforms only when screen size is ready
+  const gradientX = useTransform(mouseX, [0, screenSize.w || 1], [-20, 20]);
+  const gradientY = useTransform(mouseY, [0, screenSize.h || 1], [-20, 20]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -46,7 +69,7 @@ export default function HeroHeader() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  }, [mouseX, mouseY]);
 
   return (
     <header
@@ -63,7 +86,7 @@ export default function HeroHeader() {
             y: gradientY
           }}
         />
-        
+
         {/* Multiple animated gradient orbs */}
         <motion.div
           animate={{
@@ -135,7 +158,7 @@ export default function HeroHeader() {
         ))}
 
         {/* Grid overlay for depth */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `
@@ -165,8 +188,8 @@ export default function HeroHeader() {
           <div className="absolute inset-0 bg-gradient-to-r from-blue-400/30 to-purple-500/30 blur-2xl rounded-full animate-pulse" />
           <motion.div
             className="relative inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white/60 border border-white/40 backdrop-blur-xl shadow-2xl"
-            whileHover={{ 
-              scale: 1.08, 
+            whileHover={{
+              scale: 1.08,
               boxShadow: "0 0 60px rgba(139, 92, 246, 0.4)",
               borderColor: "rgba(139, 92, 246, 0.5)"
             }}
@@ -222,7 +245,7 @@ export default function HeroHeader() {
               >
                 <motion.span
                   className="inline-block"
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.05,
                     textShadow: "0 4px 30px rgba(139, 92, 246, 0.3)"
                   }}
@@ -233,7 +256,7 @@ export default function HeroHeader() {
                 {" "}
                 <motion.span
                   className="inline-block"
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.05,
                     textShadow: "0 4px 30px rgba(139, 92, 246, 0.3)"
                   }}
@@ -244,7 +267,7 @@ export default function HeroHeader() {
                 {" "}
                 <motion.span
                   className="inline-block"
-                  whileHover={{ 
+                  whileHover={{
                     scale: 1.05,
                     textShadow: "0 4px 30px rgba(139, 92, 246, 0.3)"
                   }}
@@ -297,7 +320,7 @@ export default function HeroHeader() {
                   <Star className="w-10 h-10 sm:w-12 sm:h-12 fill-yellow-500 drop-shadow-[0_0_20px_rgba(234,179,8,0.6)]" />
                   <motion.div
                     className="absolute inset-0"
-                    animate={{ 
+                    animate={{
                       scale: [1, 2, 1],
                       opacity: [0.5, 0, 0.5]
                     }}
@@ -318,7 +341,7 @@ export default function HeroHeader() {
                   <Star className="w-8 h-8 sm:w-10 sm:h-10 fill-pink-500 drop-shadow-[0_0_20px_rgba(236,72,153,0.6)]" />
                   <motion.div
                     className="absolute inset-0"
-                    animate={{ 
+                    animate={{
                       scale: [1, 2, 1],
                       opacity: [0.5, 0, 0.5]
                     }}
@@ -340,9 +363,9 @@ export default function HeroHeader() {
           >
             A meticulously crafted platform for learners and educators.
             <br className="hidden sm:block" />
-            <motion.span 
+            <motion.span
               className="block sm:inline mt-2 sm:mt-0 text-purple-700"
-              whileHover={{ 
+              whileHover={{
                 scale: 1.02,
                 textShadow: "0 0 20px rgba(139, 92, 246, 0.3)"
               }}
@@ -364,7 +387,7 @@ export default function HeroHeader() {
             { label: "WCAG AA", icon: Accessibility, color: "from-green-400 via-emerald-400 to-teal-400" },
             { label: "Mobile-Optimized", icon: Smartphone, color: "from-blue-400 via-cyan-400 to-sky-400" },
             { label: "Beautiful", icon: Palette, color: "from-pink-400 via-purple-400 to-violet-400" }
-          ].map((badge, index) => (
+          ].map((badge) => (
             <motion.div
               key={badge.label}
               variants={childVariant}
@@ -380,7 +403,7 @@ export default function HeroHeader() {
                 <motion.div
                   className={`absolute inset-0 bg-gradient-to-r ${badge.color} opacity-0 group-hover:opacity-50 blur-xl rounded-2xl transition-opacity duration-500`}
                 />
-                
+
                 {/* Badge */}
                 <div className="relative px-6 py-3 rounded-2xl bg-white/60 border border-white/40 backdrop-blur-xl text-gray-900 font-bold text-sm shadow-2xl overflow-hidden group-hover:border-purple-300 transition-all duration-300"
                   style={{
@@ -391,12 +414,12 @@ export default function HeroHeader() {
                   <motion.div
                     className={`absolute inset-0 bg-gradient-to-r ${badge.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
                   />
-                  
+
                   {/* Shimmer effect */}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
                   />
-                  
+
                   <div className="relative flex items-center gap-2.5">
                     <motion.div
                       whileHover={{ rotate: [0, -15, 15, 0], scale: [1, 1.3, 1] }}

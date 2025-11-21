@@ -1,4 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion';
+"use client";
+
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Calendar, Clock, Eye, Edit } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { VEvent } from '@/types/types.events';
 
 
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -17,7 +19,7 @@ const containerVariants = {
     },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
         opacity: 1,
@@ -26,6 +28,7 @@ const itemVariants = {
     },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const statusConfig: Record<VEvent['eventStatus'], any> = {
     upcoming: {
         badge: "bg-blue-100/20 text-blue-600 border border-blue-300/30 backdrop-blur-sm",

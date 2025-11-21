@@ -17,14 +17,14 @@ const Footer = () => {
     },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5 },
-    },
-  };
+  // const itemVariants = {
+  //   hidden: { opacity: 0, y: 20 },
+  //   visible: {
+  //     opacity: 1,
+  //     y: 0,
+  //     transition: { duration: 0.5 },
+  //   },
+  // };
 
   return (
     <footer className="relative pt-10 pb-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 via-blue-200 to-blue-50 overflow-hidden">

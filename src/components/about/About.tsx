@@ -3,10 +3,11 @@
 import { FC } from "react";
 import { motion, Variants, useScroll, useTransform } from "framer-motion";
 import { Users, Target, Eye, Award, Sparkles, TrendingUp, Heart, Lightbulb, Star, Linkedin, Github, Mail } from "lucide-react";
+import Image from "next/image";
 
 const team = [
     {
-        name: "Md. Sadiqul Islam Shakib",
+        name: "Sadiqul Islam Shakib",
         role: "Next.js Full‑Stack Developer",
         shortRole: "Frontend, API design, cloud deployment",
         description: "Full‑stack engineer building scalable, maintainable web applications with a focus on fast, accessible UIs and robust backend integrations. Currently a CSE student at North East University Bangladesh, Batch: Summer 2022.",
@@ -14,11 +15,11 @@ const team = [
         achievements: ["Delivered 10+ end‑to‑end web platforms", "Led production launches and CI/CD pipelines"],
         location: "Sylhet, Bangladesh",
         color: "from-indigo-500 to-purple-500",
-        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+        image: "/images/shakib.jpg",
         socials: {
-            linkedin: "https://linkedin.com/in/shakib",
-            github: "https://github.com/shakib",
-            email: "shakib@nextlearn.com"
+            linkedin: "https://www.linkedin.com/in/sadiqul-islam-shakib",
+            github: "https://github.com/ByteCrister",
+            email: "sadiqul.islam.shakib21@gamil.com"
         }
     },
     {
@@ -43,6 +44,7 @@ const team = [
 interface Value {
     title: string;
     description: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     icon: any;
     gradient: string;
 }
@@ -184,7 +186,7 @@ const About: FC = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
                     >
-                        We're on a mission to democratize learning through
+                        We&apos;re on a mission to democratize learning through
                         <span className="font-semibold text-blue-600 dark:text-blue-400"> innovative technology </span>
                         and create a future where education knows no boundaries.
                     </motion.p>
@@ -223,12 +225,20 @@ const About: FC = () => {
 
                                 {/* Photo Header */}
                                 <div className="relative h-90 overflow-hidden">
+                                    {/* Gradient Overlay */}
                                     <div className={`absolute inset-0 bg-gradient-to-br ${member.color} opacity-90`}></div>
-                                    <img
+
+                                    {/* Background Image */}
+                                    <Image
                                         src={member.image}
                                         alt={member.name}
-                                        className="w-full h-full object-cover mix-blend-overlay opacity-80 group-hover:scale-110 transition-transform duration-700"
+                                        fill
+                                        className="object-cover mix-blend-overlay opacity-80 group-hover:scale-110 transition-transform duration-700"
+                                        style={{ objectFit: 'cover' }} // optional but recommended
+                                        priority={true} // optional: if you want this image to load eagerly
                                     />
+
+                                    {/* Gradient Overlay on top */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-800 via-transparent to-transparent"></div>
 
                                     {/* Social Media Links - Top Right */}
@@ -270,10 +280,12 @@ const About: FC = () => {
                                     <div className="absolute -bottom-16 left-10">
                                         <div className="relative">
                                             <div className={`absolute inset-0 bg-gradient-to-br ${member.color} rounded-3xl blur-xl opacity-60`}></div>
-                                            <img
+                                            <Image
                                                 src={member.image}
                                                 alt={member.name}
-                                                className="relative w-32 h-32 rounded-3xl object-cover border-4 border-white dark:border-gray-800 shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                                                width={128} // 32rem = 128px
+                                                height={128}
+                                                className="relative rounded-3xl object-cover border-4 border-white dark:border-gray-800 shadow-2xl group-hover:scale-105 transition-transform duration-500"
                                             />
                                         </div>
                                     </div>

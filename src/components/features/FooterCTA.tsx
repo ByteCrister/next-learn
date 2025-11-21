@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Rocket, ArrowRight, CheckCircle2 } from "lucide-react";
@@ -110,7 +112,7 @@ export default function FooterCTA() {
                 {/* Bottom text */}
                 <motion.div {...fadeUp} className="text-center pt-4">
                     <p className="text-sm text-gray-600">
-                        <span className="font-semibold text-purple-600">No credit card required.</span> Start free, upgrade when you're ready.
+                        <span className="font-semibold text-purple-600">No credit card required.</span> Start free, upgrade when you&apos;re ready.
                     </p>
                 </motion.div>
             </div>
