@@ -1,5 +1,4 @@
 "use client";
-
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { TrendingUp, BarChart3 } from "lucide-react";

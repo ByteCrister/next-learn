@@ -1,5 +1,4 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Rocket, ArrowRight, CheckCircle2 } from "lucide-react";

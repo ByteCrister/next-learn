@@ -1,5 +1,4 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { Accordion } from "@/components/ui/accordion";
 import { BookOpen, Pen, Palette, RotateCcw, Target, Calendar, Sparkles, Image, Link, Code, Bookmark, Folder, Shield, User, Map, FileText } from "lucide-react";
