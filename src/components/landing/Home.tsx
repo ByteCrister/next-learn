@@ -1,5 +1,4 @@
 import CTASection from "./CTASection"
-import DemoSection from "./DemoSection"
 import FeaturesSection from "./FeaturesSection"
 import HeroSection from "./HeroSection"
 import HowItWorksSection from "./HowItWorksSection"
@@ -12,7 +11,6 @@ const Home = () => {
             <FeaturesSection />
             <HowItWorksSection />
             <ValuePropositionSection />
-            <DemoSection />
             <CTASection />
         </div>
     )
