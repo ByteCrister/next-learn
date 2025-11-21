@@ -1,3 +1,5 @@
+"use client";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Clock, FileText, Zap, PenTool } from "lucide-react";

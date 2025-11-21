@@ -1,3 +1,5 @@
+"use client";
+
 import { AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";

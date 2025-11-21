@@ -37,20 +37,6 @@ function getValueByKey(event: VEvent, key: SortKey) {
 }
 
 
-function formatDateTime(date: Date | undefined): string {
-  if (!date || isNaN(date.getTime())) return '—';
-  const options: Intl.DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  };
-  return date.toLocaleString('en-US', options);
-}
-
-
 export default function Events() {
   const { events, fetching, fetchEvents } = useEventsStore();
   const { setBreadcrumbs } = useBreadcrumbStore();
@@ -72,6 +58,7 @@ export default function Events() {
       { label: 'Home', href: '/' },
       { label: 'Events', href: '/events' },
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredEvents = useMemo(() => {

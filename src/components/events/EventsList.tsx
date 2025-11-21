@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Eye, Edit } from 'lucide-react';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
@@ -26,6 +28,7 @@ const itemVariants = {
     },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const statusConfig: Record<VEvent['eventStatus'], any> = {
     upcoming: {
         badge: "bg-blue-100/20 text-blue-600 border border-blue-300/30 backdrop-blur-sm",

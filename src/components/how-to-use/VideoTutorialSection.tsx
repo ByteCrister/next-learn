@@ -1,7 +1,7 @@
 'use client'
 
 import { Variants, motion } from "framer-motion";
-import { Award, PlayCircle, Check, Clock, Film, Sparkles, Bell, Video, Zap, Users, ChevronRight, Monitor, Headphones } from "lucide-react";
+import { Award, PlayCircle, Clock, Film, Sparkles, Video} from "lucide-react";
 
 const fadeUp: Variants = {
     hidden: { opacity: 0, y: 60 },
@@ -177,7 +177,7 @@ export default function VideoTutorialSection() {
                             </div>
                             
                             <p className="text-xl text-gray-600 dark:text-gray-300 mb-4 max-w-3xl mx-auto leading-relaxed text-center">
-                                We're crafting an exclusive 15-minute comprehensive masterclass to help you unlock the full potential of our platform with expert guidance
+                                We&apos;re crafting an exclusive 15-minute comprehensive masterclass to help you unlock the full potential of our platform with expert guidance
                             </p>
 
                             {/* Video Preview Container */}

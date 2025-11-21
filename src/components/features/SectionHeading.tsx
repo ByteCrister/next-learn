@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { fadeUp } from "./motion-variants";
 import { ReactNode } from "react";

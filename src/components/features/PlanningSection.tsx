@@ -1,3 +1,5 @@
+"use client";
+
 import { fadeUp } from "./motion-variants";
 import SectionHeading from "./SectionHeading";
 import EnhancedCard from "./EnhancedCard";

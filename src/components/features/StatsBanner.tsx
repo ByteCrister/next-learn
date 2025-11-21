@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import { scaleIn } from "./motion-variants";
 import StatItem from "./StatItem";
