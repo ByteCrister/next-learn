@@ -1,7 +1,7 @@
 "use client";
 import { motion, useMotionValue, useTransform, Variants } from "framer-motion";
 import { Sparkles, Zap, Accessibility, Smartphone, Palette, Star } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const staggerChildren: Variants = {
   animate: {
@@ -31,8 +31,29 @@ export default function HeroHeader() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const gradientX = useTransform(mouseX, [0, window.innerWidth], [-20, 20]);
-  const gradientY = useTransform(mouseY, [0, window.innerHeight], [-20, 20]);
+  const [screenSize, setScreenSize] = useState({ w: 0, h: 0 });
+
+  // Fix: window only inside useEffect
+  useEffect(() => {
+    setScreenSize({
+      w: window.innerWidth,
+      h: window.innerHeight,
+    });
+
+    const handleResize = () => {
+      setScreenSize({
+        w: window.innerWidth,
+        h: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Create transforms only when screen size is ready
+  const gradientX = useTransform(mouseX, [0, screenSize.w || 1], [-20, 20]);
+  const gradientY = useTransform(mouseY, [0, screenSize.h || 1], [-20, 20]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -42,8 +63,7 @@ export default function HeroHeader() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mouseX, mouseY]);
 
   return (
     <header

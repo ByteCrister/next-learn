@@ -5,8 +5,8 @@ import { Clock, FileText, Zap, PenTool } from "lucide-react";
 import { useState } from "react";
 import SectionHeading from "./SectionHeading";
 import AnalyticsCard from "./AnalyticsCard";
-import MetricCard from "./MetricCard";
 import HistoryTimeline from "./HistoryTimeline";
+import MetricCard from "./MetricCard";
 
 function ExamFeatureCard({ icon, title, desc, metric }: { icon: React.ReactNode; title: string; desc: string; metric: string }) {
   const [isHovered, setIsHovered] = useState(false);
