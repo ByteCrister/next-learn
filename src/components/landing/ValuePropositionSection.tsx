@@ -296,9 +296,9 @@ export default function ValuePropositionSection() {
             viewport={{ once: true }}
             transition={{ delay: 0.4 }}
           >
-            We're not just another learning platform.{" "}
+            We&apos;re not just another learning platform.{" "}
             <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              We're your personal learning companion.
+              We&apos;re your personal learning companion.
             </span>
           </motion.p>
         </motion.div>
@@ -349,10 +349,10 @@ export default function ValuePropositionSection() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.8 }}
               >
-                "Unlike traditional LMS, NextLearn isn't for admins or institutions.{" "}
+                &quot;Unlike traditional LMS, NextLearn isn&apos;t for admins or institutions.{" "}
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  It's built for you, the learner.
-                </span>"
+                  It&apos;s built for you, the learner.
+                </span>&quot;
               </motion.blockquote>
 
               {/* Subtext */}
