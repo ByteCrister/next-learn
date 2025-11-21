@@ -4,6 +4,8 @@ import Providers from "@/components/providers/Providers";
 import { Inter, Sora } from 'next/font/google'
 import "../lib/cron/scheduler";
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const sora = Sora({ subsets: ['latin'], variable: '--font-sora' })
 export const metadata: Metadata = {
   title: {
     default: "Next Learn - Study Planner & Roadmap Management",
@@ -50,8 +52,7 @@ export const metadata: Metadata = {
 };
 
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const sora = Sora({ subsets: ['latin'], variable: '--font-sora' })
+
 
 export default function RootLayout({
   children,
