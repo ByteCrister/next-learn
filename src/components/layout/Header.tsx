@@ -3,8 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaNeos } from "react-icons/fa"; // N Icon from react-icons
-import { Sparkles } from "lucide-react";
+import { SiNextdotjs } from "react-icons/si";
+
+import {
+  Sparkles,
+  LayoutDashboard,
+  LogIn,
+  Home as IconHome,
+  LayoutGrid as IconGrid,
+  Info as IconInfo,
+  BookOpen as IconBookOpen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import routeDashboard from "@/utils/helpers/routeDashboard";
@@ -32,10 +41,10 @@ export default function Header() {
   }, []);
 
   const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/features", label: "Features" },
-    { href: "/about", label: "About" },
-    { href: "/how-to-use", label: "How to Use" },
+    { href: "/", label: "Home", Icon: IconHome },
+    { href: "/features", label: "Features", Icon: IconGrid },
+    { href: "/about", label: "About", Icon: IconInfo },
+    { href: "/how-to-use", label: "How to Use", Icon: IconBookOpen },
   ];
 
   if (!isMounted) {
@@ -48,7 +57,7 @@ export default function Header() {
     if (user) {
       routeDashboard();
     } else {
-      router.push('/signin');
+      router.push("/signin");
     }
   };
 
@@ -59,62 +68,73 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div whileHover={{ rotate: 15 }} transition={{ duration: 0.3 }}>
-              <FaNeos className="h-7 w-7 text-indigo-600 dark:text-indigo-400 drop-shadow-md" />
+              <SiNextdotjs className="text-indigo-500 dark:text-indigo-400" size={40} />
             </motion.div>
             <span className="text-xl font-extrabold tracking-wide text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-              Next-Learn
+              NextLearn
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex space-x-8">
-            {navLinks.map((link) => (
+          <nav className="hidden md:flex space-x-6 items-center">
+            {navLinks.map(({ href, label, Icon }) => (
               <motion.div
-                key={link.label}
+                key={label}
                 className="relative"
                 whileHover="hover"
                 initial="rest"
                 animate="rest"
               >
                 <Link
-                  href={link.href}
-                  className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-300"
+                  href={href}
+                  className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-300 text-lg"
                 >
-                  {link.label}
+                  <Icon className="w-5 h-5 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium tracking-wide transition-colors duration-300" aria-hidden="true" />
+                  <span>{label}</span>
                 </Link>
                 <motion.span
                   className="absolute bottom-[-4px] left-0 h-[2px] bg-indigo-500 dark:bg-indigo-400 rounded"
                   variants={{
                     rest: { width: 0 },
-                    hover: { width: "100%", x: 0, backgroundColor: "#6366f1" }
+                    hover: { width: "100%", x: 0, backgroundColor: "#6366f1" },
                   }}
                   transition={{ duration: 0.35, ease: "easeInOut" }}
                 />
               </motion.div>
             ))}
-
           </nav>
 
           {/* CTA + Mobile Menu Toggle */}
           <div className="flex items-center gap-3">
-            <Button 
+            <Button
               onClick={handleClick}
-              className="hidden sm:inline-flex bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-sm text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="hidden sm:inline-flex bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-sm text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
             >
-              {user ? 'Dashboard' : 'Sign In'} 
+              {user ? (
+                <>
+                  <LayoutDashboard className="w-5 h-5 opacity-95" />
+                  Dashboard
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-5 h-5  opacity-95" />
+                  Sign In
+                </>
+              )}
             </Button>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-300"
+              aria-label="Toggle menu"
             >
               {isMenuOpen ? (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               )}
@@ -134,23 +154,35 @@ export default function Header() {
             className="md:hidden border-t border-gray-200 dark:border-gray-700 overflow-hidden bg-white/80 dark:bg-black/70 backdrop-blur-lg"
           >
             <div className="px-4 py-3 space-y-2">
-              {navLinks.map((link) => (
-                <motion.div key={link.label} variants={itemVariants}>
+              {navLinks.map(({ href, label, Icon }) => (
+                <motion.div key={label} variants={itemVariants}>
                   <Link
-                    href={link.href}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300"
+                    href={href}
+                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300 gap-3"
                   >
-                    {link.label}
+                    <Icon className="w-5 h-5 text-gray-500 dark:text-gray-400" aria-hidden="true" />
+                    <span>{label}</span>
                   </Link>
                 </motion.div>
               ))}
-              
+
               <motion.div variants={itemVariants} className="pt-3 border-t border-gray-200 dark:border-gray-700">
                 <Button
                   onClick={handleClick}
                   className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  {user ? 'Dashboard' : 'Get Started'} <Sparkles className="ml-2 w-4 h-4 opacity-80" />
+                  {user ? (
+                    <>
+                      <LayoutDashboard className="ml-0 mr-2 w-4 h-4 opacity-90" />
+                      Dashboard
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4 mr-2 opacity-90" />
+                      Get Started
+                      <Sparkles className="ml-2 w-4 h-4 opacity-80" />
+                    </>
+                  )}
                 </Button>
               </motion.div>
             </div>
