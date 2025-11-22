@@ -3,16 +3,20 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'Features - Next-Learn Platform',
-    description: 'Discover powerful features of Next-Learn including interactive learning tools, personalized roadmaps, study materials, and collaborative learning experiences.',
-    keywords: 'learning features, educational tools, study platform, interactive learning, personalized education',
+    description:
+        'Discover powerful features of Next-Learn including interactive learning tools, personalized roadmaps, study materials, and collaborative learning experiences.',
+    keywords:
+        'learning features, educational tools, study platform, interactive learning, personalized education',
+
     openGraph: {
         title: 'Features - Next-Learn Platform',
-        description: 'Explore comprehensive learning features designed for modern education',
-        url: '/features',
+        description:
+            'Explore comprehensive learning features designed for modern education',
+        url: 'https://next-learn-nu-olive.vercel.app/features',
         siteName: 'Next-Learn',
         images: [
             {
-                url: '/og-features.jpg',
+                url: 'https://next-learn-nu-olive.vercel.app/og-features.jpg',
                 width: 1200,
                 height: 630,
                 alt: 'Next-Learn Features',
@@ -21,22 +25,22 @@ export const metadata: Metadata = {
         locale: 'en_US',
         type: 'website',
     },
+
     twitter: {
         card: 'summary_large_image',
         title: 'Features - Next-Learn Platform',
-        description: 'Discover powerful features of Next-Learn including interactive learning tools and personalized roadmaps',
-        images: ['/og-features.jpg'],
+        description:
+            'Discover powerful features of Next-Learn including interactive learning tools and personalized roadmaps',
+        images: ['https://next-learn-nu-olive.vercel.app/og-features.jpg'],
     },
+
     alternates: {
-        canonical: '/features',
+        canonical: 'https://next-learn-nu-olive.vercel.app/features',
     },
 };
 
-
 const page = () => {
-  return (
-    <Features />
-  )
-}
+    return <Features />;
+};
 
-export default page
+export default page;

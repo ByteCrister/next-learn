@@ -31,7 +31,6 @@ export const metadata: Metadata = {
   ],
   creator: "Next Learn",
 
-  /** IMPORTANT: FAVICON + PWA ICONS + MANIFEST */
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -56,7 +55,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Next Learn - Study Planner"
+        alt: "NextLearn - Study Planner"
       }
     ],
     locale: "en_US",
@@ -65,7 +64,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Next Learn - Study Planner",
+    title: "NextLearn - Study Planner",
     description: "A user-friendly study planner with organized roadmap management.",
     images: ["/og-image.jpg"]
   },
