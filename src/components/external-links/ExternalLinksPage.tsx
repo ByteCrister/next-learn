@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { LinkCategory } from "@/models/ExternalLink";
 import { ArrowLeft, Plus, Search, SortAsc, SortDesc, Grid3X3, List } from "lucide-react";
 import ExternalLinkList from "@/components/external-links/ExternalLinkList";
 import ExternalLinkForm from "@/components/external-links/ExternalLinkForm";
+import { useSubjectStore } from "@/store/useSubjectsStore";
+import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 export default function ExternalLinksPage({ subjectId }: { subjectId: string }) {
     const router = useRouter();
@@ -22,6 +25,30 @@ export default function ExternalLinksPage({ subjectId }: { subjectId: string }) 
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
     const [openForm, setOpenForm] = useState(false);
+
+     const {
+            selectedSubject,
+            fetchSubjectById
+        } = useSubjectStore();
+    
+        const { setBreadcrumbs } = useBreadcrumbStore();
+    
+        useEffect(() => {
+            fetchSubjectById(subjectId);
+            setBreadcrumbs([
+                { label: "Home", href: "/" },
+                { label: "Subjects", href: "/subjects" },
+                {
+                    label: `${selectedSubject?.title ?? "-"}`,
+                    href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}`,
+                },
+                {
+                    label: `External Links`,
+                    href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}/external-links`,
+                },
+            ]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [subjectId])
 
     const buttonVariants = {
         hover: { scale: 1.05 },

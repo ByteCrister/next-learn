@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Upload, BookOpen, Search, SortAsc, SortDesc, Grid3X3, List, Eye, Lock } from "lucide-react";
 import Link from "next/link";
@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import StudyMaterialUpload from "@/components/study-materials/StudyMaterialUpload";
 import StudyMaterialList from "@/components/study-materials/StudyMaterialList";
 import { FileType } from "@/types/types.studymaterials";
-import { decodeId } from "@/utils/helpers/IdConversion";
+import { decodeId, encodeId } from "@/utils/helpers/IdConversion";
+import { useSubjectStore } from "@/store/useSubjectsStore";
+import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 
 export default function StudyMaterialsPage({ subjectId }: { subjectId: string }) {
     const [searchTerm, setSearchTerm] = useState("");
@@ -20,6 +22,30 @@ export default function StudyMaterialsPage({ subjectId }: { subjectId: string })
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [fileTypeFilter, setFileTypeFilter] = useState<"all" | FileType>("all");
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
+    const {
+        selectedSubject,
+        fetchSubjectById
+    } = useSubjectStore();
+
+    const { setBreadcrumbs } = useBreadcrumbStore();
+
+    useEffect(() => {
+        fetchSubjectById(subjectId);
+        setBreadcrumbs([
+            { label: "Home", href: "/" },
+            { label: "Subjects", href: "/subjects" },
+            {
+                label: `${selectedSubject?.title ?? "-"}`,
+                href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}`,
+            },
+            {
+                label: `Study Materials`,
+                href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}/study-materials`,
+            },
+        ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subjectId])
 
     if (!subjectId || typeof subjectId !== "string") {
         return <div className="flex justify-center items-center h-screen text-gray-500">Invalid subject ID</div>;

@@ -11,6 +11,10 @@ import { NoteCard } from "./NoteCard";
 import { NoteEditor } from "./NoteEditor";
 import { NoteViewDialog } from "./NoteViewDialog";
 import { useNoteHandlers } from "@/hooks/useNoteHandlers";
+import { useEffect } from "react";
+import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
+import { useSubjectStore } from "@/store/useSubjectsStore";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 interface NoteListProps {
     subjectId: string;
@@ -37,6 +41,30 @@ export function NoteList({ subjectId }: NoteListProps) {
         handleCloseEditor,
         handleCloseView
     } = useNoteHandlers({ subjectId });
+
+    const {
+        selectedSubject,
+        fetchSubjectById
+    } = useSubjectStore();
+
+    const { setBreadcrumbs } = useBreadcrumbStore();
+
+    useEffect(() => {
+        fetchSubjectById(subjectId);
+        setBreadcrumbs([
+            { label: "Home", href: "/" },
+            { label: "Subjects", href: "/subjects" },
+            {
+                label: `${selectedSubject?.title ?? "-"}`,
+                href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}`,
+            },
+            {
+                label: `Notes`,
+                href: `/subjects/${encodeId(encodeURIComponent(selectedSubject?._id ?? ""))}/notes`,
+            },
+        ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subjectId])
 
     const containerVariants = {
         hidden: { opacity: 0 },
