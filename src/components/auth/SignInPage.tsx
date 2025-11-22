@@ -255,7 +255,7 @@ export default function SignInPage() {
                     </svg>
                   </span>
                 )}
-                <span>Sign or Create account</span>
+                <span>SignIn or Create new account</span>
               </Button>
             </motion.div>
 
