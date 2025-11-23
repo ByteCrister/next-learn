@@ -2,14 +2,14 @@ import About from '@/components/about/About';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'About Us - NextLearn Platform',
+    title: 'About - NextLearn Platform',
     description:
-        'Learn about Next-Learn mission, vision, and our commitment to making quality education accessible to everyone through innovative technology.',
+        'Learn about NextLearn mission, vision, and our commitment to making quality education accessible to everyone through innovative technology.',
     keywords:
-        'about next-learn, education mission, learning platform, educational technology, online learning',
+        'nextlearn, NextLearn, about nextlearn, education mission, learning platform, educational technology, online learning',
 
     openGraph: {
-        title: 'About Us - NextLearn Platform',
+        title: 'About - NextLearn Platform',
         description: 'Discover our mission to make quality education accessible to everyone',
         url: 'https://next-learn-nu-olive.vercel.app/about',
         siteName: 'NextLearn',

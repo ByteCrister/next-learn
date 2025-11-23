@@ -13,8 +13,12 @@ export const metadata: Metadata = {
     template: "%s | NextLearn"
   },
   description:
-    "A user-friendly study planner with organized roadmap management. Plan your learning journey effectively with Next Learn.",
+    "A user-friendly study planner with organized roadmap management. Plan your learning journey effectively with NextLearn.",
   keywords: [
+    "nextlearn",
+    "Nextlearn",
+    "NextLearn",
+    "next-learn",
     "study planner",
     "learning roadmap",
     "education",
@@ -46,10 +50,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://next-learn-nu-olive.vercel.app"),
 
   openGraph: {
-    title: "Next Learn - Study Planner & Roadmap Management",
+    title: "NextLearn - Study Planner & Roadmap Management",
     description: "A user-friendly study planner with organized roadmap management.",
     url: "https://next-learn-nu-olive.vercel.app",
-    siteName: "Next Learn",
+    siteName: "NextLearn",
     images: [
       {
         url: "/og-image.jpg",
