@@ -12,8 +12,7 @@ export const metadata: Metadata = {
     default: "NextLearn - Study Planner & Roadmap Management",
     template: "%s | NextLearn"
   },
-  description:
-    "A user-friendly study planner with organized roadmap management. Plan your learning journey effectively with NextLearn.",
+  description: "NextLearn is a full-stack educational management platform built with Next.js 15. It helps students and educators organize learning content, create hierarchical roadmaps, conduct assessments, build study schedules, and track academic progress efficiently.",
   keywords: [
     "nextlearn",
     "Nextlearn",
@@ -51,7 +50,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title: "NextLearn - Study Planner & Roadmap Management",
-    description: "A user-friendly study planner with organized roadmap management.",
+    description: "NextLearn is a full-stack educational management platform built with Next.js 15. It helps students and educators organize learning content, create hierarchical roadmaps, conduct assessments, build study schedules, and track academic progress efficiently.",
     url: "https://next-learn-nu-olive.vercel.app",
     siteName: "NextLearn",
     images: [
@@ -69,7 +68,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "NextLearn - Study Planner",
-    description: "A user-friendly study planner with organized roadmap management.",
+    description: "NextLearn is a full-stack educational platform for students and educators. Organize learning content, create roadmaps, schedule study routines, and track academic progress efficiently.",
     images: ["/og-image.jpg"]
   },
 
