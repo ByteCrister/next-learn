@@ -7,6 +7,7 @@ import { RoutineResponseDto } from '@/types/types.routine'
 import RoutineFormPage from '../routine-form/RoutineFormPage'
 import { useBreadcrumbStore } from '@/store/useBreadcrumbStore'
 import { encodeId } from '@/utils/helpers/IdConversion'
+import RoutineFormSkeleton from '../routine-form/RoutineFormSkeleton'
 
 export default function UpdateRoutinePage({ routineId }: { routineId: string }) {
 
@@ -40,7 +41,7 @@ export default function UpdateRoutinePage({ routineId }: { routineId: string }) 
         return () => {
             mounted = false
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [routineId])
 
     useEffect(() => {
@@ -60,7 +61,7 @@ export default function UpdateRoutinePage({ routineId }: { routineId: string }) 
     }
 
     if (loading) {
-        return <div className="p-6">Loading...</div>
+        return <RoutineFormSkeleton />
     }
 
     return (

@@ -38,27 +38,21 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
   const [description, setDescription] = useState('')
   const [days, setDays] = useState<DayRoutineDto[]>([])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const routeKey = useMemo(() => (editing ? `routine:${editing.id}` : 'routine:new'), [editing?.id])
+  // routeKey: compute directly
+  const routeKey = editing ? `routine:${editing.id}` : 'routine:new'
 
-  const { add: _noopAdd } = usePresets(routeKey) // we will call add below to seed
+  // use the full presets API so we can list existing items synchronously
+  const presetsApi = usePresets(routeKey)
   const seededRef = useRef<Record<string, boolean>>({})
-
-  useEffect(() => {
-    if (editing) {
-      setTitle(editing.title)
-      setDescription(editing.description ?? '')
-      setDays(editing.days ?? [])
-    } else {
-      setTitle('')
-      setDescription('')
-      setDays([])
-    }
-  }, [editing])
 
   useEffect(() => {
     if (!editing) return
     if (seededRef.current[routeKey]) return
+
+    // Prevent duplicating existing presets — read current store synchronously
+    const existingSubjects = new Set(presetsApi.listByKind('subject').map(p => p.label.toLowerCase()))
+    const existingTeachers = new Set(presetsApi.listByKind('teacher').map(p => p.label.toLowerCase()))
+    const existingRooms = new Set(presetsApi.listByKind('room').map(p => p.label.toLowerCase()))
 
     const subjects = new Set<string>()
     const teachers = new Set<string>()
@@ -72,12 +66,34 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
       }
     }
 
-    subjects.forEach((label) => _noopAdd('subject', label))
-    teachers.forEach((label) => _noopAdd('teacher', label))
-    rooms.forEach((label) => _noopAdd('room', label))
+    subjects.forEach((label) => {
+      const key = label.toLowerCase()
+      if (!existingSubjects.has(key)) presetsApi.add('subject', label)
+    })
+    teachers.forEach((label) => {
+      const key = label.toLowerCase()
+      if (!existingTeachers.has(key)) presetsApi.add('teacher', label)
+    })
+    rooms.forEach((label) => {
+      const key = label.toLowerCase()
+      if (!existingRooms.has(key)) presetsApi.add('room', label)
+    })
 
     seededRef.current[routeKey] = true
-  }, [editing, routeKey, _noopAdd])
+  }, [editing, routeKey, presetsApi])
+
+
+  useEffect(() => {
+    if (editing) {
+      setTitle(editing.title)
+      setDescription(editing.description ?? '')
+      setDays(editing.days ?? [])
+    } else {
+      setTitle('')
+      setDescription('')
+      setDays([])
+    }
+  }, [editing])
 
   const canSubmit = useMemo(() => title.trim().length > 0, [title])
 
@@ -102,7 +118,7 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
               {
                 startTime: '09:00',
                 endTime: '10:00',
-                subject: 'New Subject',
+                subject: '',
               } as SlotDto,
             ],
           }
@@ -164,11 +180,9 @@ export default function RoutineFormPage({ editing = null, onCancel, onSuccess }:
     }
     if (isEdit && editing) {
       await updateRoutine(editing.id, { title, description, days })
-      toast.success('Routine updated successfully!')
       onSuccess?.(undefined)
     } else {
       await createRoutine({ title, description, days })
-      toast.success('Routine created successfully!')
       onSuccess?.(undefined)
     }
   }
