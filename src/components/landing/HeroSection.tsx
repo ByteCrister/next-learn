@@ -6,6 +6,7 @@ import { motion, Variants } from "framer-motion";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { useRouter } from "next/navigation";
 import routeDashboard from "@/utils/helpers/routeDashboard";
+import Image from "next/image";
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -108,24 +109,31 @@ export default function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* Hero Image Placeholder */}
-          <motion.div
-            className="mt-16 relative"
-            variants={fadeUp}
-          >
+          {/* Hero Image */}
+          <motion.div className="mt-16 relative" variants={fadeUp}>
             <div className="relative mx-auto max-w-4xl">
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl blur-2xl opacity-20"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl blur-2xl opacity-20" />
+
               <motion.div
-                className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl"
+                className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-2xl"
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-lg flex items-center justify-center">
-                  <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p>
+                {/* Image Wrapper (aspect-video) */}
+                <div className="relative aspect-video rounded-lg overflow-hidden">
+                  <Image
+                    src="/images/dashboard.png"
+                    alt="Dashboard Preview"
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    priority
+                  />
                 </div>
               </motion.div>
             </div>
           </motion.div>
+
         </motion.div>
       </div>
     </section>
