@@ -24,6 +24,7 @@ import { useBreadcrumbStore } from "@/store/useBreadcrumbStore";
 import SubjectPageSkeleton from "./SubjectPageSkeleton";
 import ShareButton from "./ShareButton";
 import { encodeId } from "@/utils/helpers/IdConversion";
+import { useRouter } from "next/navigation";
 
 
 const SubjectPage = ({ subjectId }: { subjectId: string }) => {
@@ -43,6 +44,8 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
     const [viewMode, setViewMode] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const { setBreadcrumbs } = useBreadcrumbStore();
+
+    const router = useRouter();
 
     useEffect(() => {
         fetchSubjectById(subjectId);
@@ -91,12 +94,13 @@ const SubjectPage = ({ subjectId }: { subjectId: string }) => {
 
     const handleDeleteSubject = async () => {
         await removeSubject(subjectId);
+        router.push("/subjects")
         setShowDeleteModal(false);
     };
 
     const handleSaveContent = async () => {
         if (!selectedRoadmap?._id) return;
-        await updateRoadmapContent(selectedRoadmap._id, roadmapContent);
+        await updateRoadmapContent(selectedRoadmap?._id, roadmapContent);
     };
 
     if (loadingSelectedSubject) {

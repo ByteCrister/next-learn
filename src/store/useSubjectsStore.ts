@@ -180,10 +180,14 @@ export const useSubjectStore = create<SubjectStore>()(
                     return false;
                 }
                 set((state) => ({
-                    subjects: [data, ...state.subjects],
+                    subjects: [data.subject, ...state.subjects],
+                    subjectCache: {
+                        ...state.subjectCache,
+                        [data.subject._id]: { subject: data.subject, roadmap: data.roadmap },
+                    },
                     loadingSubCrud: false,
                 }));
-                return data._id;
+                return data.subject._id;
             } catch (err) {
                 set({ loadingSubCrud: false });
                 toast.error((err as Error).message);

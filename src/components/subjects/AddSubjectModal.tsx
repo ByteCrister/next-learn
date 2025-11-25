@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AiOutlinePlus } from "react-icons/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { encodeId } from "@/utils/helpers/IdConversion";
 
 export default function AddSubjectModal() {
   const { addSubject, loadingSubCrud } = useSubjectStore();
@@ -30,7 +31,7 @@ export default function AddSubjectModal() {
     if (newId) {
       setOpen(false);
       updateCounts('subjectsCount', '+');
-      router.push(`/subjects/${newId}`);
+      router.push(`/subjects/${encodeId(encodeURIComponent(newId))}`);
     }
   }
 

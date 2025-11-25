@@ -41,9 +41,9 @@ export async function getAllSubjects(
  */
 export async function createSubject(
     input: SubjectInput
-): Promise<Subject | { message: string }> {
+): Promise<{subject: Subject; roadmap: VCourseRoadmap} | { message: string }> {
     try {
-        const { data } = await api.post<Subject>(BASE_URL, input);
+        const { data } = await api.post<{subject: Subject; roadmap: VCourseRoadmap}>(BASE_URL, input);
         return data;
     } catch (err) {
         console.error("createSubject error:", err);
