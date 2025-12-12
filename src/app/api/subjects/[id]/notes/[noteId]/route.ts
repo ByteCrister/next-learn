@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/auth/authConfig";
 import connectDB from "@/config/ConnectDB";
 import { SubjectNote } from "@/models/SubjectNote";
 import { Subject } from "@/models/Subject";
 import { Types } from "mongoose";
+import { getUserIdFromSession } from "@/utils/helpers/session";
 
 export async function PUT(
     request: NextRequest,
@@ -15,14 +14,13 @@ export async function PUT(
         const subjectId = params.id;
         const noteId = params.noteId;
         console.log('Received subjectId in PUT: ', subjectId, 'noteId: ', noteId);
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         await connectDB();
 
-        const userId = new Types.ObjectId(session.user.id);
         if (!Types.ObjectId.isValid(subjectId) || !Types.ObjectId.isValid(noteId)) {
             return NextResponse.json({ message: "Invalid subject ID or note ID" }, { status: 400 });
         }
@@ -68,14 +66,13 @@ export async function DELETE(
         const subjectId = params.id;
         const noteId = params.noteId;
         console.log('Received subjectId in DELETE: ', subjectId, 'noteId: ', noteId);
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         await connectDB();
 
-        const userId = new Types.ObjectId(session.user.id);
         if (!Types.ObjectId.isValid(subjectId) || !Types.ObjectId.isValid(noteId)) {
             return NextResponse.json({ message: "Invalid subject ID or note ID" }, { status: 400 });
         }

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/auth/authConfig";
 import connectDB from "@/config/ConnectDB";
 import { SubjectNote } from "@/models/SubjectNote";
 import { Subject } from "@/models/Subject";
 import  { Types } from "mongoose";
+import { getUserIdFromSession } from "@/utils/helpers/session";
 
 export async function GET(
     request: NextRequest,
@@ -14,14 +13,13 @@ export async function GET(
         const params = await context.params;
         const subjectId = params.id;
         console.log('Received subjectId in GET: ', subjectId, 'length: ', subjectId.length, 'isValid: ', Types.ObjectId.isValid(subjectId));
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         await connectDB();
 
-        const userId = new Types.ObjectId(session.user.id);
         if (!Types.ObjectId.isValid(subjectId)) {
             console.log('Invalid subjectId validation failed for: ', subjectId);
             return NextResponse.json({ message: "Invalid subject ID" }, { status: 400 });
@@ -72,14 +70,13 @@ export async function POST(
         const params = await context.params;
         const subjectId = params.id;
         console.log('Received subjectId in POST: ', subjectId, 'length: ', subjectId.length, 'isValid: ', Types.ObjectId.isValid(subjectId));
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) {
+        const userId = await getUserIdFromSession();
+        if (!userId) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         await connectDB();
 
-        const userId = new Types.ObjectId(session.user.id);
         if (!Types.ObjectId.isValid(subjectId)) {
             console.log('Invalid subjectId validation failed for: ', subjectId);
             return NextResponse.json({ message: "Invalid subject ID" }, { status: 400 });
