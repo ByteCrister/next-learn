@@ -34,8 +34,6 @@ export const authConfig: NextAuthConfig = {
         await ConnectDB();
         const user = await DBUser.findOne({ email });
 
-        console.log("Signing in user:", JSON.stringify(user, null, 2));
-
         if (!user) {
           throw new Error("UserNotFound");
         }
@@ -81,7 +79,6 @@ export const authConfig: NextAuthConfig = {
         await ConnectDB();
 
         let existing = await DBUser.findOne({ email: user.email });
-        console.log("User:", existing?.email);
 
         if (!existing) {
           existing = await DBUser.create({
