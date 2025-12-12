@@ -34,7 +34,7 @@ export const authConfig: NextAuthConfig = {
         await ConnectDB();
         const user = await DBUser.findOne({ email });
 
-        console.log("Signing in user:", email);
+        console.log("Signing in user:", user?.email);
 
         if (!user) {
           throw new Error("UserNotFound");
