@@ -77,7 +77,9 @@ export default function SignInPage() {
       }
     } else {
       toast.success("Welcome back!");
-      window.location.href = res?.url ?? "/dashboard";
+      setTimeout(()=>{
+        window.location.href = res?.url ?? "/dashboard";
+      }, 1500)
     }
   };
 
