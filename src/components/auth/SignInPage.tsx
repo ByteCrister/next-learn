@@ -28,13 +28,14 @@ import {
   SignInFormValues,
   signInValidationSchema,
 } from "@/utils/auth/SignInValidation";
+import api from "@/utils/api/api.client";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "700"] })
 export const errorMessages: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
   MissingCredentials: "Please provide both email and password.",
   UserNotFound: "No user found with this email.",
   PasswordMismatch: "Password does not match.",
-  NoPasswordSet: "This account cannot sign in with password.",
+  NoPasswordSet: "Reset your password then try to sing-in.",
   OAuthSignin: "Error in OAuth sign in.",
   default: "Something went wrong. Please try again.",
 };
@@ -57,29 +58,21 @@ export default function SignInPage() {
   ) => {
     formikHelpers.setSubmitting(true);
 
-    const res = await signIn("credentials", {
+    const res = await api.post("/auth/signin-custom", {
       email: values.email,
       password: values.password,
-      remember: values.remember,
-      callbackUrl: "/dashboard",
-      redirect: false,
     });
 
-    formikHelpers.setSubmitting(false);
-
-    if (res?.error) {
-      // This is always "CredentialsSignin" for any error from authorize
-      // Instead, inspect values and show proper toast
-      if (values.email && values.password) {
-        toast.warning("Password does not match.");
-      } else {
-        toast.warning("Please provide email and password.");
-      }
+    if (!res.data.ok) {
+      toast.error(errorMessages[res.data.error] ?? errorMessages.default);
     } else {
-      toast.success("Welcome back!");
-      setTimeout(()=>{
-        window.location.href = res?.url ?? "/dashboard";
-      }, 1500)
+      await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        remember: values.remember,
+        redirect: true,
+        callbackUrl: "/dashboard",
+      });
     }
   };
 
