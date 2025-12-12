@@ -31,6 +31,10 @@ import {
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "700"] })
 export const errorMessages: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
+  MissingCredentials: "Please provide both email and password.",
+  UserNotFound: "No user found with this email.",
+  PasswordMismatch: "Password does not match.",
+  NoPasswordSet: "This account cannot sign in with password.",
   OAuthSignin: "Error in OAuth sign in.",
   default: "Something went wrong. Please try again.",
 };
@@ -64,8 +68,13 @@ export default function SignInPage() {
     formikHelpers.setSubmitting(false);
 
     if (res?.error) {
-      const msg = res.error ?? errorMessages[res.error] ?? errorMessages.default;
-      toast.warning(msg);
+      // This is always "CredentialsSignin" for any error from authorize
+      // Instead, inspect values and show proper toast
+      if (values.email && values.password) {
+        toast.warning("Password does not match.");
+      } else {
+        toast.warning("Please provide email and password.");
+      }
     } else {
       toast.success("Welcome back!");
       window.location.href = res?.url ?? "/dashboard";
@@ -74,14 +83,8 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const res = await signIn("google", { redirect: false, callbackUrl: "/dashboard", });
-    if (res?.error) {
-      toast.error(`Sign-in failed: ${res.error}`);
-    }
+    await signIn("google", { callbackUrl: "/dashboard", });
     setIsGoogleLoading(false);
-    if (res?.ok) {
-      window.location.href = "/dashboard";
-    }
   };
 
   return (
