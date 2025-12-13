@@ -30,6 +30,13 @@ export async function GET(
         await ConnectDB();
         const { examId } = (context as ContextType).params;;
         const userId = await getUserIdFromSession();
+
+        if (!userId) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
         const exam = await ensureOwner(examId, userId);
 
         // Include `answers` in the projection
@@ -60,7 +67,9 @@ export async function PATCH(
 ) {
     try {
         await ConnectDB();
+
         const userId = await getUserIdFromSession();
+        
         const updates = await req.json();
         const { examId } = (context as ContextType).params;
 
@@ -87,7 +96,15 @@ export async function DELETE(
 ) {
     try {
         await ConnectDB();
+
         const userId = await getUserIdFromSession();
+
+        if (!userId) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
         const deleted = await ExamModel.findOneAndDelete({
             _id: (context as ContextType).params.examId,
             createdBy: userId,

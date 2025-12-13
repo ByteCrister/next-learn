@@ -83,6 +83,13 @@ export async function POST(req: NextRequest) {
   try {
     await ConnectDB();
     const userId = await getUserIdFromSession();
+    
+    if (!userId) {
+      return NextResponse.json(
+          { message: "Unauthorized" },
+          { status: 401 }
+      );
+  }
     const data = await req.json();
 
     const newExam = new ExamModel({

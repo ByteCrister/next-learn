@@ -29,6 +29,7 @@ export async function GET(
         const { id } = (context as ContextType).params;
         const sId = decodeURIComponent(id);
         const userId = await getUserIdFromSession();
+
         if (!userId) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
@@ -97,12 +98,20 @@ export async function PATCH(
     request: NextRequest,
     context: unknown
 ) {
-    const { id } = (context as ContextType).params;
-    const userId = await getUserIdFromSession();
 
     try {
-        const updates = await request.json();
         await ConnectDB();
+
+        const updates = await request.json();
+        const { id } = (context as ContextType).params;
+        const userId = await getUserIdFromSession();
+
+        if (!userId) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
 
         const subject = await Subject.findOneAndUpdate(
             { _id: id, userId },
@@ -127,12 +136,19 @@ export async function DELETE(
     request: NextRequest,
     context: unknown
 ) {
-    const userId = await getUserIdFromSession();
-    const { id } = (context as ContextType).params;
-
+    
     try {
         await ConnectDB();
 
+        const userId = await getUserIdFromSession();
+        const { id } = (context as ContextType).params;
+
+        if (!userId) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
         // Delete only if the subject belongs to this user
         const deleted = await Subject.findOneAndDelete({
             _id: id,

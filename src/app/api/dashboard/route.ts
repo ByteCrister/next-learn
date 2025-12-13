@@ -23,12 +23,19 @@ function errorResponse(
 
 export async function GET() {
     try {
+        await ConnectDB();
+
         const userId = await getUserIdFromSession();
 
+        if (!userId) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
         if (!isValidObjectId(userId)) {
             return errorResponse("Invalid user ID", 400);
         }
-        await ConnectDB();
         const objectUserId = new Types.ObjectId(userId);
         // fetch counts + next 5 events as plain objects
         const [subjectsCount, routineCount, examCount, eventsDocs] =
