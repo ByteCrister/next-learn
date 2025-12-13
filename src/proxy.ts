@@ -19,6 +19,7 @@ const PUBLIC_APIS = [
   /^\/api\/results\/view-result$/, /^\/api\/exams\/.+/,
   /^\/api\/view\/notes$/, /^\/api\/view\/study-materials$/,
   /^\/api\/view\/study-material$/, /^\/api\/view\/external-link$/,
+  /^\/api\/user/,
 ];
 
 const isPublicFile = (pathname: string) =>
