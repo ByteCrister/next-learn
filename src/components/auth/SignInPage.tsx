@@ -86,14 +86,16 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const res = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
-    if (res?.error) {
-      toast.error(errorMessages[res.error] ?? errorMessages.default);
-    } else if (res?.ok) {
-      // Manually redirect after successful sign-in
-      window.location.href = "/dashboard";
+    const result = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
+    if (result?.error) {
+      toast.error(errorMessages[result.error] ?? errorMessages.default);
+      setIsGoogleLoading(false);
+    } else if (result?.url) {
+      window.location.href = result.url;
+    } else {
+      // This should not happen, but if it does, stop loading.
+      setIsGoogleLoading(false);
     }
-    setIsGoogleLoading(false);
   };
 
   return (

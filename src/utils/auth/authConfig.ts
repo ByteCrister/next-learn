@@ -125,14 +125,26 @@ export const authConfig: NextAuthConfig = {
 
       return session;
     },
+    
+    async redirect({ url, baseUrl }) {
+      // Ensure we always redirect to the correct base URL
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      } else if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      return baseUrl;
+    },
   },
 
   pages: {
     signIn: "/signin",
+    error: "/signin",
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 
+  debug: process.env.NODE_ENV === "development",
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
