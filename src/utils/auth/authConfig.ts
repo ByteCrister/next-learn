@@ -12,6 +12,7 @@ export const ONE_DAY = 60 * 60 * 24;
 export const ONE_MONTH = ONE_DAY * 30;
 
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   providers: [
     Credentials({
       name: "Credentials",
@@ -97,20 +98,15 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
 
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id as string;
-        token.remember = (user as any).remember ?? false;
+        token.id = user.id;
+        token.remember = user.remember ?? false;
+
+        token.exp =
+          Math.floor(Date.now() / 1000) +
+          (token.remember ? ONE_MONTH : ONE_DAY);
       }
-
-      if (trigger === "update" && session?.remember !== undefined) {
-        token.remember = session.remember;
-      }
-
-      token.exp =
-        Math.floor(Date.now() / 1000) +
-        (token.remember ? ONE_MONTH : ONE_DAY);
-
       return token;
     },
 
@@ -133,7 +129,7 @@ export const authConfig: NextAuthConfig = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  
+
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
