@@ -49,15 +49,15 @@ export async function proxy(req: NextRequest) {
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
-    cookieName: 
-    process.env.NODE_ENV === 'production' 
-      ? '__Secure-next-auth.session-token'
-      : 'next-auth.session-token'
+    cookieName:
+      process.env.NODE_ENV === 'production'
+        ? '__Secure-authjs.session-token'
+        : 'authjs.session-token'
   });
 
   console.log("Token in middleware:", token);
   console.log("Cookies:", req.cookies.getAll());
-  
+
   // Restrict admin route
   if (pathname.startsWith("/api/make-admin")) {
     if (!token || token.role !== "admin") {
