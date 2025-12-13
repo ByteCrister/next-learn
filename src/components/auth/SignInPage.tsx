@@ -52,6 +52,7 @@ export default function SignInPage() {
     }
   }, [oauthError]);
 
+  // In your sign-in page
   const handleSubmit = async (
     values: SignInFormValues,
     formikHelpers: FormikHelpers<SignInFormValues>
@@ -66,13 +67,20 @@ export default function SignInPage() {
     if (!res.data.ok) {
       toast.error(errorMessages[res.data.error] ?? errorMessages.default);
     } else {
-      await signIn("credentials", {
+      // Don't redirect immediately - let the signIn handle it
+      const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
         remember: values.remember,
-        redirect: true,
-        callbackUrl: "/dashboard",
+        redirect: false, // Don't redirect automatically
       });
+
+      if (result?.error) {
+        toast.error(errorMessages[result.error] ?? errorMessages.default);
+      } else if (result?.ok) {
+        // Manually redirect after successful sign-in
+        window.location.href = "/dashboard";
+      }
     }
   };
 
