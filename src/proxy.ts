@@ -51,6 +51,8 @@ export async function proxy(req: NextRequest) {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+  console.log("Token in middleware:", token);
+
   // Restrict admin route
   if (pathname.startsWith("/api/make-admin")) {
     if (!token || token.role !== "admin") {

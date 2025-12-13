@@ -78,7 +78,7 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard", });
+    await signIn("google", { callbackUrl: "/dashboard", redirect: true });
     setIsGoogleLoading(false);
   };
 
