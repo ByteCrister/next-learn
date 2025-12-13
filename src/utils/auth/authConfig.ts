@@ -132,15 +132,15 @@ export const authConfig: NextAuthConfig = {
 
   cookies: {
     sessionToken: {
-      name: "__Secure-next-auth.session-token",
+      name: "next-auth.session-token", // no __Secure- prefix
       options: {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production", // still secure for client
         sameSite: "lax",
         path: "/",
       },
     },
-  },
+  },  
 
 };
 
