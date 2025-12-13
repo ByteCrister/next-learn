@@ -98,15 +98,18 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.remember = user.remember ?? false;
-
-        token.exp =
-          Math.floor(Date.now() / 1000) +
-          (token.remember ? ONE_MONTH : ONE_DAY);
+        token.exp = Math.floor(Date.now() / 1000) + (token.remember ? ONE_MONTH : ONE_DAY);
       }
+
+      // Handle session updates if needed
+      if (trigger === "update" && session) {
+        return { ...token, ...session };
+      }
+
       return token;
     },
 
@@ -129,18 +132,6 @@ export const authConfig: NextAuthConfig = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token", // no __Secure- prefix
-      options: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production", // still secure for client
-        sameSite: "lax",
-        path: "/",
-      },
-    },
-  },  
 
 };
 
